@@ -122,9 +122,7 @@ export function IndicatorReportTable({ indicators }: IndicatorReportTableProps) 
     []
   )
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({
-      notes: false,
-    })
+    React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
   const [date, setDate] = React.useState<DateRange | undefined>()
 

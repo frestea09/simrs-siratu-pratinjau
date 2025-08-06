@@ -15,7 +15,7 @@ import {
   useReactTable,
   FilterFn,
 } from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown, MoreHorizontal, Calendar as CalendarIcon, Eye } from "lucide-react"
+import { ArrowUpDown, ChevronDown, MoreHorizontal, Calendar as CalendarIcon, Eye, Pencil } from "lucide-react"
 import { DateRange } from "react-day-picker"
 import { format } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
@@ -37,6 +37,8 @@ import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { Badge } from "../ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../ui/dialog"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu"
+import { IndicatorInputDialog } from "./indicator-input-dialog"
 
 const dateRangeFilter: FilterFn<Indicator> = (row, columnId, value, addMeta) => {
     const rowDate = new Date(row.original.period);
@@ -171,17 +173,36 @@ export function IndicatorReportTable({ indicators }: IndicatorReportTableProps) 
     },
     {
         id: "actions",
-        header: () => <div className="text-center">Detail</div>,
+        header: () => <div className="text-center">Aksi</div>,
         cell: ({ row }) => {
             const indicator = row.original
             return (
-                <div className="text-center">
-                    <Button variant="ghost" size="icon" onClick={() => {
-                        setSelectedIndicator(indicator);
-                        setIsDetailOpen(true);
-                    }}>
-                        <Eye className="h-4 w-4" />
-                    </Button>
+                 <div className="text-center">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Buka menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                             <DropdownMenuItem onClick={() => {
+                                setSelectedIndicator(indicator);
+                                setIsDetailOpen(true);
+                            }}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                Lihat Detail
+                            </DropdownMenuItem>
+                             <DropdownMenuItem asChild>
+                                 <IndicatorInputDialog indicatorToEdit={indicator} trigger={
+                                     <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full">
+                                         <Pencil className="mr-2 h-4 w-4" />
+                                         <span>Edit</span>
+                                     </button>
+                                 } />
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             )
         },
@@ -350,5 +371,3 @@ export function IndicatorReportTable({ indicators }: IndicatorReportTableProps) 
     </div>
   )
 }
-
-    

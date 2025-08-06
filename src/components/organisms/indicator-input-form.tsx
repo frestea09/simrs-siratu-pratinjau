@@ -11,25 +11,40 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils"
 import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
-import { useIndicatorStore } from "@/store/indicator-store"
+import { useIndicatorStore, Indicator } from "@/store/indicator-store"
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "../ui/textarea"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
+import { DialogFooter } from "../ui/dialog"
 
 type IndicatorInputFormProps = {
-    setAccordionValue: (value: string) => void;
+    setOpen: (open: boolean) => void;
+    indicatorToEdit?: Indicator;
 }
 
-export function IndicatorInputForm({ setAccordionValue }: IndicatorInputFormProps) {
+export function IndicatorInputForm({ setOpen, indicatorToEdit }: IndicatorInputFormProps) {
   const { toast } = useToast()
-  const { addIndicator, submittedIndicators } = useIndicatorStore()
+  const { addIndicator, updateIndicator, submittedIndicators } = useIndicatorStore()
 
-  const [selectedIndicator, setSelectedIndicator] = React.useState("")
-  const [date, setDate] = React.useState<Date>()
-  const [numerator, setNumerator] = React.useState("")
-  const [denominator, setDenominator] = React.useState("")
-  const [standard, setStandard] = React.useState("")
-  const [notes, setNotes] = React.useState("")
+  const isEditMode = !!indicatorToEdit;
+  
+  const [selectedIndicator, setSelectedIndicator] = React.useState(indicatorToEdit?.indicator || "")
+  const [date, setDate] = React.useState<Date | undefined>(indicatorToEdit ? new Date(indicatorToEdit.period) : undefined)
+  const [numerator, setNumerator] = React.useState(indicatorToEdit?.numerator.toString() || "")
+  const [denominator, setDenominator] = React.useState(indicatorToEdit?.denominator.toString() || "")
+  const [standard, setStandard] = React.useState(indicatorToEdit?.standard.toString() || "")
+  const [notes, setNotes] = React.useState(indicatorToEdit?.notes || "")
+
+  React.useEffect(() => {
+    if (indicatorToEdit) {
+        setSelectedIndicator(indicatorToEdit.indicator);
+        setDate(new Date(indicatorToEdit.period));
+        setNumerator(indicatorToEdit.numerator.toString());
+        setDenominator(indicatorToEdit.denominator.toString());
+        setStandard(indicatorToEdit.standard.toString());
+        setNotes(indicatorToEdit.notes || "");
+    }
+  }, [indicatorToEdit])
+
 
   const verifiedIndicators = submittedIndicators.filter(
     (indicator) => indicator.status === 'Diverifikasi'
@@ -45,28 +60,37 @@ export function IndicatorInputForm({ setAccordionValue }: IndicatorInputFormProp
         return
     }
 
-    addIndicator({
+    const dataToSave = {
         indicator: selectedIndicator,
         period: format(date, "yyyy-MM"),
         numerator: Number(numerator),
         denominator: Number(denominator),
         standard: Number(standard),
         notes: notes,
-    })
+    };
 
-    toast({
-        title: "Data Berhasil Disimpan",
-        description: `Capaian untuk ${selectedIndicator} periode ${format(date, "MMMM yyyy")} telah ditambahkan.`,
-    })
+    if (isEditMode && indicatorToEdit) {
+        updateIndicator(indicatorToEdit.id, dataToSave);
+        toast({
+            title: "Data Berhasil Diperbarui",
+            description: `Capaian untuk ${selectedIndicator} periode ${format(date, "MMMM yyyy")} telah diperbarui.`,
+        })
+    } else {
+         addIndicator(dataToSave)
+        toast({
+            title: "Data Berhasil Disimpan",
+            description: `Capaian untuk ${selectedIndicator} periode ${format(date, "MMMM yyyy")} telah ditambahkan.`,
+        })
+    }
 
-    // Reset form and close accordion
+    // Reset form and close dialog
     setSelectedIndicator("")
     setDate(undefined)
     setNumerator("")
     setDenominator("")
     setStandard("")
     setNotes("")
-    setAccordionValue("")
+    setOpen(false);
   }
 
   const isTimeBased = selectedIndicator === "Waktu Tunggu Rawat Jalan";
@@ -76,7 +100,7 @@ export function IndicatorInputForm({ setAccordionValue }: IndicatorInputFormProp
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="indicator" className="text-base">Nama Indikator</Label>
-          <Select value={selectedIndicator} onValueChange={setSelectedIndicator}>
+          <Select value={selectedIndicator} onValueChange={setSelectedIndicator} disabled={isEditMode}>
             <SelectTrigger className="text-base h-11">
               <SelectValue placeholder="Pilih indikator yang terverifikasi" />
             </SelectTrigger>
@@ -125,10 +149,9 @@ export function IndicatorInputForm({ setAccordionValue }: IndicatorInputFormProp
                 <Input 
                     id="denominator" 
                     type="number" 
-                    placeholder={isTimeBased ? "Jumlah pasien (otomatis 1)" : "Total kasus"}
+                    placeholder={isTimeBased ? "Total pasien" : "Total kasus"}
                     value={denominator}
                     onChange={(e) => setDenominator(e.target.value)}
-                    disabled={isTimeBased}
                     className="text-base h-11"
                 />
             </div>
@@ -158,9 +181,9 @@ export function IndicatorInputForm({ setAccordionValue }: IndicatorInputFormProp
         </div>
       </div>
 
-      <div>
-        <Button onClick={handleSubmit} size="lg" className="text-base">Simpan Data Capaian</Button>
-      </div>
+      <DialogFooter className="pt-4">
+        <Button onClick={handleSubmit} size="lg" className="text-base">{isEditMode ? 'Simpan Perubahan' : 'Simpan Data Capaian'}</Button>
+      </DialogFooter>
     </div>
   )
 }

@@ -1,3 +1,4 @@
+
 import { create } from 'zustand'
 
 export type SubmittedIndicator = {
@@ -10,6 +11,7 @@ export type SubmittedIndicator = {
 }
 
 export type Indicator = {
+  id: string;
   indicator: string
   period: string
   numerator: number
@@ -23,7 +25,8 @@ export type Indicator = {
 type IndicatorState = {
   indicators: Indicator[]
   submittedIndicators: SubmittedIndicator[]
-  addIndicator: (indicator: Omit<Indicator, 'ratio' | 'status'>) => void
+  addIndicator: (indicator: Omit<Indicator, 'id' |'ratio' | 'status'>) => void
+  updateIndicator: (id: string, data: Omit<Indicator, 'id' |'ratio' | 'status'>) => void
   submitIndicator: (indicator: Omit<SubmittedIndicator, 'id' | 'status' | 'submissionDate'>) => void
   updateSubmittedIndicatorStatus: (id: string, status: SubmittedIndicator['status']) => void
   updateSubmittedIndicator: (id: string, data: Partial<Omit<SubmittedIndicator, 'id' | 'status' | 'submissionDate'>>) => void
@@ -33,7 +36,7 @@ const initialSubmittedIndicators: SubmittedIndicator[] = [];
 
 const initialIndicators: Indicator[] = [];
 
-const calculateRatio = (indicator: Omit<Indicator, 'ratio' | 'status'>): string => {
+const calculateRatio = (indicator: Omit<Indicator, 'id' | 'ratio' | 'status'>): string => {
     if (indicator.indicator === "Waktu Tunggu Rawat Jalan") {
         return `${indicator.numerator} min`
     }
@@ -42,7 +45,7 @@ const calculateRatio = (indicator: Omit<Indicator, 'ratio' | 'status'>): string 
     return `${ratio.toFixed(1)}%`
 }
 
-const calculateStatus = (indicator: Omit<Indicator, 'ratio' | 'status'>): Indicator['status'] => {
+const calculateStatus = (indicator: Omit<Indicator, 'id' |'ratio' | 'status'>): Indicator['status'] => {
     if (indicator.indicator === "Waktu Tunggu Rawat Jalan") {
         // Lower is better for wait times
         return indicator.numerator <= indicator.standard ? 'Memenuhi Standar' : 'Tidak Memenuhi Standar';
@@ -70,10 +73,25 @@ export const useIndicatorStore = create<IndicatorState>((set) => ({
           ...state.indicators,
           {
               ...indicator, 
+              id: `CAP-${String(state.indicators.length + 1).padStart(3, '0')}`,
               ratio: calculateRatio(indicator),
               status: calculateStatus(indicator)
           }
       ],
+    })),
+  updateIndicator: (id, data) =>
+    set((state) => ({
+      indicators: state.indicators.map((indicator) => {
+        if (indicator.id === id) {
+          return {
+            ...indicator,
+            ...data,
+            ratio: calculateRatio(data),
+            status: calculateStatus(data),
+          }
+        }
+        return indicator
+      }),
     })),
   submitIndicator: (indicator) =>
     set((state) => ({

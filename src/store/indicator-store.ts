@@ -45,11 +45,12 @@ const calculateRatio = (indicator: Omit<Indicator, 'ratio'>): string => {
         return `${indicator.numerator} min`
     }
     if (indicator.denominator === 0) return "0.0%"
-    return `${((indicator.numerator / indicator.denominator) * 100).toFixed(1)}%`
+    const ratio = (indicator.numerator / indicator.denominator) * 100;
+    return `${ratio.toFixed(1)}%`
 }
 
 export const useIndicatorStore = create<IndicatorState>((set) => ({
-  indicators: initialIndicators,
+  indicators: initialIndicators.map(i => ({...i, ratio: calculateRatio(i)})),
   submittedIndicators: initialSubmittedIndicators,
   addIndicator: (indicator) =>
     set((state) => ({
@@ -64,7 +65,7 @@ export const useIndicatorStore = create<IndicatorState>((set) => ({
         ...state.submittedIndicators,
         {
           ...indicator,
-          id: `IND-${String(state.submittedIndicators.length + 5).padStart(3, '0')}`,
+          id: `IND-${String(state.submittedIndicators.length + 1).padStart(3, '0')}`,
           status: 'Menunggu Persetujuan',
           submissionDate: new Date().toISOString().split('T')[0],
         }

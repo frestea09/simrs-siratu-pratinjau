@@ -79,20 +79,20 @@ export function FormInputCombobox({
                 <CommandGroup>
                 {items.map((item) => (
                     <CommandItem
-                    key={item.value}
-                    value={item.value}
-                    onSelect={(currentValue) => {
-                        onValueChange?.(currentValue === value ? "" : currentValue)
+                      key={item.value}
+                      value={item.label} // Use label for filtering
+                      onSelect={() => {
+                        onValueChange?.(item.value === value ? "" : item.value)
                         setOpen(false)
-                    }}
+                      }}
                     >
-                    <Check
+                      <Check
                         className={cn(
-                        "mr-2 h-4 w-4",
-                        value === item.value ? "opacity-100" : "opacity-0"
+                          "mr-2 h-4 w-4",
+                          value === item.value ? "opacity-100" : "opacity-0"
                         )}
-                    />
-                    {item.label}
+                      />
+                      {item.label}
                     </CommandItem>
                 ))}
                 </CommandGroup>

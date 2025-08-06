@@ -30,6 +30,7 @@ import {
   FolderKanban,
   FileText,
   Bell,
+  ListChecks,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from 'next/navigation'
@@ -59,6 +60,7 @@ const navItems = [
       { href: "/dashboard/surveys", icon: ClipboardCheck, label: "Survei Budaya" },
       { href: "/dashboard/risks", icon: BarChart3, label: "Manajemen Risiko" },
       { href: "/dashboard/reports", icon: FileText, label: "Laporan" },
+      { href: "/dashboard/spm", icon: ListChecks, label: "Standar Pelayanan Minimal" },
     ]
   },
 ]
@@ -100,37 +102,36 @@ function NavItem({ item, pathname, openMenu, setOpenMenu }: { item: any; pathnam
             <ChevronDown className={`ml-auto size-5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
           </div>
         </SidebarMenuButton>
-        {isOpen && (
-          <SidebarMenuSub className="mt-1">
-            {item.subItems.map((subItem: any) => (
-              <SidebarMenuSubItem key={subItem.href}>
-                 <Link href={subItem.href} passHref legacyBehavior>
-                    <SidebarMenuSubButton as="a" isActive={pathname.startsWith(subItem.href)}>
-                        <span>{subItem.label}</span>
-                    </SidebarMenuSubButton>
-                  </Link>
-              </SidebarMenuSubItem>
-            ))}
-          </SidebarMenuSub>
-        )}
+        <SidebarMenuSub className={`mt-1 pl-4 pr-0`}>
+          {isOpen && item.subItems.map((subItem: any) => (
+            <SidebarMenuSubItem key={subItem.href} className="mb-1">
+                <Link href={subItem.href} passHref legacyBehavior>
+                  <SidebarMenuSubButton as="a" isActive={pathname.startsWith(subItem.href)} className="h-9">
+                      <span>{subItem.label}</span>
+                  </SidebarMenuSubButton>
+                </Link>
+            </SidebarMenuSubItem>
+          ))}
+        </SidebarMenuSub>
       </SidebarMenuItem>
     );
   }
 
   return (
     <SidebarMenuItem>
-      <Link href={item.href} asChild>
-        <SidebarMenuButton
-          isActive={pathname.startsWith(item.href)}
-          tooltip={item.label}
-          size="lg"
-        >
-           <div>
-            <item.icon className="size-6" />
-            <span>{item.label}</span>
-          </div>
-        </SidebarMenuButton>
-      </Link>
+       <Link href={item.href} passHref legacyBehavior>
+          <SidebarMenuButton
+            as="a"
+            isActive={pathname.startsWith(item.href)}
+            tooltip={item.label}
+            size="lg"
+          >
+            <div>
+              <item.icon className="size-6" />
+              <span>{item.label}</span>
+            </div>
+          </SidebarMenuButton>
+        </Link>
     </SidebarMenuItem>
   );
 }
@@ -193,8 +194,9 @@ export default function DashboardClientLayout({
             <p className="text-xs font-semibold text-muted-foreground px-2 group-data-[state=expanded]:block hidden mb-2">Administrasi</p>
              {adminNavItems.map((item) => (
               <SidebarMenuItem key={item.href}>
-                <Link href={item.href} asChild>
+                <Link href={item.href} passHref legacyBehavior>
                   <SidebarMenuButton
+                    as="a"
                     isActive={pathname.startsWith(item.href)}
                     tooltip={item.label}
                     size="lg"

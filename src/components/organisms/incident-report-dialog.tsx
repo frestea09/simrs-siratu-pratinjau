@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -10,24 +11,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { PlusCircle } from "lucide-react"
-import { FormInputSelect } from "@/components/molecules/form-input-select"
-import { FormInputTextarea } from "@/components/molecules/form-input-textarea"
-
-const incidentTypes = [
-  { value: "knc", label: "Kejadian Nyaris Cedera (KNC)" },
-  { value: "ktd", label: "Kejadian Tidak Diharapkan (KTD)" },
-  { value: "kpc", label: "Kondisi Potensial Cedera (KPC)" },
-  { value: "ktc", label: "Kejadian Tidak Cedera (KTC)" },
-]
-
-const severityLevels = [
-  { value: "low", label: "Rendah" },
-  { value: "medium", label: "Sedang" },
-  { value: "high", label: "Tinggi" },
-]
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { CalendarIcon, PlusCircle } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
+import { format } from "date-fns"
+import { cn } from "@/lib/utils"
 
 export function IncidentReportDialog() {
+  const [date, setDate] = React.useState<Date>()
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -36,40 +31,132 @@ export function IncidentReportDialog() {
           Laporkan Insiden Baru
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Laporan Insiden Keselamatan</DialogTitle>
+          <DialogTitle>Laporan Insiden Keselamatan Pasien</DialogTitle>
           <DialogDescription>
-            Isi detail insiden yang terjadi. Klik simpan jika sudah selesai.
+            Diisi oleh Data Pasien. Klik simpan jika sudah selesai.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <FormInputSelect
-            id="type"
-            label="Jenis Insiden"
-            placeholder="Pilih jenis"
-            items={incidentTypes}
-            containerClassName="grid grid-cols-4 items-center gap-4"
-          />
-          <FormInputSelect
-            id="severity"
-            label="Tingkat Keparahan"
-            placeholder="Pilih tingkat"
-            items={severityLevels}
-            containerClassName="grid grid-cols-4 items-center gap-4"
-          />
-          <FormInputTextarea
-            id="description"
-            label="Deskripsi"
-            placeholder="Deskripsikan insiden secara singkat"
-            containerClassName="grid grid-cols-4 items-start gap-4"
-          />
-          <FormInputTextarea
-            id="action"
-            label="Tindakan Diambil"
-            placeholder="Jelaskan tindakan awal yang sudah dilakukan"
-            containerClassName="grid grid-cols-4 items-start gap-4"
-          />
+        <div className="grid gap-6 py-4 max-h-[70vh] overflow-y-auto px-2">
+          
+          <h3 className="font-semibold text-lg border-b pb-2">Data Pasien</h3>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="name">Nama</Label>
+              <Input id="name" placeholder="Masukkan nama pasien" />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="no-cm">No CM</Label>
+              <Input id="no-cm" placeholder="Masukkan nomor rekam medis" />
+            </div>
+          </div>
+          
+          <div className="grid gap-2">
+              <Label htmlFor="ruangan">Ruangan</Label>
+              <Input id="ruangan" placeholder="Masukkan ruangan" />
+            </div>
+
+          <div className="grid gap-2">
+            <Label>Umur</Label>
+            <RadioGroup defaultValue=">65 tahun" className="flex flex-wrap gap-x-6 gap-y-2">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="0-1 bulan" id="r1" />
+                <Label htmlFor="r1">0-1 bulan</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value=">1 bulan-1 tahun" id="r2" />
+                <Label htmlFor="r2">&gt;1 bulan - 1 tahun</Label>
+              </div>
+               <div className="flex items-center space-x-2">
+                <RadioGroupItem value=">1 tahun-5 tahun" id="r3" />
+                <Label htmlFor="r3">&gt;1 tahun - 5 tahun</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value=">5 tahun-15 tahun" id="r4" />
+                <Label htmlFor="r4">&gt;5 tahun - 15 tahun</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value=">15 tahun-30 tahun" id="r5" />
+                <Label htmlFor="r5">&gt;15 tahun - 30 tahun</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value=">30 tahun-65 tahun" id="r6" />
+                <Label htmlFor="r6">&gt;30 tahun - 65 tahun</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value=">65 tahun" id="r7" />
+                <Label htmlFor="r7">&gt;65 tahun</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+           <div className="grid gap-2">
+            <Label>Jenis Kelamin</Label>
+            <RadioGroup defaultValue="Perempuan" className="flex space-x-4">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="Perempuan" id="jk1" />
+                <Label htmlFor="jk1">Perempuan</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="Laki-Laki" id="jk2" />
+                <Label htmlFor="jk2">Laki-Laki</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div className="grid gap-2">
+            <Label>Penanggung Biaya Pasien</Label>
+            <RadioGroup defaultValue="Pribadi/UMUM" className="flex flex-wrap gap-x-6 gap-y-2">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="Pribadi/UMUM" id="pb1" />
+                <Label htmlFor="pb1">Pribadi/UMUM</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="BPJS PBI" id="pb2" />
+                <Label htmlFor="pb2">BPJS PBI</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="BPJS NON PBI" id="pb3" />
+                <Label htmlFor="pb3">BPJS NON PBI</Label>
+              </div>
+               <div className="flex items-center space-x-2">
+                <RadioGroupItem value="SKTM" id="pb4" />
+                <Label htmlFor="pb4">SKTM</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="Asuransi Lainnya" id="pb5" />
+                <Label htmlFor="pb5">Asuransi Lainnya</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="tgl-masuk">Tgl Masuk RS</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      id="tgl-masuk"
+                      variant={"outline"}
+                      className={cn("justify-start text-left font-normal", !date && "text-muted-foreground")}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {date ? format(date, "PPP") : <span>Pilih tanggal</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
+                  </PopoverContent>
+                </Popover>
+            </div>
+             <div className="grid gap-2">
+                <Label htmlFor="jam-masuk">Jam</Label>
+                <Input id="jam-masuk" type="time" />
+              </div>
+          </div>
+          
         </div>
         <DialogFooter>
           <Button type="submit">Simpan Laporan</Button>

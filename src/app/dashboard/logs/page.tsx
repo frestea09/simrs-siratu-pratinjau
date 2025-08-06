@@ -1,11 +1,17 @@
 "use client"
 
+import * as React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { LogTable } from "@/components/organisms/log-table"
-import { useLogStore } from "@/store/log-store"
+import { useLogStore } from "@/store/log-store.tsx"
 
 export default function LogsPage() {
   const logs = useLogStore((state) => state.logs)
+  const [isClient, setIsClient] = React.useState(false)
+
+  React.useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -20,7 +26,7 @@ export default function LogsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <LogTable logs={logs} />
+          {isClient ? <LogTable logs={logs} /> : <p>Memuat log...</p>}
         </CardContent>
       </Card>
     </div>

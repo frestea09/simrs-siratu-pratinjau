@@ -14,18 +14,26 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
-import { Hospital } from 'lucide-react'
+import { Hospital, Users } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Terminal } from "lucide-react"
+
+const users = {
+  "admin@sim.rs": { password: "123456", name: "Admin Sistem" },
+  "delina@sim.rs": { password: "123456", name: "Delina (PIC Mutu)" },
+  "deti@sim.rs": { password: "123456", name: "Deti (PJ Ruangan)" },
+  "devin@sim.rs": { password: "123456", name: "Devin (Komite Mutu)" },
+}
 
 export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
-  const [username, setUsername] = useState("admin@sim.rs")
-  const [password, setPassword] = useState("123456")
+  const [username, setUsername] = useState("")
+  const [password, setPassword] = useState("")
 
   const handleLogin = () => {
-    if (username === "admin@sim.rs" && password === "123456") {
+    const user = users[username as keyof typeof users];
+    if (user && user.password === password) {
       router.push("/dashboard/overview")
     } else {
       toast({
@@ -55,7 +63,7 @@ export default function LoginPage() {
               <Input
                 id="username"
                 type="text"
-                placeholder="admin@sim.rs"
+                placeholder="email@sim.rs"
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -89,10 +97,15 @@ export default function LoginPage() {
             </Button>
           </div>
           <Alert className="mt-4">
-            <Terminal className="h-4 w-4" />
-            <AlertTitle>Info Demo</AlertTitle>
+            <Users className="h-4 w-4" />
+            <AlertTitle>Akun Demo</AlertTitle>
             <AlertDescription>
-              Gunakan <b>admin@sim.rs</b> & password <b>123456</b>
+              <ul className="list-disc pl-5 text-xs space-y-1 mt-2">
+                {Object.entries(users).map(([email, user]) => (
+                    <li key={email}><b>{email}</b> ({user.name})</li>
+                ))}
+              </ul>
+               <p className="text-xs mt-2">Password untuk semua akun: <b>123456</b></p>
             </AlertDescription>
           </Alert>
         </CardContent>

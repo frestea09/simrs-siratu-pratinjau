@@ -1,4 +1,3 @@
-
 import { create } from 'zustand'
 
 export type Incident = {
@@ -41,21 +40,7 @@ type IncidentState = {
   addIncident: (incident: Omit<Incident, 'id' | 'date' | 'status'>) => void
 }
 
-const initialIncidents: Incident[] = [
-  { 
-    id: "IKP-012", 
-    date: "2023-06-05", 
-    type: "Kejadian Nyaris Cedera (KNC)", 
-    severity: "Rendah", 
-    status: "Investigasi",
-    patientName: "Budi Santoso",
-    medicalRecordNumber: "CM-12345",
-    careRoom: "Ruang Melati",
-    chronology: "Pasien hampir jatuh dari tempat tidur saat mencoba mengambil minum.",
-  },
-  { id: "IKP-011", date: "2023-05-20", type: "Kejadian Tidak Diharapkan (KTD)", severity: "Sedang", status: "Selesai" },
-  { id: "IKP-010", date: "2023-05-15", type: "Kondisi Potensial Cedera (KPC)", severity: "N/A", status: "Selesai" },
-];
+const initialIncidents: Incident[] = [];
 
 
 export const useIncidentStore = create<IncidentState>((set) => ({
@@ -65,7 +50,7 @@ export const useIncidentStore = create<IncidentState>((set) => ({
       incidents: [
         {
           ...incident,
-          id: `IKP-${String(state.incidents.length + 13).padStart(3, '0')}`,
+          id: `IKP-${String(state.incidents.length + 1).padStart(3, '0')}`,
           date: new Date().toISOString(),
           status: 'Investigasi',
         },
@@ -73,5 +58,3 @@ export const useIncidentStore = create<IncidentState>((set) => ({
       ],
     })),
 }))
-
-    

@@ -4,24 +4,54 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { IndicatorInputForm } from "@/components/organisms/indicator-input-form"
 import { IndicatorReport } from "@/components/organisms/indicator-report"
+import { IndicatorSubmissionForm } from "@/components/organisms/indicator-submission-form"
+import { IndicatorSubmissionTable } from "@/components/organisms/indicator-submission-table"
+import { useIndicatorStore } from "@/store/indicator-store"
 
 export default function IndicatorsPage() {
+  const submittedIndicators = useIndicatorStore((state) => state.submittedIndicators);
+
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">Indikator Mutu</h2>
       </div>
-      <Tabs defaultValue="input" className="space-y-4">
+      <Tabs defaultValue="reporting" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="input">Input Data</TabsTrigger>
+          <TabsTrigger value="submission">Pengajuan Indikator</TabsTrigger>
+          <TabsTrigger value="reporting">Pelaporan Capaian</TabsTrigger>
           <TabsTrigger value="report">Laporan</TabsTrigger>
         </TabsList>
-        <TabsContent value="input" className="space-y-4">
+        <TabsContent value="submission" className="space-y-4">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Pengajuan Indikator Mutu Baru</CardTitle>
+                    <CardDescription>
+                        Ajukan indikator mutu baru untuk diverifikasi oleh Komite Mutu.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <IndicatorSubmissionForm />
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Status Pengajuan</CardTitle>
+                    <CardDescription>
+                        Daftar indikator mutu yang telah diajukan beserta status verifikasinya.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <IndicatorSubmissionTable indicators={submittedIndicators} />
+                </CardContent>
+            </Card>
+        </TabsContent>
+        <TabsContent value="reporting" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Input Data Indikator Mutu</CardTitle>
+              <CardTitle>Input Data Capaian Indikator</CardTitle>
               <CardDescription>
-                Masukkan data Numerator dan Denominator untuk periode yang dipilih.
+                Masukkan data Numerator dan Denominator untuk periode laporan.
               </CardDescription>
             </CardHeader>
             <CardContent>

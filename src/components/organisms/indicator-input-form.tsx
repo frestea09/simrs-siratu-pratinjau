@@ -10,9 +10,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils"
 import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
+import { useIndicatorStore } from "@/store/indicator-store"
 
 export function IndicatorInputForm() {
   const [date, setDate] = React.useState<Date>()
+  const { submittedIndicators } = useIndicatorStore();
+
+  const verifiedIndicators = submittedIndicators.filter(
+    (indicator) => indicator.status === 'Diverifikasi'
+  );
 
   return (
     <div className="space-y-4">
@@ -21,12 +27,14 @@ export function IndicatorInputForm() {
           <Label htmlFor="indicator">Nama Indikator</Label>
           <Select>
             <SelectTrigger>
-              <SelectValue placeholder="Pilih indikator" />
+              <SelectValue placeholder="Pilih indikator yang terverifikasi" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="hand-hygiene">Kepatuhan Kebersihan Tangan</SelectItem>
-              <SelectItem value="patient-id">Ketepatan Identifikasi Pasien</SelectItem>
-              <SelectItem value="wait-time">Waktu Tunggu Rawat Jalan</SelectItem>
+              {verifiedIndicators.map(indicator => (
+                <SelectItem key={indicator.id} value={indicator.name.toLowerCase().replace(/ /g, "-")}>
+                  {indicator.name} ({indicator.frequency})
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

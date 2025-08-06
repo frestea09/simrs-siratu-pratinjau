@@ -15,7 +15,7 @@ import {
   useReactTable,
   FilterFn,
 } from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown, MoreHorizontal, Calendar as CalendarIcon } from "lucide-react"
+import { ArrowUpDown, ChevronDown, MoreHorizontal, Calendar as CalendarIcon, Eye } from "lucide-react"
 import { DateRange } from "react-day-picker"
 import { format } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
@@ -36,6 +36,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { Badge } from "../ui/badge"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../ui/dialog"
 
 const dateRangeFilter: FilterFn<Indicator> = (row, columnId, value, addMeta) => {
     const rowDate = new Date(row.original.period);
@@ -56,61 +57,53 @@ const dateRangeFilter: FilterFn<Indicator> = (row, columnId, value, addMeta) => 
     return true;
 }
 
+const ReportDetailDialog = ({ indicator, open, onOpenChange }: { indicator: Indicator | null, open: boolean, onOpenChange: (open: boolean) => void }) => {
+    if (!indicator) return null;
 
-export const columns: ColumnDef<Indicator>[] = [
-  {
-    accessorKey: "indicator",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Indikator
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
-    cell: ({ row }) => <div className="font-medium">{row.getValue("indicator")}</div>,
-  },
-  {
-    accessorKey: "period",
-    header: "Periode",
-    cell: ({ row }) => <div>{format(new Date(row.getValue("period")), "MMMM yyyy", { locale: IndonesianLocale })}</div>,
-    filterFn: dateRangeFilter,
-  },
-  {
-    accessorKey: "ratio",
-    header: () => <div className="text-right">Capaian</div>,
-    cell: ({ row }) => <div className="text-right font-semibold">{row.getValue("ratio")}</div>,
-  },
-  {
-    accessorKey: "standard",
-    header: () => <div className="text-right">Standar</div>,
-    cell: ({ row }) => {
-      const standard = row.original.standard;
-      const isTimeBased = row.original.indicator === "Waktu Tunggu Rawat Jalan";
-      return <div className="text-right">{`${standard}${isTimeBased ? ' min' : '%'}`}</div>;
-    },
-  },
-  {
-    accessorKey: "status",
-    header: () => <div className="text-center">Status</div>,
-    cell: ({ row }) => {
-      const status = row.getValue("status") as Indicator['status'];
-      return (
-        <div className="text-center">
-            <Badge variant={status === 'Memenuhi Standar' ? 'default' : 'destructive'}>{status}</Badge>
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "notes",
-    header: "Catatan",
-    cell: ({ row }) => <div className="text-sm text-muted-foreground">{row.getValue("notes") || "-"}</div>,
-  },
-]
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Detail Laporan Indikator</DialogTitle>
+                    <DialogDescription>
+                        {indicator.indicator} - Periode {format(new Date(indicator.period), "MMMM yyyy", { locale: IndonesianLocale })}
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-3 items-center gap-4">
+                        <span className="text-sm font-medium text-muted-foreground">Capaian</span>
+                        <span className="col-span-2 text-sm font-semibold">{indicator.ratio}</span>
+                    </div>
+                    <div className="grid grid-cols-3 items-center gap-4">
+                        <span className="text-sm font-medium text-muted-foreground">Standar</span>
+                        <span className="col-span-2 text-sm">{`${indicator.standard}${indicator.indicator === "Waktu Tunggu Rawat Jalan" ? ' min' : '%'}`}</span>
+                    </div>
+                    <div className="grid grid-cols-3 items-center gap-4">
+                        <span className="text-sm font-medium text-muted-foreground">Status</span>
+                        <Badge variant={indicator.status === 'Memenuhi Standar' ? 'default' : 'destructive'} className="w-fit">{indicator.status}</Badge>
+                    </div>
+                     <div className="grid grid-cols-3 items-start gap-4">
+                        <span className="text-sm font-medium text-muted-foreground pt-1">Numerator</span>
+                        <span className="col-span-2 text-sm">{indicator.numerator}</span>
+                    </div>
+                    <div className="grid grid-cols-3 items-start gap-4">
+                        <span className="text-sm font-medium text-muted-foreground pt-1">Denominator</span>
+                        <span className="col-span-2 text-sm">{indicator.denominator}</span>
+                    </div>
+                    <div className="grid grid-cols-3 items-start gap-4">
+                        <span className="text-sm font-medium text-muted-foreground pt-1">Catatan</span>
+                        <p className="col-span-2 text-sm bg-muted/50 p-3 rounded-md">
+                            {indicator.notes || "Tidak ada catatan."}
+                        </p>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>Tutup</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}
 
 type IndicatorReportTableProps = {
   indicators: Indicator[]
@@ -125,6 +118,76 @@ export function IndicatorReportTable({ indicators }: IndicatorReportTableProps) 
     React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
   const [date, setDate] = React.useState<DateRange | undefined>()
+  const [selectedIndicator, setSelectedIndicator] = React.useState<Indicator | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = React.useState(false);
+
+  const columns: ColumnDef<Indicator>[] = [
+    {
+      accessorKey: "indicator",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Indikator
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => <div className="font-medium">{row.getValue("indicator")}</div>,
+    },
+    {
+      accessorKey: "period",
+      header: "Periode",
+      cell: ({ row }) => <div>{format(new Date(row.getValue("period")), "MMMM yyyy", { locale: IndonesianLocale })}</div>,
+      filterFn: dateRangeFilter,
+    },
+    {
+      accessorKey: "ratio",
+      header: () => <div className="text-right">Capaian</div>,
+      cell: ({ row }) => <div className="text-right font-semibold">{row.getValue("ratio")}</div>,
+    },
+    {
+      accessorKey: "standard",
+      header: () => <div className="text-right">Standar</div>,
+      cell: ({ row }) => {
+        const standard = row.original.standard;
+        const isTimeBased = row.original.indicator === "Waktu Tunggu Rawat Jalan";
+        return <div className="text-right">{`${standard}${isTimeBased ? ' min' : '%'}`}</div>;
+      },
+    },
+    {
+      accessorKey: "status",
+      header: () => <div className="text-center">Status</div>,
+      cell: ({ row }) => {
+        const status = row.getValue("status") as Indicator['status'];
+        return (
+          <div className="text-center">
+              <Badge variant={status === 'Memenuhi Standar' ? 'default' : 'destructive'}>{status}</Badge>
+          </div>
+        )
+      },
+    },
+    {
+        id: "actions",
+        header: () => <div className="text-center">Detail</div>,
+        cell: ({ row }) => {
+            const indicator = row.original
+            return (
+                <div className="text-center">
+                    <Button variant="ghost" size="icon" onClick={() => {
+                        setSelectedIndicator(indicator);
+                        setIsDetailOpen(true);
+                    }}>
+                        <Eye className="h-4 w-4" />
+                    </Button>
+                </div>
+            )
+        },
+    },
+  ]
+
 
   const table = useReactTable({
     data: indicators,
@@ -279,6 +342,13 @@ export function IndicatorReportTable({ indicators }: IndicatorReportTableProps) 
           </Button>
         </div>
       </div>
+      <ReportDetailDialog 
+        indicator={selectedIndicator}
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+      />
     </div>
   )
 }
+
+    

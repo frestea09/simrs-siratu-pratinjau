@@ -39,7 +39,7 @@ const formSchema = z.object({
   password: z.string().min(6, {
     message: "Password harus memiliki setidaknya 6 karakter.",
   }),
-  role: z.enum(['Admin Sistem', 'PIC Mutu', 'PJ Ruangan', 'Komite Mutu', 'Kepala Unit/Instalasi'], {
+  role: z.enum(['Admin Sistem', 'PIC Mutu', 'PJ Ruangan', 'Komite Mutu', 'Kepala Unit/Instalasi', 'Direktur'], {
     required_error: "Anda harus memilih peran.",
   }),
   unit: z.string().optional(),
@@ -61,11 +61,14 @@ type UserFormProps = {
 const unitOptions = HOSPITAL_UNITS.map(unit => ({ value: unit, label: unit }));
 const roleOptions: {value: UserRole, label: string}[] = [
     { value: "Admin Sistem", label: "Admin Sistem" },
-    { value: "PIC Mutu", label: "PIC Mutu" },
-    { value: "PJ Ruangan", label: "PJ Ruangan" },
+    { value: "Direktur", label: "Direktur" },
     { value: "Komite Mutu", label: "Komite Mutu" },
     { value: "Kepala Unit/Instalasi", label: "Kepala Unit/Instalasi" },
+    { value: "PIC Mutu", label: "PIC Mutu" },
+    { value: "PJ Ruangan", label: "PJ Ruangan" },
 ]
+
+const unitAssociatedRoles: UserRole[] = ["PIC Mutu", "PJ Ruangan", "Kepala Unit/Instalasi"];
 
 
 export function UserForm({ setOpen, userToEdit }: UserFormProps) {
@@ -91,14 +94,14 @@ export function UserForm({ setOpen, userToEdit }: UserFormProps) {
   const selectedRole = form.watch("role");
 
   React.useEffect(() => {
-    if (selectedRole === 'Admin Sistem' || selectedRole === 'Komite Mutu') {
+    if (!unitAssociatedRoles.includes(selectedRole as UserRole)) {
         form.setValue('unit', undefined);
     }
   }, [selectedRole, form]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const finalValues = { ...values };
-    if (finalValues.role === 'Admin Sistem' || finalValues.role === 'Komite Mutu') {
+    if (!unitAssociatedRoles.includes(finalValues.role as UserRole)) {
         delete finalValues.unit;
     }
 
@@ -194,7 +197,7 @@ export function UserForm({ setOpen, userToEdit }: UserFormProps) {
                         </FormItem>
                     )}
                 />
-                {(selectedRole === 'PIC Mutu' || selectedRole === 'PJ Ruangan' || selectedRole === 'Kepala Unit/Instalasi') && (
+                {unitAssociatedRoles.includes(selectedRole as UserRole) && (
                      <FormField
                         control={form.control}
                         name="unit"

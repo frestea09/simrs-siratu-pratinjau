@@ -100,7 +100,7 @@ const ActionsCell = ({ row }: { row: any }) => {
         });
     }
 
-    const canVerify = currentUser?.role === 'Komite Mutu' || currentUser?.role === 'Admin Sistem' || currentUser?.role === 'Kepala Unit/Instalasi';
+    const canVerify = currentUser?.role === 'Komite Mutu' || currentUser?.role === 'Admin Sistem' || currentUser?.role === 'Kepala Unit/Instalasi' || currentUser?.role === 'Direktur';
 
     return (
         <DropdownMenu>

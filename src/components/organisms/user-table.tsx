@@ -36,7 +36,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { User, useUserStore } from "@/store/user-store.tsx"
+import { User, useUserStore, UserRole } from "@/store/user-store.tsx"
 import { UserDialog } from "./user-dialog"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog"
 import { useLogStore } from "@/store/log-store.tsx"
@@ -154,7 +154,7 @@ export const columns: ColumnDef<User>[] = [
   },
 ]
 
-const roleOptions: User['role'][] = ['Admin Sistem', 'PIC Mutu', 'PJ Ruangan', 'Komite Mutu', 'Kepala Unit/Instalasi'];
+const roleOptions: UserRole[] = ['Admin Sistem', 'PIC Mutu', 'PJ Ruangan', 'Komite Mutu', 'Kepala Unit/Instalasi', 'Direktur'];
 
 type UserTableProps = {
   users: User[]

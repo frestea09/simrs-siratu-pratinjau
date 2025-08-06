@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import {
@@ -105,7 +106,7 @@ function NavItem({ item, pathname, openMenu, setOpenMenu }: { item: any; pathnam
             {item.subItems.map((subItem: any) => (
               <SidebarMenuSubItem key={subItem.href}>
                  <Link href={subItem.href} asChild>
-                    <SidebarMenuSubButton asChild isActive={pathname.startsWith(subItem.href)}>
+                    <SidebarMenuSubButton isActive={pathname.startsWith(subItem.href)}>
                         <span>{subItem.label}</span>
                     </SidebarMenuSubButton>
                   </Link>
@@ -227,7 +228,7 @@ export default function DashboardClientLayout({
       </Sidebar>
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-auto min-h-16 flex-col border-b bg-background px-4 md:px-6">
-            <div className="flex items-center w-full">
+            <div className="flex items-center w-full py-2">
                 <SidebarTrigger className="md:hidden" />
                 <h1 className="text-2xl font-bold flex-1">
                     {currentPage?.label || 'Dashboard'}

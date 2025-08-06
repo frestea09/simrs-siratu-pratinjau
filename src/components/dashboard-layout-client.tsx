@@ -80,11 +80,14 @@ export default function DashboardClientLayout({
               <SidebarMenuItem key={item.href}>
                 <Link href={item.href}>
                   <SidebarMenuButton
+                    asChild
                     isActive={pathname.startsWith(item.href)}
                     tooltip={item.label}
                   >
-                    <item.icon className="size-4" />
-                    <span>{item.label}</span>
+                    <div>
+                      <item.icon className="size-4" />
+                      <span>{item.label}</span>
+                    </div>
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
@@ -97,11 +100,14 @@ export default function DashboardClientLayout({
               <SidebarMenuItem key={item.href}>
                 <Link href={item.href}>
                   <SidebarMenuButton
+                    asChild
                     isActive={pathname.startsWith(item.href)}
                     tooltip={item.label}
                   >
-                    <item.icon className="size-4" />
-                    <span>{item.label}</span>
+                    <div>
+                      <item.icon className="size-4" />
+                      <span>{item.label}</span>
+                    </div>
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
@@ -113,9 +119,11 @@ export default function DashboardClientLayout({
           <SidebarMenu>
             <SidebarMenuItem>
               <Link href="/">
-                <SidebarMenuButton tooltip="Logout">
-                  <LogOut className="size-4" />
-                  <span>Logout</span>
+                <SidebarMenuButton tooltip="Logout" asChild>
+                  <div>
+                    <LogOut className="size-4" />
+                    <span>Logout</span>
+                  </div>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>

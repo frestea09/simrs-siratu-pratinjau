@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Label } from "@/components/ui/label"
@@ -11,14 +12,14 @@ type FormInputSelectProps = {
   containerClassName?: string
 }
 
-export function FormInputSelect({ id, label, placeholder, items, containerClassName }: FormInputSelectProps) {
+export function FormInputSelect({ id, label, placeholder, items, containerClassName = "grid grid-cols-1 md:grid-cols-form-label gap-x-4 gap-y-2 items-center" }: FormInputSelectProps) {
   return (
     <div className={containerClassName}>
       <Label htmlFor={id} className="text-right">
         {label}
       </Label>
       <Select>
-        <SelectTrigger className="col-span-3">
+        <SelectTrigger>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
@@ -32,3 +33,4 @@ export function FormInputSelect({ id, label, placeholder, items, containerClassN
     </div>
   )
 }
+

@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -9,6 +10,11 @@ export default {
   ],
   theme: {
     extend: {
+      gridTemplateColumns: {
+        'form-label': '1fr 2fr',
+        'form-label-full': '1fr 3.5fr',
+        'form-label-align-top': '1fr 2fr',
+      },
       fontFamily: {
         body: ['Inter', 'sans-serif'],
         headline: ['Inter', 'sans-serif'],

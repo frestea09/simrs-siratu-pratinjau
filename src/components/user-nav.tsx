@@ -42,9 +42,8 @@ export function UserNav() {
             Profil
             <DropdownMenuShortcut>⇧P</DropdownMenuShortcut>
           </DropdownMenuItem>
-          <DropdownMenuItem>
+          <DropdownMenuItem asChild>
             <Link href="/dashboard/settings">Pengaturan</Link>
-            <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

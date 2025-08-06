@@ -78,7 +78,7 @@ export default function DashboardClientLayout({
           <SidebarMenu>
             {navItems.map((item) => (
               <SidebarMenuItem key={item.href}>
-                <Link href={item.href} legacyBehavior passHref>
+                <Link href={item.href}>
                   <SidebarMenuButton
                     isActive={pathname.startsWith(item.href)}
                     tooltip={item.label}
@@ -95,7 +95,7 @@ export default function DashboardClientLayout({
             <p className="text-xs font-semibold text-muted-foreground px-2 group-data-[state=expanded]:block hidden mb-2">Administrasi</p>
              {adminNavItems.map((item) => (
               <SidebarMenuItem key={item.href}>
-                <Link href={item.href} legacyBehavior passHref>
+                <Link href={item.href}>
                   <SidebarMenuButton
                     isActive={pathname.startsWith(item.href)}
                     tooltip={item.label}
@@ -112,7 +112,7 @@ export default function DashboardClientLayout({
         <SidebarFooter className="p-2">
           <SidebarMenu>
             <SidebarMenuItem>
-              <Link href="/login" legacyBehavior passHref>
+              <Link href="/">
                 <SidebarMenuButton tooltip="Logout">
                   <LogOut className="size-4" />
                   <span>Logout</span>

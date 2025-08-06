@@ -14,7 +14,9 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react"
+import { ArrowUpDown, ChevronDown, MoreHorizontal, Calendar as CalendarIcon } from "lucide-react"
+import { DateRange } from "react-day-picker"
+import { format } from "date-fns"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -37,6 +39,9 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { SubmittedIndicator } from "@/store/indicator-store"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
+import { cn } from "@/lib/utils"
 
 const getStatusVariant = (status: SubmittedIndicator['status']) => {
     switch (status) {
@@ -138,6 +143,7 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
+  const [date, setDate] = React.useState<DateRange | undefined>()
 
   const table = useReactTable({
     data: indicators,
@@ -158,11 +164,20 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
     },
   })
   
+  React.useEffect(() => {
+    if (date?.from && date?.to) {
+        table.getColumn('submissionDate')?.setFilterValue([date.from.toISOString().split('T')[0], date.to.toISOString().split('T')[0]]);
+    } else {
+        table.getColumn('submissionDate')?.setFilterValue(undefined);
+    }
+  }, [date, table]);
+
+
   const statusOptions = ['Menunggu Persetujuan', 'Diverifikasi', 'Ditolak'];
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4 gap-2">
+      <div className="flex items-center py-4 gap-2 flex-wrap">
         <Input
           placeholder="Cari nama indikator..."
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
@@ -171,6 +186,44 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
           }
           className="max-w-sm"
         />
+        <div className="flex-1 min-w-[200px]">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                id="date"
+                variant={"outline"}
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !date && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date?.from ? (
+                  date.to ? (
+                    <>
+                      {format(date.from, "LLL dd, y")} -{" "}
+                      {format(date.to, "LLL dd, y")}
+                    </>
+                  ) : (
+                    format(date.from, "LLL dd, y")
+                  )
+                ) : (
+                  <span>Pilih rentang tanggal</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                initialFocus
+                mode="range"
+                defaultMonth={date?.from}
+                selected={date}
+                onSelect={setDate}
+                numberOfMonths={2}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">

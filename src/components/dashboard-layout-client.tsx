@@ -1,3 +1,4 @@
+
 "use client"
 
 import {
@@ -67,21 +68,27 @@ const adminNavItems = [
     { href: "/dashboard/settings", icon: Settings, label: "Pengaturan" },
 ]
 
-function NavItem({ item, pathname }: { item: any; pathname: string }) {
-  const [isOpen, setIsOpen] = React.useState(false);
+function NavItem({ item, pathname, openMenu, setOpenMenu }: { item: any; pathname: string; openMenu: string | null; setOpenMenu: (label: string | null) => void; }) {
   const isParentActive = item.subItems?.some((subItem: any) => pathname.startsWith(subItem.href));
+  const isOpen = openMenu === item.label;
 
   React.useEffect(() => {
-    if (isParentActive) {
-      setIsOpen(true);
+    if (isParentActive && !isOpen) {
+      setOpenMenu(item.label);
     }
-  }, [isParentActive]);
+  }, [isParentActive, item.label, setOpenMenu, isOpen]);
+
+  const handleClick = () => {
+    if (item.subItems) {
+      setOpenMenu(isOpen ? null : item.label);
+    }
+  };
 
   if (item.subItems) {
     return (
       <SidebarMenuItem>
         <SidebarMenuButton
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={handleClick}
           isActive={isParentActive}
           tooltip={item.label}
           asChild={false}
@@ -134,6 +141,8 @@ export default function DashboardClientLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const [openMenu, setOpenMenu] = React.useState<string | null>(null);
+
   const allNavItems = [...navItems, ...adminNavItems];
   
   const getCurrentPage = () => {
@@ -176,7 +185,7 @@ export default function DashboardClientLayout({
         <SidebarContent className="p-2">
           <SidebarMenu>
             {navItems.map((item, index) => (
-              <NavItem key={index} item={item} pathname={pathname} />
+              <NavItem key={index} item={item} pathname={pathname} openMenu={openMenu} setOpenMenu={setOpenMenu} />
             ))}
           </SidebarMenu>
           

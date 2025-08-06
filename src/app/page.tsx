@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from "react"
@@ -14,9 +15,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
-import { Hospital, Users } from 'lucide-react'
+import { Hospital, Users, Eye, EyeOff } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Terminal } from "lucide-react"
 
 const users = {
   "admin@sim.rs": { password: "123456", name: "Admin Sistem" },
@@ -30,6 +30,7 @@ export default function LoginPage() {
   const { toast } = useToast()
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleLogin = () => {
     const user = users[username as keyof typeof users];
@@ -79,18 +80,29 @@ export default function LoginPage() {
                   Lupa password?
                 </Link>
               </div>
-              <Input 
-                id="password" 
-                type="password" 
-                required 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    handleLogin()
-                  }
-                }}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      handleLogin()
+                    }
+                  }}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  <span className="sr-only">{showPassword ? 'Sembunyikan password' : 'Tampilkan password'}</span>
+                </button>
+              </div>
             </div>
             <Button onClick={handleLogin} type="submit" className="w-full">
               Login

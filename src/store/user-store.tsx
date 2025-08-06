@@ -41,7 +41,7 @@ const createUserStore = () => create<UserState>()(
       users: initialUsers,
       currentUser: null,
       addUser: (user) => {
-        const newId = `user-${Date.now()}`;
+        const newId = `user-${Date.now()}-${Math.random()}`;
         const newUser = { ...user, id: newId };
         set((state) => ({
           users: [...state.users, newUser],

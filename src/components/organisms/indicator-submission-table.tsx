@@ -100,6 +100,8 @@ const ActionsCell = ({ row }: { row: any }) => {
         });
     }
 
+    const canVerify = currentUser?.role === 'Komite Mutu' || currentUser?.role === 'Admin Sistem';
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -123,7 +125,7 @@ const ActionsCell = ({ row }: { row: any }) => {
                 >
                     Salin ID Indikator
                 </DropdownMenuItem>
-                {currentUser?.role === 'Komite Mutu' && (
+                {canVerify && (
                     <>
                         <DropdownMenuSeparator />
                         <DropdownMenuSub>
@@ -386,3 +388,5 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
     </div>
   )
 }
+
+    

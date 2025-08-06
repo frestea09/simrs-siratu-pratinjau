@@ -28,11 +28,14 @@ const users = {
 export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
 
-  const handleLogin = () => {
+  const handleLogin = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const username = formData.get("username") as string;
+    const password = formData.get("password") as string;
+    
     const user = users[username as keyof typeof users];
     if (user && user.password === password) {
       router.push("/dashboard/overview")
@@ -58,16 +61,15 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4">
+          <form onSubmit={handleLogin} className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
+                name="username"
                 type="text"
                 placeholder="email@sim.rs"
                 required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
               />
             </div>
             <div className="grid gap-2">
@@ -83,15 +85,9 @@ export default function LoginPage() {
               <div className="relative">
                 <Input
                   id="password"
+                  name="password"
                   type={showPassword ? "text" : "password"}
                   required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      handleLogin()
-                    }
-                  }}
                   className="pr-10"
                 />
                 <button
@@ -104,10 +100,10 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
-            <Button onClick={handleLogin} type="submit" className="w-full">
+            <Button type="submit" className="w-full">
               Login
             </Button>
-          </div>
+          </form>
           <Alert className="mt-4">
             <Users className="h-4 w-4" />
             <AlertTitle>Akun Demo</AlertTitle>

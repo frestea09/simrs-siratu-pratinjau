@@ -2,7 +2,6 @@
 "use client"
 
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
 import React, { createContext, useContext, useRef } from 'react';
 
 export type UserRole = 'Admin Sistem' | 'PIC Mutu' | 'PJ Ruangan' | 'Komite Mutu' | 'Kepala Unit/Instalasi' | 'Direktur';
@@ -36,32 +35,26 @@ const initialUsers: User[] = [
 ]
 
 const createUserStore = () => create<UserState>()(
-  persist(
-    (set, get) => ({
-      users: initialUsers,
-      currentUser: null,
-      addUser: (user) => {
-        const newId = `user-${Date.now()}-${Math.random()}`;
-        const newUser = { ...user, id: newId };
-        set((state) => ({
-          users: [...state.users, newUser],
-        }));
-        return newId;
-      },
-      updateUser: (id, data) => set((state) => ({
-        users: state.users.map(u => (u.id === id ? { ...u, ...data } : u)),
-      })),
-      removeUser: (id) => set((state) => ({
-        users: state.users.filter(u => u.id !== id),
-      })),
-      setCurrentUser: (user) => set({ currentUser: user }),
-      clearCurrentUser: () => set({ currentUser: null }),
-    }),
-    {
-      name: 'user-storage',
-      storage: createJSONStorage(() => sessionStorage), 
-    }
-  )
+  (set, get) => ({
+    users: initialUsers,
+    currentUser: null,
+    addUser: (user) => {
+      const newId = `user-${Date.now()}-${Math.random()}`;
+      const newUser = { ...user, id: newId };
+      set((state) => ({
+        users: [...state.users, newUser],
+      }));
+      return newId;
+    },
+    updateUser: (id, data) => set((state) => ({
+      users: state.users.map(u => (u.id === id ? { ...u, ...data } : u)),
+    })),
+    removeUser: (id) => set((state) => ({
+      users: state.users.filter(u => u.id !== id),
+    })),
+    setCurrentUser: (user) => set({ currentUser: user }),
+    clearCurrentUser: () => set({ currentUser: null }),
+  })
 );
 
 const UserStoreContext = createContext<ReturnType<typeof createUserStore> | null>(null);
@@ -83,5 +76,6 @@ export const useUserStore = (): UserState => {
   if (!store) {
     throw new Error('useUserStore must be used within a UserStoreProvider');
   }
-  return store();
+  // This ensures that the component using the store re-renders when the state changes.
+  return store(state => state);
 };

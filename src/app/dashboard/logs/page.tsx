@@ -7,11 +7,6 @@ import { useLogStore } from "@/store/log-store.tsx"
 
 export default function LogsPage() {
   const logs = useLogStore((state) => state.logs)
-  const [isClient, setIsClient] = React.useState(false)
-
-  React.useEffect(() => {
-    setIsClient(true)
-  }, [])
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -26,7 +21,7 @@ export default function LogsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isClient ? <LogTable logs={logs} /> : <p>Memuat log...</p>}
+          <LogTable logs={logs} />
         </CardContent>
       </Card>
     </div>

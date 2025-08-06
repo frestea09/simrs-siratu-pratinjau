@@ -21,18 +21,13 @@ import React from "react"
 export function UserNav() {
   const router = useRouter()
   const { currentUser, clearCurrentUser } = useUserStore()
-  const [isClient, setIsClient] = React.useState(false)
-
-  React.useEffect(() => {
-    setIsClient(true)
-  }, [])
 
   const handleLogout = () => {
     clearCurrentUser()
     router.push("/")
   }
 
-  if (!isClient || !currentUser) {
+  if (!currentUser) {
      return (
         <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
      )

@@ -160,22 +160,12 @@ type UserTableProps = {
   users: User[]
 }
 
-export function UserTable({ users: initialUsers }: UserTableProps) {
-  const [isClient, setIsClient] = React.useState(false);
-  const users = useUserStore((state) => state.users);
-
-  React.useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  const data = isClient ? users : initialUsers;
-
-
+export function UserTable({ users }: UserTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
   const table = useReactTable({
-    data,
+    data: users,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,

@@ -8,11 +8,6 @@ import { useUserStore } from "@/store/user-store.tsx"
 
 export default function UsersPage() {
   const users = useUserStore((state) => state.users)
-  const [isClient, setIsClient] = React.useState(false)
-
-  React.useEffect(() => {
-    setIsClient(true)
-  }, [])
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -32,7 +27,7 @@ export default function UsersPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {isClient ? <UserTable users={users} /> : <p>Memuat data pengguna...</p>}
+          <UserTable users={users} />
         </CardContent>
       </Card>
     </div>

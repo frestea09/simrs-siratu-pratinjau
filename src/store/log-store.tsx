@@ -2,7 +2,6 @@
 "use client"
 
 import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
 import React, { createContext, useContext, useRef } from 'react';
 
 type LogAction = 
@@ -36,26 +35,20 @@ type LogState = {
 }
 
 const createLogStore = () => create<LogState>()(
-    persist(
-        (set) => ({
-            logs: [],
-            addLog: (log) =>
-                set((state) => ({
-                logs: [
-                    {
-                    ...log,
-                    id: `LOG-${Date.now()}-${Math.random()}`,
-                    timestamp: new Date().toISOString(),
-                    },
-                    ...state.logs,
-                ],
-                })),
-        }),
-        {
-            name: 'log-storage',
-            storage: createJSONStorage(() => sessionStorage),
-        }
-    )
+    (set) => ({
+        logs: [],
+        addLog: (log) =>
+            set((state) => ({
+            logs: [
+                {
+                ...log,
+                id: `LOG-${Date.now()}-${Math.random()}`,
+                timestamp: new Date().toISOString(),
+                },
+                ...state.logs,
+            ],
+            })),
+    })
 )
 
 const LogStoreContext = createContext<ReturnType<typeof createLogStore> | null>(null);
@@ -78,5 +71,6 @@ export const useLogStore = (): LogState => {
   if (!store) {
     throw new Error('useLogStore must be used within a LogStoreProvider');
   }
-  return store();
+  // This ensures that the component using the store re-renders when the state changes.
+  return store(state => state);
 };

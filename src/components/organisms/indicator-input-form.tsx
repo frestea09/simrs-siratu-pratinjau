@@ -16,7 +16,11 @@ import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "../ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 
-export function IndicatorInputForm() {
+type IndicatorInputFormProps = {
+    setAccordionValue: (value: string) => void;
+}
+
+export function IndicatorInputForm({ setAccordionValue }: IndicatorInputFormProps) {
   const { toast } = useToast()
   const { addIndicator, submittedIndicators } = useIndicatorStore()
 
@@ -55,19 +59,20 @@ export function IndicatorInputForm() {
         description: `Capaian untuk ${selectedIndicator} periode ${format(date, "MMMM yyyy")} telah ditambahkan.`,
     })
 
-    // Reset form
+    // Reset form and close accordion
     setSelectedIndicator("")
     setDate(undefined)
     setNumerator("")
     setDenominator("")
     setStandard("")
     setNotes("")
+    setAccordionValue("")
   }
 
   const isTimeBased = selectedIndicator === "Waktu Tunggu Rawat Jalan";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pt-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="indicator" className="text-base">Nama Indikator</Label>
@@ -103,18 +108,13 @@ export function IndicatorInputForm() {
         </div>
       </div>
       
-      <Card>
-        <CardHeader>
-            <CardTitle>Data Pengukuran</CardTitle>
-            <CardDescription>Masukkan angka pembilang (Numerator) dan penyebut (Denominator).</CardDescription>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
              <div className="space-y-2">
                 <Label htmlFor="numerator" className="text-base">Numerator</Label>
                 <Input 
                     id="numerator" 
                     type="number" 
-                    placeholder="Contoh: 980" 
+                    placeholder={isTimeBased ? "Total waktu tunggu (menit)" : "Jumlah kasus terpenuhi"}
                     value={numerator}
                     onChange={(e) => setNumerator(e.target.value)}
                     className="text-base h-11"
@@ -125,15 +125,14 @@ export function IndicatorInputForm() {
                 <Input 
                     id="denominator" 
                     type="number" 
-                    placeholder="Contoh: 1000" 
+                    placeholder={isTimeBased ? "Jumlah pasien (otomatis 1)" : "Total kasus"}
                     value={denominator}
                     onChange={(e) => setDenominator(e.target.value)}
                     disabled={isTimeBased}
                     className="text-base h-11"
                 />
             </div>
-        </CardContent>
-      </Card>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">

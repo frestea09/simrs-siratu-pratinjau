@@ -3,7 +3,6 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { IndicatorInputForm } from "@/components/organisms/indicator-input-form"
 import { IndicatorReport } from "@/components/organisms/indicator-report"
 import { IndicatorSubmissionDialog } from "@/components/organisms/indicator-submission-dialog"
 import { IndicatorSubmissionTable } from "@/components/organisms/indicator-submission-table"
@@ -17,11 +16,10 @@ export default function IndicatorsPage() {
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">Indikator Mutu</h2>
       </div>
-      <Tabs defaultValue="submission" className="space-y-4">
+      <Tabs defaultValue="report" className="space-y-4">
         <TabsList>
           <TabsTrigger value="submission">Pengajuan Indikator</TabsTrigger>
-          <TabsTrigger value="reporting">Pelaporan Capaian</TabsTrigger>
-          <TabsTrigger value="report">Laporan</TabsTrigger>
+          <TabsTrigger value="report">Laporan & Input Capaian</TabsTrigger>
         </TabsList>
         <TabsContent value="submission" className="space-y-4">
             <Card>
@@ -40,19 +38,6 @@ export default function IndicatorsPage() {
                     <IndicatorSubmissionTable indicators={submittedIndicators} />
                 </CardContent>
             </Card>
-        </TabsContent>
-        <TabsContent value="reporting" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Input Data Capaian Indikator</CardTitle>
-              <CardDescription>
-                Masukkan data Numerator dan Denominator untuk periode laporan.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <IndicatorInputForm />
-            </CardContent>
-          </Card>
         </TabsContent>
         <TabsContent value="report" className="space-y-4">
           <IndicatorReport />

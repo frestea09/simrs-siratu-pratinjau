@@ -14,9 +14,10 @@ import {
   useReactTable,
   FilterFn
 } from "@tanstack/react-table"
-import { Calendar as CalendarIcon, ArrowUpDown } from "lucide-react"
+import { Calendar as CalendarIcon, ArrowUpDown, Eye } from "lucide-react"
 import { DateRange } from "react-day-picker"
 import { format } from "date-fns"
+import { id as IndonesianLocale } from "date-fns/locale"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -33,6 +34,56 @@ import { SpmIndicator } from "@/store/spm-store"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Calendar } from "../ui/calendar"
 import { cn } from "@/lib/utils"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
+
+const SpmDetailDialog = ({ indicator, open, onOpenChange }: { indicator: SpmIndicator | null, open: boolean, onOpenChange: (open: boolean) => void }) => {
+    if (!indicator) return null;
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-lg">
+                <DialogHeader>
+                    <DialogTitle>Detail Laporan SPM</DialogTitle>
+                    <DialogDescription>
+                        {indicator.serviceType}
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4 text-sm">
+                    <div className="grid grid-cols-3 items-start gap-4">
+                        <span className="text-muted-foreground">Indikator</span>
+                        <span className="col-span-2 font-medium">{indicator.indicator}</span>
+                    </div>
+                     <div className="grid grid-cols-3 items-center gap-4">
+                        <span className="text-muted-foreground">Tanggal Laporan</span>
+                        <span className="col-span-2">{format(new Date(indicator.reportingDate), "d MMMM yyyy", { locale: IndonesianLocale })}</span>
+                    </div>
+                    <div className="grid grid-cols-3 items-center gap-4">
+                        <span className="text-muted-foreground">Target</span>
+                        <span className="col-span-2">{indicator.target}</span>
+                    </div>
+                    <div className="grid grid-cols-3 items-center gap-4">
+                        <span className="text-muted-foreground">Capaian</span>
+                        <span className="col-span-2 font-semibold">{indicator.achievement}</span>
+                    </div>
+                    <div className="grid grid-cols-3 items-start gap-4">
+                        <span className="text-muted-foreground">Catatan</span>
+                        <p className="col-span-2 bg-muted/50 p-3 rounded-md">
+                            {indicator.notes || "Tidak ada catatan."}
+                        </p>
+                    </div>
+                     <div className="grid grid-cols-3 items-center gap-4">
+                        <span className="text-muted-foreground">Status</span>
+                        <div className="col-span-2">{getStatusBadge(indicator.notes)}</div>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>Tutup</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
 
 const getStatusBadge = (notes?: string) => {
     if (notes && notes.trim() !== '') {
@@ -61,7 +112,19 @@ const dateRangeFilter: FilterFn<SpmIndicator> = (row, columnId, value, addMeta) 
     return true;
 }
 
-export const columns: ColumnDef<SpmIndicator>[] = [
+
+type SpmTableProps = {
+  indicators: SpmIndicator[]
+}
+
+export function SpmTable({ indicators }: SpmTableProps) {
+  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [date, setDate] = React.useState<DateRange | undefined>()
+  const [selectedSpm, setSelectedSpm] = React.useState<SpmIndicator | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = React.useState(false);
+
+  const columns: ColumnDef<SpmIndicator>[] = [
     {
         accessorKey: "serviceType",
         header: "Jenis Pelayanan",
@@ -89,35 +152,34 @@ export const columns: ColumnDef<SpmIndicator>[] = [
       filterFn: dateRangeFilter,
     },
     {
-        accessorKey: "target",
-        header: "Target",
-        cell: ({ row }) => <div>{row.getValue("target")}</div>,
-    },
-    {
         accessorKey: "achievement",
         header: "Capaian",
         cell: ({ row }) => <div className="font-semibold">{row.getValue("achievement")}</div>,
     },
     {
-        accessorKey: "notes",
-        header: "Keterangan",
-        cell: ({ row }) => <div>{row.getValue("notes") || "-"}</div>,
-    },
-    {
         id: "status",
         header: "Status",
         cell: ({ row }) => getStatusBadge(row.original.notes),
+    },
+    {
+        id: "actions",
+        header: () => <div className="text-center">Aksi</div>,
+        cell: ({ row }) => {
+            const indicator = row.original
+            return (
+                <div className="text-center">
+                    <Button variant="ghost" size="icon" onClick={() => {
+                        setSelectedSpm(indicator);
+                        setIsDetailOpen(true);
+                    }} title="Lihat Detail">
+                        <Eye className="h-4 w-4" />
+                    </Button>
+                </div>
+            )
+        },
     }
 ]
 
-type SpmTableProps = {
-  indicators: SpmIndicator[]
-}
-
-export function SpmTable({ indicators }: SpmTableProps) {
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [date, setDate] = React.useState<DateRange | undefined>()
 
   const table = useReactTable({
     data: indicators,
@@ -261,6 +323,13 @@ export function SpmTable({ indicators }: SpmTableProps) {
           </Button>
         </div>
       </div>
+      <SpmDetailDialog 
+        indicator={selectedSpm}
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+      />
     </div>
   )
 }
+
+    

@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -11,7 +12,11 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  FilterFn
 } from "@tanstack/react-table"
+import { Calendar as CalendarIcon, ArrowUpDown } from "lucide-react"
+import { DateRange } from "react-day-picker"
+import { format } from "date-fns"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -25,12 +30,35 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { SpmIndicator } from "@/store/spm-store"
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
+import { Calendar } from "../ui/calendar"
+import { cn } from "@/lib/utils"
 
 const getStatusBadge = (notes?: string) => {
     if (notes && notes.trim() !== '') {
       return <Badge variant="destructive">Ada Catatan</Badge>
     }
     return <Badge variant="default">Tercapai</Badge>
+}
+
+const dateRangeFilter: FilterFn<SpmIndicator> = (row, columnId, value, addMeta) => {
+    const date = new Date(row.original.reportingDate);
+    const [start, end] = value as [Date | undefined, Date | undefined];
+    
+    if (start && !end) {
+        return date >= start;
+    }
+    if (!start && end) {
+        const localEndDate = new Date(end);
+        localEndDate.setHours(23, 59, 59, 999);
+        return date <= localEndDate;
+    }
+    if (start && end) {
+        const localEndDate = new Date(end);
+        localEndDate.setHours(23, 59, 59, 999);
+        return date >= start && date <= localEndDate;
+    }
+    return true;
 }
 
 export const columns: ColumnDef<SpmIndicator>[] = [
@@ -41,8 +69,24 @@ export const columns: ColumnDef<SpmIndicator>[] = [
     },
     {
         accessorKey: "indicator",
-        header: "Indikator",
-        cell: ({ row }) => <div>{row.getValue("indicator")}</div>,
+        header: ({ column }) => {
+            return (
+                <Button
+                variant="ghost"
+                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                >
+                Indikator
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
+        cell: ({ row }) => <div className="pl-4">{row.getValue("indicator")}</div>,
+    },
+     {
+      accessorKey: "reportingDate",
+      header: "Tgl. Laporan",
+      cell: ({ row }) => <div>{format(new Date(row.getValue("reportingDate")), "dd MMM yyyy")}</div>,
+      filterFn: dateRangeFilter,
     },
     {
         accessorKey: "target",
@@ -73,6 +117,7 @@ type SpmTableProps = {
 export function SpmTable({ indicators }: SpmTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [date, setDate] = React.useState<DateRange | undefined>()
 
   const table = useReactTable({
     data: indicators,
@@ -89,9 +134,16 @@ export function SpmTable({ indicators }: SpmTableProps) {
     },
   })
 
+  React.useEffect(() => {
+    const from = date?.from;
+    const to = date?.to;
+    table.getColumn("reportingDate")?.setFilterValue(from || to ? [from, to] : undefined);
+  }, [date, table]);
+
+
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
+      <div className="flex items-center py-4 gap-2 flex-wrap">
         <Input
           placeholder="Cari berdasarkan nama indikator..."
           value={(table.getColumn("indicator")?.getFilterValue() as string) ?? ""}
@@ -100,6 +152,44 @@ export function SpmTable({ indicators }: SpmTableProps) {
           }
           className="max-w-sm"
         />
+        <div className="flex-1 min-w-[200px]">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                id="date"
+                variant={"outline"}
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !date && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date?.from ? (
+                  date.to ? (
+                    <>
+                      {format(date.from, "LLL dd, y")} -{" "}
+                      {format(date.to, "LLL dd, y")}
+                    </>
+                  ) : (
+                    format(date.from, "LLL dd, y")
+                  )
+                ) : (
+                  <span>Pilih rentang tanggal</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                initialFocus
+                mode="range"
+                defaultMonth={date?.from}
+                selected={date}
+                onSelect={setDate}
+                numberOfMonths={2}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
       <div className="rounded-md border">
         <Table>

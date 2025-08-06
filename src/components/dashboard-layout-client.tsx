@@ -86,17 +86,17 @@ function NavItem({ item, pathname }: { item: any; pathname: string }) {
           asChild={false} 
         >
           <div>
-            <item.icon className="size-4" />
+            <item.icon className="size-5" />
             <span>{item.label}</span>
-            <ChevronDown className={`ml-auto size-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`ml-auto size-5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
           </div>
         </SidebarMenuButton>
         {isOpen && (
           <SidebarMenuSub>
             {item.subItems.map((subItem: any) => (
               <SidebarMenuSubItem key={subItem.href}>
-                 <Link href={subItem.href} passHref>
-                    <SidebarMenuSubButton isActive={pathname.startsWith(subItem.href)} asChild>
+                 <Link href={subItem.href}>
+                    <SidebarMenuSubButton isActive={pathname.startsWith(subItem.href)}>
                         <span>{subItem.label}</span>
                     </SidebarMenuSubButton>
                   </Link>
@@ -117,7 +117,7 @@ function NavItem({ item, pathname }: { item: any; pathname: string }) {
           tooltip={item.label}
         >
            <div>
-            <item.icon className="size-4" />
+            <item.icon className="size-5" />
             <span>{item.label}</span>
           </div>
         </SidebarMenuButton>
@@ -175,7 +175,7 @@ export default function DashboardClientLayout({
                     tooltip={item.label}
                   >
                     <div>
-                      <item.icon className="size-4" />
+                      <item.icon className="size-5" />
                       <span>{item.label}</span>
                     </div>
                   </SidebarMenuButton>
@@ -191,7 +191,7 @@ export default function DashboardClientLayout({
               <Link href="/">
                 <SidebarMenuButton tooltip="Logout" asChild>
                   <div>
-                    <LogOut className="size-4" />
+                    <LogOut className="size-5" />
                     <span>Logout</span>
                   </div>
                 </SidebarMenuButton>

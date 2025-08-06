@@ -3,6 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { SpmTable } from "@/components/organisms/spm-table"
 import { useSpmStore } from "@/store/spm-store"
+import { SpmInputDialog } from "@/components/organisms/spm-input-dialog"
 
 export default function SpmPage() {
   const spmIndicators = useSpmStore((state) => state.spmIndicators)
@@ -14,8 +15,13 @@ export default function SpmPage() {
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Laporan Capaian SPM</CardTitle>
-          <CardDescription>Daftar capaian indikator Standar Pelayanan Minimal.</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Laporan Capaian SPM</CardTitle>
+              <CardDescription>Daftar capaian indikator Standar Pelayanan Minimal.</CardDescription>
+            </div>
+            <SpmInputDialog />
+          </div>
         </CardHeader>
         <CardContent>
           <SpmTable indicators={spmIndicators} />

@@ -9,7 +9,8 @@ export type SpmIndicator = {
 }
 
 type SpmState = {
-  spmIndicators: SpmIndicator[]
+  spmIndicators: SpmIndicator[],
+  addSpmIndicator: (indicator: SpmIndicator) => void;
 }
 
 const initialSpmData: SpmIndicator[] = [
@@ -25,4 +26,7 @@ const initialSpmData: SpmIndicator[] = [
 
 export const useSpmStore = create<SpmState>((set) => ({
   spmIndicators: initialSpmData,
+  addSpmIndicator: (indicator) => set((state) => ({
+    spmIndicators: [indicator, ...state.spmIndicators],
+  })),
 }))

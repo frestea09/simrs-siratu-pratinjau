@@ -20,7 +20,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { DialogFooter } from "../ui/dialog"
-import { useSpmStore } from "@/store/spm-store"
+import { SpmIndicator, useSpmStore } from "@/store/spm-store"
 import { useToast } from "@/hooks/use-toast"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Calendar } from "../ui/calendar"
@@ -39,15 +39,20 @@ const formSchema = z.object({
 
 type SpmInputFormProps = {
     setOpen: (open: boolean) => void;
+    spmIndicator?: SpmIndicator;
 }
 
-export function SpmInputForm({ setOpen }: SpmInputFormProps) {
+export function SpmInputForm({ setOpen, spmIndicator }: SpmInputFormProps) {
   const { toast } = useToast()
-  const { addSpmIndicator } = useSpmStore()
+  const { addSpmIndicator, updateSpmIndicator } = useSpmStore()
+  const isEditMode = !!spmIndicator;
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: isEditMode ? {
+        ...spmIndicator,
+        reportingDate: new Date(spmIndicator.reportingDate),
+    } : {
       serviceType: "",
       indicator: "",
       target: "",
@@ -57,11 +62,21 @@ export function SpmInputForm({ setOpen }: SpmInputFormProps) {
   })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    addSpmIndicator({ ...values, reportingDate: values.reportingDate.toISOString() })
-    toast({
-      title: "Data SPM Disimpan",
-      description: `Data untuk indikator "${values.indicator}" telah berhasil ditambahkan.`,
-    })
+    const dataToSave = { ...values, reportingDate: values.reportingDate.toISOString() };
+
+    if (isEditMode && spmIndicator.id) {
+        updateSpmIndicator(spmIndicator.id, dataToSave);
+        toast({
+          title: "Data SPM Diperbarui",
+          description: `Data untuk indikator "${values.indicator}" telah berhasil diperbarui.`,
+        })
+    } else {
+        addSpmIndicator(dataToSave)
+        toast({
+          title: "Data SPM Disimpan",
+          description: `Data untuk indikator "${values.indicator}" telah berhasil ditambahkan.`,
+        })
+    }
     setOpen(false)
     form.reset()
   }
@@ -181,7 +196,7 @@ export function SpmInputForm({ setOpen }: SpmInputFormProps) {
             )}
             />
             <DialogFooter className="pt-4">
-                <Button type="submit">Simpan Data</Button>
+                <Button type="submit">{isEditMode ? 'Simpan Perubahan' : 'Simpan Data'}</Button>
             </DialogFooter>
         </form>
     </Form>

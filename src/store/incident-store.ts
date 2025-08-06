@@ -38,6 +38,7 @@ export type Incident = {
 type IncidentState = {
   incidents: Incident[]
   addIncident: (incident: Omit<Incident, 'id' | 'date' | 'status'>) => void
+  updateIncident: (id: string, incident: Omit<Incident, 'id' | 'date' | 'status'>) => void
 }
 
 const initialIncidents: Incident[] = [];
@@ -57,4 +58,15 @@ export const useIncidentStore = create<IncidentState>((set) => ({
         ...state.incidents,
       ],
     })),
+    updateIncident: (id, incidentData) => set((state) => ({
+        incidents: state.incidents.map(inc => {
+            if (inc.id === id) {
+                return {
+                    ...inc,
+                    ...incidentData
+                }
+            }
+            return inc;
+        })
+    }))
 }))

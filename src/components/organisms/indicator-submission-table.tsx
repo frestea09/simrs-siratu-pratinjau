@@ -15,7 +15,7 @@ import {
   useReactTable,
   FilterFn,
 } from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown, MoreHorizontal, Calendar as CalendarIcon } from "lucide-react"
+import { ArrowUpDown, ChevronDown, MoreHorizontal, Calendar as CalendarIcon, Pencil } from "lucide-react"
 import { DateRange } from "react-day-picker"
 import { format } from "date-fns"
 
@@ -46,6 +46,7 @@ import { SubmittedIndicator, useIndicatorStore } from "@/store/indicator-store"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
+import { IndicatorSubmissionDialog } from "./indicator-submission-dialog"
 
 const getStatusVariant = (status: SubmittedIndicator['status']) => {
     switch (status) {
@@ -143,12 +144,19 @@ export const columns: ColumnDef<SubmittedIndicator>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+             <DropdownMenuItem asChild>
+                <IndicatorSubmissionDialog indicator={indicator} trigger={
+                    <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full">
+                        <Pencil className="mr-2 h-4 w-4" />
+                        <span>Edit</span>
+                    </button>
+                } />
+            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => navigator.clipboard.writeText(indicator.id)}
             >
               Salin ID Indikator
             </DropdownMenuItem>
-            <DropdownMenuItem disabled>Lihat Detail</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuSub>
                 <DropdownMenuSubTrigger>Ubah Status</DropdownMenuSubTrigger>

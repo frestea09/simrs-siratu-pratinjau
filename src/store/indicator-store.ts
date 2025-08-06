@@ -26,6 +26,7 @@ type IndicatorState = {
   addIndicator: (indicator: Omit<Indicator, 'ratio' | 'status'>) => void
   submitIndicator: (indicator: Omit<SubmittedIndicator, 'id' | 'status' | 'submissionDate'>) => void
   updateSubmittedIndicatorStatus: (id: string, status: SubmittedIndicator['status']) => void
+  updateSubmittedIndicator: (id: string, data: Partial<Omit<SubmittedIndicator, 'id' | 'status' | 'submissionDate'>>) => void
 }
 
 const initialSubmittedIndicators: SubmittedIndicator[] = [];
@@ -77,13 +78,13 @@ export const useIndicatorStore = create<IndicatorState>((set) => ({
   submitIndicator: (indicator) =>
     set((state) => ({
       submittedIndicators: [
-        ...state.submittedIndicators,
         {
           ...indicator,
           id: `IND-${String(state.submittedIndicators.length + 1).padStart(3, '0')}`,
           status: 'Menunggu Persetujuan',
           submissionDate: new Date().toISOString().split('T')[0],
-        }
+        },
+        ...state.submittedIndicators
       ]
     })),
   updateSubmittedIndicatorStatus: (id, status) =>
@@ -92,4 +93,10 @@ export const useIndicatorStore = create<IndicatorState>((set) => ({
         indicator.id === id ? { ...indicator, status } : indicator
       ),
     })),
+  updateSubmittedIndicator: (id, data) =>
+    set((state) => ({
+      submittedIndicators: state.submittedIndicators.map((indicator) =>
+        indicator.id === id ? { ...indicator, ...data } : indicator
+      )
+    }))
 }))

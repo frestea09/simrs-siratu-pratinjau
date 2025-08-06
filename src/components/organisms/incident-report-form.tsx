@@ -31,14 +31,40 @@ const SectionTitle = ({ children }: { children: React.ReactNode }) => (
 
 type IncidentReportFormProps = {
     setOpen: (open: boolean) => void;
+    incident?: Incident;
 }
 
-export function IncidentReportForm({ setOpen }: IncidentReportFormProps) {
+const severityMap: { [key: string]: string } = {
+    biru: 'Rendah',
+    hijau: 'Sedang',
+    kuning: 'Tinggi',
+    merah: 'Sangat Tinggi',
+};
+const incidentTypeMap: { [key: string]: string } = {
+    'KPC': 'Kondisi Potensial Cedera (KPC)',
+    'KNC': 'Kejadian Nyaris Cedera (KNC)',
+    'KTC': 'Kejadian Tidak Cedera (KTC)',
+    'KTD': 'Kejadian Tidak Diharapkan (KTD)',
+    'Sentinel': 'Kejadian Sentinel',
+};
+
+const findKeyByValue = (obj: { [key: string]: string }, value: string) =>
+    Object.keys(obj).find(key => obj[key] === value);
+
+export function IncidentReportForm({ setOpen, incident }: IncidentReportFormProps) {
     const [currentStep, setCurrentStep] = React.useState(0)
-    const { addIncident } = useIncidentStore()
+    const { addIncident, updateIncident } = useIncidentStore()
     const { toast } = useToast()
     
-    const [formData, setFormData] = React.useState<Partial<Incident>>({});
+    const [formData, setFormData] = React.useState<Partial<Incident>>(
+        incident ? {
+            ...incident,
+            type: findKeyByValue(incidentTypeMap, incident.type) || incident.type,
+            severity: findKeyByValue(severityMap, incident.severity) || incident.severity,
+        } : {}
+    );
+
+    const isEditMode = !!incident;
 
     const next = () => setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev))
     const prev = () => setCurrentStep((prev) => (prev > 0 ? prev - 1 : prev))
@@ -49,33 +75,25 @@ export function IncidentReportForm({ setOpen }: IncidentReportFormProps) {
 
 
     const handleSave = () => {
-        const severityMap: { [key: string]: string } = {
-            biru: 'Rendah',
-            hijau: 'Sedang',
-            kuning: 'Tinggi',
-            merah: 'Sangat Tinggi',
-        };
-        const incidentTypeMap: { [key: string]: string } = {
-            'KPC': 'Kondisi Potensial Cedera (KPC)',
-            'KNC': 'Kejadian Nyaris Cedera (KNC)',
-            'KTC': 'Kejadian Tidak Cedera (KTC)',
-            'KTD': 'Kejadian Tidak Diharapkan (KTD)',
-            'Sentinel': 'Kejadian Sentinel',
-        };
-        
         const finalData = { ...formData } as Omit<Incident, 'id' | 'date' | 'status'>;
 
         // Map values before saving
         finalData.type = incidentTypeMap[finalData.type] || 'N/A';
         finalData.severity = severityMap[finalData.severity] || 'N/A';
 
-
-        addIncident(finalData);
-        
-        toast({
-            title: "Laporan Berhasil Disimpan",
-            description: "Laporan insiden baru telah ditambahkan ke daftar.",
-        });
+        if (isEditMode && incident.id) {
+            updateIncident(incident.id, finalData)
+            toast({
+                title: "Laporan Berhasil Diperbarui",
+                description: `Laporan insiden ${incident.id} telah diperbarui.`,
+            });
+        } else {
+            addIncident(finalData);
+            toast({
+                title: "Laporan Berhasil Disimpan",
+                description: "Laporan insiden baru telah ditambahkan ke daftar.",
+            });
+        }
         
         setOpen(false);
     }
@@ -101,7 +119,7 @@ export function IncidentReportForm({ setOpen }: IncidentReportFormProps) {
                         {currentStep < steps.length - 1 ? (
                             <Button onClick={next}>Lanjutkan</Button>
                         ) : (
-                            <Button onClick={handleSave} size="lg">Simpan Laporan</Button>
+                            <Button onClick={handleSave} size="lg">{isEditMode ? 'Simpan Perubahan' : 'Simpan Laporan'}</Button>
                         )}
                     </div>
                 </div>
@@ -213,5 +231,3 @@ function Step3({ data, onUpdate }: StepProps) {
         </div>
     )
 }
-
-    

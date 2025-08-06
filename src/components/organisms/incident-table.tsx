@@ -14,7 +14,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import { MoreHorizontal, Eye, ArrowUpDown } from "lucide-react"
+import { MoreHorizontal, Eye, ArrowUpDown, Pencil } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -38,6 +38,7 @@ import { Badge } from "@/components/ui/badge"
 import { Incident } from "@/store/incident-store"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { Separator } from "../ui/separator"
+import { IncidentReportDialog } from "./incident-report-dialog"
 
 const DetailSection = ({ title, children }: { title: string, children: React.ReactNode }) => (
     <div className="space-y-2">
@@ -182,6 +183,9 @@ export function IncidentTable({ incidents }: { incidents: Incident[] }) {
                 <Eye className="mr-2 h-4 w-4" />
                 Lihat Detail
               </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <IncidentReportDialog incident={incident} />
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigator.clipboard.writeText(incident.id)}>
                 Salin ID
               </DropdownMenuItem>
@@ -277,5 +281,3 @@ export function IncidentTable({ incidents }: { incidents: Incident[] }) {
     </div>
   )
 }
-
-    

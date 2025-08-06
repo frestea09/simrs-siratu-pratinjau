@@ -14,7 +14,7 @@ import {
   useReactTable,
   FilterFn
 } from "@tanstack/react-table"
-import { Calendar as CalendarIcon, ArrowUpDown, Eye } from "lucide-react"
+import { Calendar as CalendarIcon, ArrowUpDown, Eye, MoreHorizontal, Pencil } from "lucide-react"
 import { DateRange } from "react-day-picker"
 import { format } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
@@ -35,6 +35,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Calendar } from "../ui/calendar"
 import { cn } from "@/lib/utils"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu"
+import { SpmInputDialog } from "./spm-input-dialog"
 
 const SpmDetailDialog = ({ indicator, open, onOpenChange }: { indicator: SpmIndicator | null, open: boolean, onOpenChange: (open: boolean) => void }) => {
     if (!indicator) return null;
@@ -168,12 +170,31 @@ export function SpmTable({ indicators }: SpmTableProps) {
             const indicator = row.original
             return (
                 <div className="text-center">
-                    <Button variant="ghost" size="icon" onClick={() => {
-                        setSelectedSpm(indicator);
-                        setIsDetailOpen(true);
-                    }} title="Lihat Detail">
-                        <Eye className="h-4 w-4" />
-                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Buka menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                             <DropdownMenuItem onClick={() => {
+                                setSelectedSpm(indicator);
+                                setIsDetailOpen(true);
+                            }}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                Lihat Detail
+                            </DropdownMenuItem>
+                             <DropdownMenuItem asChild>
+                                <SpmInputDialog spmIndicator={indicator} trigger={
+                                    <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full">
+                                        <Pencil className="mr-2 h-4 w-4" />
+                                        <span>Edit</span>
+                                    </button>
+                                } />
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             )
         },
@@ -331,5 +352,3 @@ export function SpmTable({ indicators }: SpmTableProps) {
     </div>
   )
 }
-
-    

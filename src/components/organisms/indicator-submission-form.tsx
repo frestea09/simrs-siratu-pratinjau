@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { DialogFooter } from "../ui/dialog"
-import { useIndicatorStore } from "@/store/indicator-store"
+import { SubmittedIndicator, useIndicatorStore } from "@/store/indicator-store"
 import { useToast } from "@/hooks/use-toast"
 
 const formSchema = z.object({
@@ -42,26 +42,40 @@ const formSchema = z.object({
 
 type IndicatorSubmissionFormProps = {
     setOpen: (open: boolean) => void;
+    indicator?: SubmittedIndicator;
 }
 
-export function IndicatorSubmissionForm({ setOpen }: IndicatorSubmissionFormProps) {
+export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmissionFormProps) {
   const { toast } = useToast()
-  const { submitIndicator } = useIndicatorStore()
+  const { submitIndicator, updateSubmittedIndicator } = useIndicatorStore()
+  const isEditMode = !!indicator;
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: isEditMode ? {
+        name: indicator.name,
+        frequency: indicator.frequency,
+        description: indicator.description,
+    } : {
       name: "",
       description: "",
     },
   })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    submitIndicator(values as any)
-    toast({
-      title: "Pengajuan Berhasil",
-      description: `Indikator "${values.name}" telah berhasil diajukan.`,
-    })
+    if (isEditMode && indicator.id) {
+        updateSubmittedIndicator(indicator.id, values)
+        toast({
+            title: "Pengajuan Diperbarui",
+            description: `Pengajuan untuk "${values.name}" telah berhasil diperbarui.`,
+        })
+    } else {
+        submitIndicator(values as any)
+        toast({
+          title: "Pengajuan Berhasil",
+          description: `Indikator "${values.name}" telah berhasil diajukan.`,
+        })
+    }
     setOpen(false)
     form.reset()
   }
@@ -122,7 +136,7 @@ export function IndicatorSubmissionForm({ setOpen }: IndicatorSubmissionFormProp
             )}
             />
             <DialogFooter>
-                <Button type="submit">Ajukan Indikator</Button>
+                <Button type="submit">{isEditMode ? 'Simpan Perubahan' : 'Ajukan Indikator'}</Button>
             </DialogFooter>
         </form>
     </Form>

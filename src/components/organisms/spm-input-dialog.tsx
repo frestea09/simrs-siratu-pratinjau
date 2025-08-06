@@ -11,28 +11,40 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { PlusCircle } from "lucide-react"
+import { PlusCircle, Pencil } from "lucide-react"
 import { SpmInputForm } from "./spm-input-form"
+import { SpmIndicator } from "@/store/spm-store"
 
-export function SpmInputDialog() {
+type SpmInputDialogProps = {
+  spmIndicator?: SpmIndicator,
+  trigger?: React.ReactNode,
+}
+
+export function SpmInputDialog({ spmIndicator, trigger }: SpmInputDialogProps) {
   const [open, setOpen] = React.useState(false)
+
+  const isEditMode = !!spmIndicator;
+
+  const defaultTrigger = (
+    <Button>
+      <PlusCircle className="mr-2 h-4 w-4" />
+      Tambah Data SPM
+    </Button>
+  )
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Tambah Data SPM
-        </Button>
+        {trigger || defaultTrigger}
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Input Data Standar Pelayanan Minimal (SPM)</DialogTitle>
+          <DialogTitle>{isEditMode ? 'Edit Data SPM' : 'Input Data Standar Pelayanan Minimal (SPM)'}</DialogTitle>
           <DialogDescription>
-            Isi detail capaian SPM. Klik simpan jika sudah selesai.
+            {isEditMode ? 'Ubah data yang diperlukan di bawah ini.' : 'Isi detail capaian SPM. Klik simpan jika sudah selesai.'}
           </DialogDescription>
         </DialogHeader>
-        <SpmInputForm setOpen={setOpen} />
+        <SpmInputForm setOpen={setOpen} spmIndicator={spmIndicator} />
       </DialogContent>
     </Dialog>
   )

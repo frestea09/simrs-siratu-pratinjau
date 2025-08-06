@@ -14,6 +14,7 @@ import { format } from "date-fns"
 import { useIndicatorStore } from "@/store/indicator-store"
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "../ui/textarea"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 
 export function IndicatorInputForm() {
   const { toast } = useToast()
@@ -66,17 +67,17 @@ export function IndicatorInputForm() {
   const isTimeBased = selectedIndicator === "Waktu Tunggu Rawat Jalan";
 
   return (
-    <div className="space-y-4">
-      <div className="grid md:grid-cols-2 gap-4">
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <Label htmlFor="indicator">Nama Indikator</Label>
+          <Label htmlFor="indicator" className="text-base">Nama Indikator</Label>
           <Select value={selectedIndicator} onValueChange={setSelectedIndicator}>
-            <SelectTrigger>
+            <SelectTrigger className="text-base h-11">
               <SelectValue placeholder="Pilih indikator yang terverifikasi" />
             </SelectTrigger>
             <SelectContent>
               {verifiedIndicators.map(indicator => (
-                <SelectItem key={indicator.id} value={indicator.name}>
+                <SelectItem key={indicator.id} value={indicator.name} className="text-base">
                   {indicator.name} ({indicator.frequency})
                 </SelectItem>
               ))}
@@ -84,12 +85,12 @@ export function IndicatorInputForm() {
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="period">Periode Laporan</Label>
+          <Label htmlFor="period" className="text-base">Periode Laporan</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant={"outline"}
-                className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}
+                className={cn("w-full justify-start text-left font-normal text-base h-11", !date && "text-muted-foreground")}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {date ? format(date, "PPP") : <span>Pilih tanggal</span>}
@@ -101,49 +102,66 @@ export function IndicatorInputForm() {
           </Popover>
         </div>
       </div>
-      <div className="grid md:grid-cols-3 gap-4">
+      
+      <Card>
+        <CardHeader>
+            <CardTitle>Data Pengukuran</CardTitle>
+            <CardDescription>Masukkan angka pembilang (Numerator) dan penyebut (Denominator).</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+             <div className="space-y-2">
+                <Label htmlFor="numerator" className="text-base">Numerator</Label>
+                <Input 
+                    id="numerator" 
+                    type="number" 
+                    placeholder="Contoh: 980" 
+                    value={numerator}
+                    onChange={(e) => setNumerator(e.target.value)}
+                    className="text-base h-11"
+                />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="denominator" className="text-base">Denominator</Label>
+                <Input 
+                    id="denominator" 
+                    type="number" 
+                    placeholder="Contoh: 1000" 
+                    value={denominator}
+                    onChange={(e) => setDenominator(e.target.value)}
+                    disabled={isTimeBased}
+                    className="text-base h-11"
+                />
+            </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <Label htmlFor="numerator">Numerator</Label>
-          <Input 
-            id="numerator" 
-            type="number" 
-            placeholder="Contoh: 980" 
-            value={numerator}
-            onChange={(e) => setNumerator(e.target.value)}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="denominator">Denominator</Label>
-          <Input 
-            id="denominator" 
-            type="number" 
-            placeholder="Contoh: 1000" 
-            value={denominator}
-            onChange={(e) => setDenominator(e.target.value)}
-            disabled={isTimeBased}
-          />
-        </div>
-         <div className="space-y-2">
-          <Label htmlFor="standard">Standar ({isTimeBased ? "menit" : "%"})</Label>
+          <Label htmlFor="standard" className="text-base">Standar Target ({isTimeBased ? "menit" : "%"})</Label>
           <Input 
             id="standard" 
             type="number" 
             placeholder={isTimeBased ? "Contoh: 60" : "Contoh: 100"}
             value={standard}
             onChange={(e) => setStandard(e.target.value)}
+            className="text-base h-11"
           />
+        </div>
+         <div className="space-y-2">
+            <Label htmlFor="notes" className="text-base">Catatan Analisis (Opsional)</Label>
+            <Textarea
+                id="notes"
+                placeholder="Tambahkan catatan atau analisis jika hasil tidak sesuai standar."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="text-base min-h-[110px]"
+            />
         </div>
       </div>
-       <div className="space-y-2">
-          <Label htmlFor="notes">Catatan (Opsional)</Label>
-          <Textarea
-            id="notes"
-            placeholder="Tambahkan catatan atau analisis jika diperlukan."
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-          />
-        </div>
-      <Button onClick={handleSubmit}>Simpan Data</Button>
+
+      <div>
+        <Button onClick={handleSubmit} size="lg" className="text-base">Simpan Data Capaian</Button>
+      </div>
     </div>
   )
 }

@@ -1,10 +1,11 @@
+
 "use client"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Download } from "lucide-react"
-import { IndicatorTable } from "@/components/molecules/indicator-table"
 import { useIndicatorStore } from "@/store/indicator-store"
+import { IndicatorReportTable } from "./indicator-report-table"
 
 export function IndicatorReport() {
     const indicators = useIndicatorStore((state) => state.indicators)
@@ -26,7 +27,7 @@ export function IndicatorReport() {
                 </div>
             </CardHeader>
             <CardContent>
-                <IndicatorTable indicators={indicators} />
+                <IndicatorReportTable indicators={indicators} />
             </CardContent>
         </Card>
     )

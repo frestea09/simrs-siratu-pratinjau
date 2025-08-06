@@ -18,20 +18,10 @@ import {
 import { ArrowUpDown, ChevronDown, MoreHorizontal, Calendar as CalendarIcon } from "lucide-react"
 import { DateRange } from "react-day-picker"
 import { format } from "date-fns"
+import { id as IndonesianLocale } from "date-fns/locale"
+
 
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import {
   Table,
@@ -41,137 +31,85 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { SubmittedIndicator, useIndicatorStore } from "@/store/indicator-store"
+import { Indicator, useIndicatorStore } from "@/store/indicator-store"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 
-const getStatusVariant = (status: SubmittedIndicator['status']) => {
-    switch (status) {
-        case 'Diverifikasi':
-            return 'default'
-        case 'Menunggu Persetujuan':
-            return 'secondary'
-        case 'Ditolak':
-            return 'destructive'
-        default:
-            return 'outline'
-    }
-}
+const dateRangeFilter: FilterFn<Indicator> = (row, columnId, value, addMeta) => {
+    // Period is in "yyyy-MM" format. We need to convert it to a Date object.
+    const rowDate = new Date(row.original.period);
+    const [start, end] = value as [Date, Date];
 
-const statusOptions: SubmittedIndicator['status'][] = ['Menunggu Persetujuan', 'Diverifikasi', 'Ditolak'];
-
-const dateRangeFilter: FilterFn<SubmittedIndicator> = (row, columnId, value, addMeta) => {
-    const date = new Date(row.original.submissionDate);
-    const [start, end] = value as [Date | undefined, Date | undefined];
+    // Normalize start date to the beginning of the month
+    const normalizedStart = start ? new Date(start.getFullYear(), start.getMonth(), 1) : null;
     
-    if (start && !end) {
-        return date >= start;
+    // Normalize end date to the end of the month
+    const normalizedEnd = end ? new Date(end.getFullYear(), end.getMonth() + 1, 0) : null;
+    
+    if (normalizedStart && !normalizedEnd) {
+        return rowDate >= normalizedStart;
     }
-    if (!start && end) {
-        const localEndDate = new Date(end);
-        localEndDate.setHours(23, 59, 59, 999);
-        return date <= localEndDate;
+    if (!normalizedStart && normalizedEnd) {
+        return rowDate <= normalizedEnd;
     }
-    if (start && end) {
-        const localEndDate = new Date(end);
-        localEndDate.setHours(23, 59, 59, 999);
-        return date >= start && date <= localEndDate;
+    if (normalizedStart && normalizedEnd) {
+        return rowDate >= normalizedStart && rowDate <= normalizedEnd;
     }
     return true;
 }
 
-export const columns: ColumnDef<SubmittedIndicator>[] = [
+
+export const columns: ColumnDef<Indicator>[] = [
   {
-    accessorKey: "id",
-    header: "ID",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("id")}</div>
-    ),
-  },
-  {
-    accessorKey: "name",
+    accessorKey: "indicator",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Nama Indikator
+          Indikator
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
     },
-    cell: ({ row }) => <div className="font-medium">{row.getValue("name")}</div>,
+    cell: ({ row }) => <div className="font-medium">{row.getValue("indicator")}</div>,
   },
   {
-    accessorKey: "frequency",
-    header: "Frekuensi",
-    cell: ({ row }) => <div>{row.getValue("frequency")}</div>,
-  },
-  {
-    accessorKey: "submissionDate",
-    header: "Tgl. Pengajuan",
-    cell: ({ row }) => <div>{format(new Date(row.getValue("submissionDate")), "dd MMM yyyy")}</div>,
+    accessorKey: "period",
+    header: "Periode",
+    cell: ({ row }) => <div>{format(new Date(row.getValue("period")), "MMMM yyyy", { locale: IndonesianLocale })}</div>,
     filterFn: dateRangeFilter,
   },
   {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => (
-      <Badge variant={getStatusVariant(row.getValue("status"))}>{row.getValue("status")}</Badge>
-    ),
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id))
+    accessorKey: "numerator",
+    header: () => <div className="text-right">Numerator</div>,
+    cell: ({ row }) => {
+      const amount = parseFloat(row.getValue("numerator"))
+      return <div className="text-right font-medium">{amount}</div>
     },
   },
   {
-    id: "actions",
-    enableHiding: false,
+    accessorKey: "denominator",
+    header: () => <div className="text-right">Denominator</div>,
     cell: ({ row }) => {
-      const indicator = row.original
-      const { updateSubmittedIndicatorStatus } = useIndicatorStore.getState()
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(indicator.id)}
-            >
-              Salin ID Indikator
-            </DropdownMenuItem>
-            <DropdownMenuItem disabled>Lihat Detail</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuSub>
-                <DropdownMenuSubTrigger>Ubah Status</DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                    {statusOptions.map((status) => (
-                        <DropdownMenuItem key={status} onSelect={() => updateSubmittedIndicatorStatus(indicator.id, status)}>
-                            {status}
-                        </DropdownMenuItem>
-                    ))}
-                </DropdownMenuSubContent>
-            </DropdownMenuSub>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
+      const amount = parseFloat(row.getValue("denominator"))
+      return <div className="text-right font-medium">{amount}</div>
     },
+  },
+  {
+    accessorKey: "ratio",
+    header: () => <div className="text-right">Capaian</div>,
+    cell: ({ row }) => <div className="text-right font-semibold">{row.getValue("ratio")}</div>,
   },
 ]
 
-type IndicatorSubmissionTableProps = {
-  indicators: SubmittedIndicator[]
+type IndicatorReportTableProps = {
+  indicators: Indicator[]
 }
 
-export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTableProps) {
+export function IndicatorReportTable({ indicators }: IndicatorReportTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -203,7 +141,7 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
   React.useEffect(() => {
     const from = date?.from;
     const to = date?.to;
-    table.getColumn("submissionDate")?.setFilterValue(from || to ? [from, to] : undefined);
+    table.getColumn("period")?.setFilterValue(from || to ? [from, to] : undefined);
   }, [date, table]);
 
 
@@ -212,9 +150,9 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
       <div className="flex items-center py-4 gap-2 flex-wrap">
         <Input
           placeholder="Cari nama indikator..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+          value={(table.getColumn("indicator")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
+            table.getColumn("indicator")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
@@ -233,14 +171,14 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
                 {date?.from ? (
                   date.to ? (
                     <>
-                      {format(date.from, "LLL dd, y")} -{" "}
-                      {format(date.to, "LLL dd, y")}
+                      {format(date.from, "LLL y")} -{" "}
+                      {format(date.to, "LLL y")}
                     </>
                   ) : (
-                    format(date.from, "LLL dd, y")
+                    format(date.from, "LLL y")
                   )
                 ) : (
-                  <span>Pilih rentang tanggal</span>
+                  <span>Pilih rentang periode</span>
                 )}
               </Button>
             </PopoverTrigger>
@@ -256,33 +194,6 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
             </PopoverContent>
           </Popover>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Status <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {statusOptions.map((status) => (
-              <DropdownMenuCheckboxItem
-                key={status}
-                className="capitalize"
-                checked={
-                  (table.getColumn("status")?.getFilterValue() as string[] | undefined)?.includes(status) ?? false
-                }
-                onCheckedChange={(value) => {
-                   const currentFilter = (table.getColumn("status")?.getFilterValue() as string[] | undefined) || [];
-                   const newFilter = value ? [...currentFilter, status] : currentFilter.filter(s => s !== status);
-                   table.getColumn("status")?.setFilterValue(newFilter.length ? newFilter : undefined);
-                }}
-              >
-                {status}
-              </DropdownMenuCheckboxItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
       <div className="rounded-md border">
         <Table>

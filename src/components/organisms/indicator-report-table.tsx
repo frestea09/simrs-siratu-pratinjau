@@ -52,9 +52,10 @@ const dateRangeFilter: FilterFn<Indicator> = (row, columnId, value) => {
 
 type IndicatorReportTableProps = {
   indicators: Indicator[]
+  onExport: (data: Indicator[], columns: ColumnDef<Indicator>[]) => void;
 }
 
-export function IndicatorReportTable({ indicators }: IndicatorReportTableProps) {
+export function IndicatorReportTable({ indicators, onExport }: IndicatorReportTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [date, setDate] = React.useState<DateRange | undefined>()
@@ -87,8 +88,8 @@ export function IndicatorReportTable({ indicators }: IndicatorReportTableProps) 
       header: () => <div className="text-right">Standar</div>,
       cell: ({ row }) => {
         const standard = row.original.standard;
-        const isTimeBased = row.original.indicator === "Waktu Tunggu Rawat Jalan";
-        return <div className="text-right">{`${standard}${isTimeBased ? ' min' : '%'}`}</div>;
+        const unit = row.original.standardUnit;
+        return <div className="text-right">{`${standard}${unit}`}</div>;
       },
     },
     {
@@ -148,6 +149,10 @@ export function IndicatorReportTable({ indicators }: IndicatorReportTableProps) 
             <Calendar initialFocus mode="range" defaultMonth={date?.from} selected={date} onSelect={setDate} numberOfMonths={2} captionLayout="dropdown-buttons" fromYear={2020} toYear={new Date().getFullYear()} />
           </PopoverContent>
         </Popover>
+         <Button variant="outline" className="ml-auto" onClick={() => onExport(table.getFilteredRowModel().rows.map(row => row.original), columns.filter(c => c.id !== 'actions'))}>
+            <Download className="mr-2 h-4 w-4" />
+            Unduh Laporan
+        </Button>
       </div>
       <div className="rounded-md border">
         <Table>

@@ -42,6 +42,10 @@ const formSchema = z.object({
   description: z.string().min(10, {
     message: "Deskripsi harus memiliki setidaknya 10 karakter.",
   }),
+  standard: z.coerce.number({ invalid_type_error: "Standar harus berupa angka." }).positive("Standar harus lebih dari 0."),
+  standardUnit: z.enum(['%', 'menit'], {
+    required_error: "Anda harus memilih satuan standar.",
+  }),
 })
 
 type IndicatorSubmissionFormProps = {
@@ -65,9 +69,13 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
         unit: indicator.unit,
         frequency: indicator.frequency,
         description: indicator.description,
+        standard: indicator.standard,
+        standardUnit: indicator.standardUnit,
     } : {
       name: "",
       description: "",
+      standard: 100,
+      standardUnit: '%',
     },
   })
 
@@ -160,6 +168,42 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                     <FormMessage />
                     </FormItem>
                 )}
+                />
+            </div>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                    control={form.control}
+                    name="standard"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Standar Target</FormLabel>
+                            <FormControl>
+                                <Input type="number" placeholder="Contoh: 100" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="standardUnit"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Satuan Standar</FormLabel>
+                             <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Pilih satuan" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="%">% (Persen)</SelectItem>
+                                    <SelectItem value="menit">Menit</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
                 />
             </div>
             <FormField

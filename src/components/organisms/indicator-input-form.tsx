@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils"
 import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
-import { useIndicatorStore, Indicator } from "@/store/indicator-store"
+import { useIndicatorStore, Indicator, SubmittedIndicator } from "@/store/indicator-store"
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "../ui/textarea"
 import { DialogFooter } from "../ui/dialog"
@@ -32,23 +32,27 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit }: IndicatorInputF
 
   const isEditMode = !!indicatorToEdit;
   
-  const [selectedIndicator, setSelectedIndicator] = React.useState(indicatorToEdit?.indicator || "")
-  const [date, setDate] = React.useState<Date | undefined>(indicatorToEdit ? new Date(indicatorToEdit.period) : undefined)
+  const [selectedIndicatorId, setSelectedIndicatorId] = React.useState<string | undefined>(isEditMode ? submittedIndicators.find(si => si.name === indicatorToEdit.indicator)?.id : undefined);
+  const [date, setDate] = React.useState<Date | undefined>(indicatorToEdit ? new Date(indicatorToEdit.period) : new Date())
   const [numerator, setNumerator] = React.useState(indicatorToEdit?.numerator.toString() || "")
   const [denominator, setDenominator] = React.useState(indicatorToEdit?.denominator.toString() || "")
-  const [standard, setStandard] = React.useState(indicatorToEdit?.standard.toString() || "")
   const [notes, setNotes] = React.useState(indicatorToEdit?.notes || "")
+
+  const selectedSubmittedIndicator = React.useMemo(() => {
+    return submittedIndicators.find(si => si.id === selectedIndicatorId);
+  }, [selectedIndicatorId, submittedIndicators])
+
 
   React.useEffect(() => {
     if (indicatorToEdit) {
-        setSelectedIndicator(indicatorToEdit.indicator);
+        const relatedSubmitted = submittedIndicators.find(si => si.name === indicatorToEdit.indicator);
+        setSelectedIndicatorId(relatedSubmitted?.id);
         setDate(new Date(indicatorToEdit.period));
         setNumerator(indicatorToEdit.numerator.toString());
         setDenominator(indicatorToEdit.denominator.toString());
-        setStandard(indicatorToEdit.standard.toString());
         setNotes(indicatorToEdit.notes || "");
     }
-  }, [indicatorToEdit])
+  }, [indicatorToEdit, submittedIndicators])
 
 
   const verifiedIndicators = submittedIndicators.filter(
@@ -56,7 +60,7 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit }: IndicatorInputF
   )
 
   const handleSubmit = () => {
-    if (!selectedIndicator || !date || !numerator || !denominator || !standard) {
+    if (!selectedSubmittedIndicator || !date || !numerator || !denominator) {
         toast({
             variant: "destructive",
             title: "Data Tidak Lengkap",
@@ -66,11 +70,12 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit }: IndicatorInputF
     }
 
     const dataToSave = {
-        indicator: selectedIndicator,
+        indicator: selectedSubmittedIndicator.name,
         period: format(date, "yyyy-MM"),
         numerator: Number(numerator),
         denominator: Number(denominator),
-        standard: Number(standard),
+        standard: selectedSubmittedIndicator.standard,
+        standardUnit: selectedSubmittedIndicator.standardUnit,
         notes: notes,
     };
 
@@ -83,7 +88,7 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit }: IndicatorInputF
         });
         toast({
             title: "Data Berhasil Diperbarui",
-            description: `Capaian untuk ${selectedIndicator} periode ${format(date, "MMMM yyyy")} telah diperbarui.`,
+            description: `Capaian untuk ${dataToSave.indicator} periode ${format(date, "MMMM yyyy")} telah diperbarui.`,
         })
     } else {
          const newId = addIndicator(dataToSave)
@@ -94,34 +99,33 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit }: IndicatorInputF
         });
         toast({
             title: "Data Berhasil Disimpan",
-            description: `Capaian untuk ${selectedIndicator} periode ${format(date, "MMMM yyyy")} telah ditambahkan.`,
+            description: `Capaian untuk ${dataToSave.indicator} periode ${format(date, "MMMM yyyy")} telah ditambahkan.`,
         })
     }
 
     // Reset form and close dialog
-    setSelectedIndicator("")
-    setDate(undefined)
+    setSelectedIndicatorId(undefined)
+    setDate(new Date())
     setNumerator("")
     setDenominator("")
-    setStandard("")
     setNotes("")
     setOpen(false);
   }
 
-  const isTimeBased = selectedIndicator === "Waktu Tunggu Rawat Jalan";
+  const isTimeBased = selectedSubmittedIndicator?.standardUnit === "menit";
 
   return (
     <div className="space-y-6 pt-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="indicator" className="text-base">Nama Indikator</Label>
-          <Select value={selectedIndicator} onValueChange={setSelectedIndicator} disabled={isEditMode}>
+          <Select value={selectedIndicatorId} onValueChange={setSelectedIndicatorId} disabled={isEditMode}>
             <SelectTrigger className="text-base h-11">
               <SelectValue placeholder="Pilih indikator yang terverifikasi" />
             </SelectTrigger>
             <SelectContent>
               {verifiedIndicators.map(indicator => (
-                <SelectItem key={indicator.id} value={indicator.name} className="text-base">
+                <SelectItem key={indicator.id} value={indicator.id} className="text-base">
                   {indicator.name} ({indicator.frequency})
                 </SelectItem>
               ))}
@@ -149,42 +153,30 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit }: IndicatorInputF
       
        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
              <div className="space-y-2">
-                <Label htmlFor="numerator" className="text-base">Numerator</Label>
+                <Label htmlFor="numerator" className="text-base">{isTimeBased ? "Total Waktu (Menit)" : "Numerator"}</Label>
                 <Input 
                     id="numerator" 
                     type="number" 
-                    placeholder={isTimeBased ? "Total waktu tunggu (menit)" : "Jumlah kasus terpenuhi"}
+                    placeholder={isTimeBased ? "Total waktu tunggu" : "Jumlah kasus terpenuhi"}
                     value={numerator}
                     onChange={(e) => setNumerator(e.target.value)}
                     className="text-base h-11"
                 />
             </div>
             <div className="space-y-2">
-                <Label htmlFor="denominator" className="text-base">Denominator</Label>
+                <Label htmlFor="denominator" className="text-base">{isTimeBased ? "Total Pasien" : "Denominator"}</Label>
                 <Input 
                     id="denominator" 
                     type="number" 
-                    placeholder={isTimeBased ? "Total pasien" : "Total kasus"}
+                    placeholder={isTimeBased ? "Total pasien yang disurvei" : "Total kasus"}
                     value={denominator}
                     onChange={(e) => setDenominator(e.target.value)}
                     className="text-base h-11"
                 />
             </div>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <Label htmlFor="standard" className="text-base">Standar Target ({isTimeBased ? "menit" : "%"})</Label>
-          <Input 
-            id="standard" 
-            type="number" 
-            placeholder={isTimeBased ? "Contoh: 60" : "Contoh: 100"}
-            value={standard}
-            onChange={(e) => setStandard(e.target.value)}
-            className="text-base h-11"
-          />
-        </div>
-         <div className="space-y-2">
+      
+       <div className="space-y-2">
             <Label htmlFor="notes" className="text-base">Catatan Analisis (Opsional)</Label>
             <Textarea
                 id="notes"
@@ -194,7 +186,13 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit }: IndicatorInputF
                 className="text-base min-h-[44px]"
             />
         </div>
-      </div>
+    
+      {selectedSubmittedIndicator && (
+        <div className="bg-muted p-3 rounded-lg text-sm">
+            <p className="font-semibold">Standar Target: <span className="font-bold text-primary">{selectedSubmittedIndicator.standard}{selectedSubmittedIndicator.standardUnit}</span></p>
+            <p className="text-muted-foreground">{selectedSubmittedIndicator.description}</p>
+        </div>
+      )}
 
       <DialogFooter className="pt-4">
         <Button onClick={handleSubmit} size="lg" className="text-base">{isEditMode ? 'Simpan Perubahan' : 'Simpan Data Capaian'}</Button>

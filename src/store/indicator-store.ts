@@ -9,6 +9,8 @@ export type SubmittedIndicator = {
   frequency: 'Harian' | 'Mingguan' | 'Bulanan' | '6 Bulanan';
   status: 'Menunggu Persetujuan' | 'Diverifikasi' | 'Ditolak';
   submissionDate: string;
+  standard: number;
+  standardUnit: '%' | 'menit';
 }
 
 export type Indicator = {
@@ -17,7 +19,8 @@ export type Indicator = {
   period: string
   numerator: number
   denominator: number
-  standard: number // The standard (percentage or minutes)
+  standard: number
+  standardUnit: '%' | 'menit';
   notes?: string
   ratio: string
   status: 'Memenuhi Standar' | 'Tidak Memenuhi Standar' | 'N/A'
@@ -38,8 +41,10 @@ const initialSubmittedIndicators: SubmittedIndicator[] = [];
 const initialIndicators: Indicator[] = [];
 
 const calculateRatio = (indicator: Omit<Indicator, 'id' | 'ratio' | 'status'>): string => {
-    if (indicator.indicator === "Waktu Tunggu Rawat Jalan") {
-        return `${indicator.numerator} min`
+    if (indicator.standardUnit === "menit") {
+        if (indicator.denominator === 0) return "0 min";
+        const average = indicator.numerator / indicator.denominator;
+        return `${average.toFixed(1)} min`
     }
     if (indicator.denominator === 0) return "0.0%"
     const ratio = (indicator.numerator / indicator.denominator) * 100;
@@ -47,17 +52,19 @@ const calculateRatio = (indicator: Omit<Indicator, 'id' | 'ratio' | 'status'>): 
 }
 
 const calculateStatus = (indicator: Omit<Indicator, 'id' |'ratio' | 'status'>): Indicator['status'] => {
-    if (indicator.indicator === "Waktu Tunggu Rawat Jalan") {
+    let achievementValue: number;
+    
+    if (indicator.standardUnit === 'menit') {
+        if (indicator.denominator === 0) return 'N/A';
+        achievementValue = indicator.numerator / indicator.denominator;
         // Lower is better for wait times
-        return indicator.numerator <= indicator.standard ? 'Memenuhi Standar' : 'Tidak Memenuhi Standar';
+        return achievementValue <= indicator.standard ? 'Memenuhi Standar' : 'Tidak Memenuhi Standar';
+    } else {
+        if (indicator.denominator === 0) return 'N/A';
+        achievementValue = (indicator.numerator / indicator.denominator) * 100;
+        // Higher is better for percentages
+        return achievementValue >= indicator.standard ? 'Memenuhi Standar' : 'Tidak Memenuhi Standar';
     }
-    
-    if (indicator.denominator === 0) return 'N/A';
-    
-    const ratioValue = (indicator.numerator / indicator.denominator) * 100;
-    
-    // Higher is better for percentages
-    return ratioValue >= indicator.standard ? 'Memenuhi Standar' : 'Tidak Memenuhi Standar';
 }
 
 
@@ -85,11 +92,11 @@ export const useIndicatorStore = create<IndicatorState>((set, get) => ({
     set((state) => ({
       indicators: state.indicators.map((indicator) => {
         if (indicator.id === id) {
+          const updatedData = { ...indicator, ...data };
           return {
-            ...indicator,
-            ...data,
-            ratio: calculateRatio(data),
-            status: calculateStatus(data),
+            ...updatedData,
+            ratio: calculateRatio(updatedData),
+            status: calculateStatus(updatedData),
           }
         }
         return indicator
@@ -121,5 +128,3 @@ export const useIndicatorStore = create<IndicatorState>((set, get) => ({
       )
     }))
 }))
-
-    

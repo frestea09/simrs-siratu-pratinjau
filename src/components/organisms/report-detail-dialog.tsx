@@ -17,8 +17,6 @@ type ReportDetailDialogProps = {
 export function ReportDetailDialog({ indicator, open, onOpenChange }: ReportDetailDialogProps) {
     if (!indicator) return null;
 
-    const isTimeBased = indicator.indicator === "Waktu Tunggu Rawat Jalan";
-
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-md">
@@ -35,7 +33,7 @@ export function ReportDetailDialog({ indicator, open, onOpenChange }: ReportDeta
                     </div>
                     <div className="grid grid-cols-3 items-center gap-4">
                         <span className="text-sm font-medium text-muted-foreground">Standar</span>
-                        <span className="col-span-2 text-sm">{`${indicator.standard}${isTimeBased ? ' min' : '%'}`}</span>
+                        <span className="col-span-2 text-sm">{`${indicator.standard}${indicator.standardUnit}`}</span>
                     </div>
                     <div className="grid grid-cols-3 items-center gap-4">
                         <span className="text-sm font-medium text-muted-foreground">Status</span>

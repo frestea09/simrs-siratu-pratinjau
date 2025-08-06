@@ -14,7 +14,7 @@ import {
   useReactTable,
   FilterFn
 } from "@tanstack/react-table"
-import { Calendar as CalendarIcon, ArrowUpDown } from "lucide-react"
+import { Calendar as CalendarIcon, ArrowUpDown, Download } from "lucide-react"
 import { DateRange } from "react-day-picker"
 import { format } from "date-fns"
 
@@ -61,10 +61,11 @@ const getStatusBadge = (notes?: string) => {
 }
 
 type SpmTableProps = {
-  indicators: SpmIndicator[]
+  indicators: SpmIndicator[];
+  onExport: (data: SpmIndicator[], columns: ColumnDef<SpmIndicator>[]) => void;
 }
 
-export function SpmTable({ indicators }: SpmTableProps) {
+export function SpmTable({ indicators, onExport }: SpmTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [date, setDate] = React.useState<DateRange | undefined>()
@@ -148,6 +149,10 @@ export function SpmTable({ indicators }: SpmTableProps) {
             <Calendar initialFocus mode="range" defaultMonth={date?.from} selected={date} onSelect={setDate} numberOfMonths={2} />
           </PopoverContent>
         </Popover>
+         <Button variant="outline" className="ml-auto" onClick={() => onExport(table.getFilteredRowModel().rows.map(row => row.original), columns.filter(c => c.id !== 'actions'))}>
+            <Download className="mr-2 h-4 w-4" />
+            Unduh Laporan
+        </Button>
       </div>
       <div className="rounded-md border">
         <Table>

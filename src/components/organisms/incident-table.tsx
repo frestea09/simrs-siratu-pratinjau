@@ -13,7 +13,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import { MoreHorizontal, Eye, ArrowUpDown } from "lucide-react"
+import { MoreHorizontal, Eye, ArrowUpDown, Download } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -37,7 +37,12 @@ import { Incident } from "@/store/incident-store"
 import { IncidentReportDialog } from "./incident-report-dialog"
 import { IncidentDetailDialog } from "./incident-detail-dialog"
 
-export function IncidentTable({ incidents }: { incidents: Incident[] }) {
+type IncidentTableProps = {
+  incidents: Incident[];
+  onExport: (data: Incident[], columns: ColumnDef<Incident>[]) => void;
+}
+
+export function IncidentTable({ incidents, onExport }: IncidentTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [selectedIncident, setSelectedIncident] = React.useState<Incident | null>(null);
@@ -141,6 +146,10 @@ export function IncidentTable({ incidents }: { incidents: Incident[] }) {
           }
           className="max-w-sm"
         />
+        <Button variant="outline" className="ml-auto" onClick={() => onExport(table.getFilteredRowModel().rows.map(row => row.original), columns.filter(c => c.id !== 'actions'))}>
+            <Download className="mr-2 h-4 w-4" />
+            Unduh Laporan
+        </Button>
       </div>
       <div className="rounded-md border">
         <Table>

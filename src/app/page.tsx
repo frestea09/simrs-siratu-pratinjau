@@ -17,18 +17,15 @@ import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { Hospital, Users, Eye, EyeOff } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-
-const users = {
-  "admin@sim.rs": { password: "123456", name: "Admin Sistem" },
-  "delina@sim.rs": { password: "123456", name: "Delina (PIC Mutu)" },
-  "deti@sim.rs": { password: "123456", name: "Deti (PJ Ruangan)" },
-  "devin@sim.rs": { password: "123456", name: "Devin (Komite Mutu)" },
-}
+import { useUserStore } from "@/store/user-store"
+import { useLogStore } from "@/store/log-store"
 
 export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [showPassword, setShowPassword] = useState(false)
+  const { users, setCurrentUser } = useUserStore()
+  const { addLog } = useLogStore()
 
   const handleLogin = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -39,11 +36,22 @@ export default function LoginPage() {
     // Trim any whitespace from the input
     const trimmedUsername = username.trim();
 
-    const user = users[trimmedUsername as keyof typeof users];
+    const user = users.find(u => u.email === trimmedUsername);
     
     if (user && user.password === password) {
+      setCurrentUser(user);
+      addLog({
+        user: user.name,
+        action: "LOGIN_SUCCESS",
+        details: `Pengguna ${user.name} berhasil login.`,
+      })
       router.push("/dashboard/overview")
     } else {
+      addLog({
+        user: trimmedUsername,
+        action: "LOGIN_FAIL",
+        details: `Percobaan login gagal untuk username: ${trimmedUsername}.`,
+      })
       toast({
         variant: "destructive",
         title: "Login Gagal",
@@ -113,8 +121,8 @@ export default function LoginPage() {
             <AlertTitle>Akun Demo</AlertTitle>
             <AlertDescription>
               <ul className="list-disc pl-5 text-xs space-y-1 mt-2">
-                {Object.entries(users).map(([email, user]) => (
-                    <li key={email}><b>{email}</b> ({user.name})</li>
+                {users.map((user) => (
+                    <li key={user.email}><b>{user.email}</b> ({user.name})</li>
                 ))}
               </ul>
                <p className="text-xs mt-2">Password untuk semua akun: <b>123456</b></p>

@@ -47,6 +47,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { IndicatorSubmissionDialog } from "./indicator-submission-dialog"
+import { useUserStore } from "@/store/user-store"
+import { useLogStore } from "@/store/log-store"
 
 const getStatusVariant = (status: SubmittedIndicator['status']) => {
     switch (status) {
@@ -81,6 +83,64 @@ const dateRangeFilter: FilterFn<SubmittedIndicator> = (row, columnId, value, add
         return date >= start && date <= localEndDate;
     }
     return true;
+}
+
+const ActionsCell = ({ row }: { row: any }) => {
+    const indicator = row.original as SubmittedIndicator
+    const { updateSubmittedIndicatorStatus } = useIndicatorStore.getState()
+    const { currentUser } = useUserStore();
+    const { addLog } = useLogStore();
+
+    const handleStatusChange = (status: SubmittedIndicator['status']) => {
+        updateSubmittedIndicatorStatus(indicator.id, status)
+        addLog({
+            user: currentUser?.name || 'System',
+            action: 'UPDATE_INDICATOR_STATUS',
+            details: `Status indikator "${indicator.name}" (${indicator.id}) diubah menjadi ${status}.`,
+        });
+    }
+
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                    <span className="sr-only">Open menu</span>
+                    <MoreHorizontal className="h-4 w-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                <DropdownMenuItem asChild>
+                    <IndicatorSubmissionDialog indicator={indicator} trigger={
+                        <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full">
+                            <Pencil className="mr-2 h-4 w-4" />
+                            <span>Edit</span>
+                        </button>
+                    } />
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    onClick={() => navigator.clipboard.writeText(indicator.id)}
+                >
+                    Salin ID Indikator
+                </DropdownMenuItem>
+                {currentUser?.role === 'Komite Mutu' && (
+                    <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>Ubah Status</DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent>
+                                {statusOptions.map((status) => (
+                                    <DropdownMenuItem key={status} onSelect={() => handleStatusChange(status)}>
+                                        {status}
+                                    </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+                    </>
+                )}
+            </DropdownMenuContent>
+        </DropdownMenu>
+    )
 }
 
 export const columns: ColumnDef<SubmittedIndicator>[] = [
@@ -128,48 +188,7 @@ export const columns: ColumnDef<SubmittedIndicator>[] = [
   {
     id: "actions",
     enableHiding: false,
-    cell: ({ row }) => {
-      const indicator = row.original
-      const { updateSubmittedIndicatorStatus } = useIndicatorStore.getState()
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-             <DropdownMenuItem asChild>
-                <IndicatorSubmissionDialog indicator={indicator} trigger={
-                    <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full">
-                        <Pencil className="mr-2 h-4 w-4" />
-                        <span>Edit</span>
-                    </button>
-                } />
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(indicator.id)}
-            >
-              Salin ID Indikator
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuSub>
-                <DropdownMenuSubTrigger>Ubah Status</DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                    {statusOptions.map((status) => (
-                        <DropdownMenuItem key={status} onSelect={() => updateSubmittedIndicatorStatus(indicator.id, status)}>
-                            {status}
-                        </DropdownMenuItem>
-                    ))}
-                </DropdownMenuSubContent>
-            </DropdownMenuSub>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
-    },
+    cell: ActionsCell,
   },
 ]
 
@@ -367,5 +386,3 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
     </div>
   )
 }
-
-    

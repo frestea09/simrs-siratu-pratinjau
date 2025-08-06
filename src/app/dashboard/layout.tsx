@@ -1,4 +1,6 @@
 import DashboardClientLayout from '@/components/dashboard-layout-client';
+import { LogStoreProvider } from '@/store/log-store.tsx';
+import { UserStoreProvider } from '@/store/user-store.tsx';
 
 export default function DashboardLayout({
   children,
@@ -6,5 +8,11 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
 
-  return <DashboardClientLayout>{children}</DashboardClientLayout>;
+  return (
+    <UserStoreProvider>
+      <LogStoreProvider>
+        <DashboardClientLayout>{children}</DashboardClientLayout>
+      </LogStoreProvider>
+    </UserStoreProvider>
+  );
 }

@@ -15,6 +15,8 @@ import { useIndicatorStore, Indicator } from "@/store/indicator-store"
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "../ui/textarea"
 import { DialogFooter } from "../ui/dialog"
+import { useUserStore } from "@/store/user-store"
+import { useLogStore } from "@/store/log-store"
 
 type IndicatorInputFormProps = {
     setOpen: (open: boolean) => void;
@@ -24,6 +26,9 @@ type IndicatorInputFormProps = {
 export function IndicatorInputForm({ setOpen, indicatorToEdit }: IndicatorInputFormProps) {
   const { toast } = useToast()
   const { addIndicator, updateIndicator, submittedIndicators } = useIndicatorStore()
+  const { currentUser } = useUserStore()
+  const { addLog } = useLogStore()
+
 
   const isEditMode = !!indicatorToEdit;
   
@@ -71,12 +76,22 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit }: IndicatorInputF
 
     if (isEditMode && indicatorToEdit) {
         updateIndicator(indicatorToEdit.id, dataToSave);
+        addLog({
+            user: currentUser?.name || 'System',
+            action: 'UPDATE_INDICATOR',
+            details: `Data capaian untuk "${dataToSave.indicator}" diperbarui.`,
+        });
         toast({
             title: "Data Berhasil Diperbarui",
             description: `Capaian untuk ${selectedIndicator} periode ${format(date, "MMMM yyyy")} telah diperbarui.`,
         })
     } else {
-         addIndicator(dataToSave)
+         const newId = addIndicator(dataToSave)
+         addLog({
+            user: currentUser?.name || 'System',
+            action: 'ADD_INDICATOR',
+            details: `Data capaian baru (${newId}) untuk "${dataToSave.indicator}" ditambahkan.`,
+        });
         toast({
             title: "Data Berhasil Disimpan",
             description: `Capaian untuk ${selectedIndicator} periode ${format(date, "MMMM yyyy")} telah ditambahkan.`,

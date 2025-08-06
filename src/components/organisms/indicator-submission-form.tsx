@@ -28,6 +28,9 @@ import { DialogFooter } from "../ui/dialog"
 import { SubmittedIndicator, useIndicatorStore } from "@/store/indicator-store"
 import { useToast } from "@/hooks/use-toast"
 import { HOSPITAL_UNITS } from "@/lib/constants"
+import { FormInputCombobox } from "../molecules/form-input-combobox"
+import { useUserStore } from "@/store/user-store"
+import { useLogStore } from "@/store/log-store"
 
 const formSchema = z.object({
   name: z.string().min(5, {
@@ -52,6 +55,8 @@ const unitOptions = HOSPITAL_UNITS.map(unit => ({ value: unit, label: unit }));
 export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmissionFormProps) {
   const { toast } = useToast()
   const { submitIndicator, updateSubmittedIndicator } = useIndicatorStore()
+  const { currentUser } = useUserStore();
+  const { addLog } = useLogStore();
   const isEditMode = !!indicator;
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -70,12 +75,22 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
   function onSubmit(values: z.infer<typeof formSchema>) {
     if (isEditMode && indicator.id) {
         updateSubmittedIndicator(indicator.id, values)
+        addLog({
+            user: currentUser?.name || "System",
+            action: 'UPDATE_SUBMITTED_INDICATOR',
+            details: `Pengajuan indikator "${values.name}" diperbarui.`
+        })
         toast({
             title: "Pengajuan Diperbarui",
             description: `Pengajuan untuk "${values.name}" telah berhasil diperbarui.`,
         })
     } else {
-        submitIndicator(values as any)
+        const newId = submitIndicator(values as any)
+        addLog({
+            user: currentUser?.name || "System",
+            action: 'ADD_SUBMITTED_INDICATOR',
+            details: `Indikator baru "${values.name}" (${newId}) diajukan.`
+        })
         toast({
           title: "Pengajuan Berhasil",
           description: `Indikator "${values.name}" telah berhasil diajukan.`,
@@ -106,21 +121,56 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                 control={form.control}
                 name="unit"
                 render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Unit</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Pilih unit terkait" />
-                        </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                            {unitOptions.map(opt => (
-                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Unit</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className="w-full justify-between"
+                            >
+                              {field.value
+                                ? unitOptions.find(
+                                    (unit) => unit.value === field.value
+                                  )?.label
+                                : "Pilih unit"}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                          <Command>
+                            <CommandInput placeholder="Cari unit..." />
+                             <CommandList>
+                                <CommandEmpty>Unit tidak ditemukan.</CommandEmpty>
+                                <CommandGroup>
+                                  {unitOptions.map((unit) => (
+                                    <CommandItem
+                                      value={unit.label}
+                                      key={unit.value}
+                                      onSelect={() => {
+                                        form.setValue("unit", unit.value)
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          unit.value === field.value
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                        )}
+                                      />
+                                      {unit.label}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
                     </FormItem>
                 )}
                 />
@@ -171,5 +221,3 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
     </Form>
   )
 }
-
-    

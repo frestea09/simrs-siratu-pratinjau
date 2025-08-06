@@ -38,38 +38,39 @@ export type Incident = {
 
 type IncidentState = {
   incidents: Incident[]
-  addIncident: (incident: Omit<Incident, 'id' | 'date' | 'status'>) => void
+  addIncident: (incident: Omit<Incident, 'id' | 'date' | 'status'>) => string
   updateIncident: (id: string, incident: Omit<Incident, 'id' | 'date' | 'status'>) => void
 }
 
 const initialIncidents: Incident[] = [];
 
 
-export const useIncidentStore = create<IncidentState>((set) => ({
+export const useIncidentStore = create<IncidentState>((set, get) => ({
   incidents: initialIncidents,
-  addIncident: (incident) =>
+  addIncident: (incident) => {
+    const newId = `IKP-${String(get().incidents.length + 1).padStart(3, '0')}`;
+    const newIncident = {
+        ...incident,
+        id: newId,
+        date: new Date().toISOString(),
+        status: 'Investigasi',
+    };
     set((state) => ({
-      incidents: [
-        {
-          ...incident,
-          id: `IKP-${String(state.incidents.length + 1).padStart(3, '0')}`,
-          date: new Date().toISOString(),
-          status: 'Investigasi',
-        },
-        ...state.incidents,
-      ],
-    })),
-    updateIncident: (id, incidentData) => set((state) => ({
-        incidents: state.incidents.map(inc => {
-            if (inc.id === id) {
-                return {
-                    ...inc,
-                    ...incidentData
-                }
-            }
-            return inc;
-        })
-    }))
+      incidents: [newIncident, ...state.incidents],
+    }));
+    return newId;
+  },
+  updateIncident: (id, incidentData) => set((state) => ({
+      incidents: state.incidents.map(inc => {
+          if (inc.id === id) {
+              return {
+                  ...inc,
+                  ...incidentData
+              }
+          }
+          return inc;
+      })
+  }))
 }))
 
     

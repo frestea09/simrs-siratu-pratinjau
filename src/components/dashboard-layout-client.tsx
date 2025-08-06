@@ -31,13 +31,16 @@ import {
   FileText,
   Bell,
   ListChecks,
+  History,
 } from "lucide-react"
 import Link from "next/link"
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { UserNav } from "@/components/user-nav"
 import { Button } from "@/components/ui/button"
 import React from "react"
 import { Breadcrumb } from "@/components/molecules/breadcrumb"
+import { useUserStore } from "@/store/user-store"
+import { useLogStore } from "@/store/log-store"
 
 const navItems = [
   { 
@@ -67,6 +70,7 @@ const navItems = [
 
 const adminNavItems = [
     { href: "/dashboard/users", icon: Users, label: "Manajemen Pengguna" },
+    { href: "/dashboard/logs", icon: History, label: "Log Sistem" },
     { href: "/dashboard/settings", icon: Settings, label: "Pengaturan" },
 ]
 
@@ -144,7 +148,22 @@ export default function DashboardClientLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const router = useRouter();
   const [openMenu, setOpenMenu] = React.useState<string | null>(null);
+  const { currentUser, clearCurrentUser } = useUserStore();
+  const { addLog } = useLogStore();
+
+  const handleLogout = () => {
+    if(currentUser) {
+       addLog({
+        user: currentUser.name,
+        action: 'LOGOUT',
+        details: 'Pengguna berhasil logout.'
+      })
+    }
+    clearCurrentUser();
+    router.push('/');
+  }
 
   const allNavItems = [...navItems, ...adminNavItems];
   
@@ -192,39 +211,39 @@ export default function DashboardClientLayout({
             ))}
           </SidebarMenu>
           
-          <SidebarMenu className="mt-4">
-            <p className="text-xs font-semibold text-muted-foreground px-2 group-data-[state=expanded]:block hidden mb-2">Administrasi</p>
-             {adminNavItems.map((item) => (
-              <SidebarMenuItem key={item.href}>
-                <Link href={item.href} passHref legacyBehavior>
-                  <SidebarMenuButton
-                    as="a"
-                    isActive={pathname.startsWith(item.href)}
-                    tooltip={item.label}
-                    size="lg"
-                  >
-                    <div>
-                      <item.icon className="size-6" />
-                      <span>{item.label}</span>
-                    </div>
-                  </SidebarMenuButton>
-                </Link>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
+          {currentUser?.role === 'Admin Sistem' && (
+            <SidebarMenu className="mt-4">
+              <p className="text-xs font-semibold text-muted-foreground px-2 group-data-[state=expanded]:block hidden mb-2">Administrasi</p>
+              {adminNavItems.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                  <Link href={item.href} passHref legacyBehavior>
+                    <SidebarMenuButton
+                      as="a"
+                      isActive={pathname.startsWith(item.href)}
+                      tooltip={item.label}
+                      size="lg"
+                    >
+                      <div>
+                        <item.icon className="size-6" />
+                        <span>{item.label}</span>
+                      </div>
+                    </SidebarMenuButton>
+                  </Link>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          )}
         </SidebarContent>
 
         <SidebarFooter className="p-2">
           <SidebarMenu>
             <SidebarMenuItem>
-              <Link href="/" asChild>
-                <SidebarMenuButton tooltip="Logout" size="lg">
-                  <div>
-                    <LogOut className="size-6" />
-                    <span>Logout</span>
-                  </div>
-                </SidebarMenuButton>
-              </Link>
+              <SidebarMenuButton onClick={handleLogout} tooltip="Logout" size="lg">
+                <div>
+                  <LogOut className="size-6" />
+                  <span>Logout</span>
+                </div>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>

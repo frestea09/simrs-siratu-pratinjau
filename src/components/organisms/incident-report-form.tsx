@@ -7,9 +7,6 @@ import { Separator } from "@/components/ui/separator"
 import { Stepper } from "@/components/molecules/stepper"
 import { useIncidentStore } from "@/store/incident-store"
 import { useToast } from "@/hooks/use-toast"
-import { FormProvider, useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
 import { FormInputText } from "../molecules/form-input-text"
 import { FormInputRadio } from "../molecules/form-input-radio"
 import { FormInputDate } from "../molecules/form-input-date"
@@ -18,6 +15,9 @@ import { FormInputTextarea } from "../molecules/form-input-textarea"
 import { FormInputTime } from "../molecules/form-input-time"
 import { Incident } from "@/store/incident-store"
 import { HOSPITAL_UNITS } from "@/lib/constants"
+import { useUserStore } from "@/store/user-store"
+import { useLogStore } from "@/store/log-store"
+import { FormInputCombobox } from "../molecules/form-input-combobox"
 
 
 const steps = [
@@ -56,6 +56,8 @@ export function IncidentReportForm({ setOpen, incident }: IncidentReportFormProp
     const [currentStep, setCurrentStep] = React.useState(0)
     const { addIncident, updateIncident } = useIncidentStore()
     const { toast } = useToast()
+    const { currentUser } = useUserStore();
+    const { addLog } = useLogStore();
     
     const [formData, setFormData] = React.useState<Partial<Incident>>(
         incident ? {
@@ -84,12 +86,22 @@ export function IncidentReportForm({ setOpen, incident }: IncidentReportFormProp
 
         if (isEditMode && incident.id) {
             updateIncident(incident.id, finalData)
+            addLog({
+                user: currentUser?.name || 'System',
+                action: 'UPDATE_INCIDENT',
+                details: `Laporan insiden ${incident.id} diperbarui.`,
+            })
             toast({
                 title: "Laporan Berhasil Diperbarui",
                 description: `Laporan insiden ${incident.id} telah diperbarui.`,
             });
         } else {
-            addIncident(finalData);
+            const newId = addIncident(finalData);
+            addLog({
+                user: currentUser?.name || 'System',
+                action: 'ADD_INCIDENT',
+                details: `Laporan insiden baru ${newId} ditambahkan.`,
+            })
             toast({
                 title: "Laporan Berhasil Disimpan",
                 description: "Laporan insiden baru telah ditambahkan ke daftar.",
@@ -164,7 +176,16 @@ function Step1({ data, onUpdate }: StepProps) {
              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                 <FormInputDate id="entry-date" label="Tanggal Masuk RS" selected={data.entryDate ? new Date(data.entryDate) : undefined} onSelect={date => onUpdate({ entryDate: date?.toISOString() })}/>
                 <FormInputTime id="entry-time" label="Jam Masuk RS" value={data.entryTime} onChange={e => onUpdate({ entryTime: e.target.value })}/>
-                <FormInputSelect id="careRoom" label="Ruangan Perawatan" placeholder="Pilih ruangan" items={unitOptions} value={data.careRoom} onValueChange={val => onUpdate({ careRoom: val })} />
+                <FormInputCombobox 
+                    id="careRoom" 
+                    label="Ruangan Perawatan"
+                    placeholder="Pilih ruangan"
+                    searchPlaceholder="Cari ruangan..."
+                    notFoundMessage="Ruangan tidak ditemukan."
+                    items={unitOptions} 
+                    value={data.careRoom} 
+                    onValueChange={val => onUpdate({ careRoom: val })} 
+                />
             </div>
         </div>
     )
@@ -194,7 +215,16 @@ function Step2({ data, onUpdate }: StepProps) {
                 { value: 'Luar Gedung', label: 'Luar Gedung' },
                 { value: 'Lainnya', label: 'Lainnya' },
             ]} value={data.incidentLocation} onValueChange={val => onUpdate({ incidentLocation: val })} />
-            <FormInputSelect id="relatedUnit" label="Unit Terkait Insiden" placeholder="Pilih unit" items={unitOptions} value={data.relatedUnit} onValueChange={val => onUpdate({ relatedUnit: val })} />
+            <FormInputCombobox 
+                id="relatedUnit" 
+                label="Unit Terkait Insiden"
+                placeholder="Pilih unit"
+                searchPlaceholder="Cari unit..."
+                notFoundMessage="Unit tidak ditemukan."
+                items={unitOptions} 
+                value={data.relatedUnit} 
+                onValueChange={val => onUpdate({ relatedUnit: val })} 
+            />
         </div>
     )
 }
@@ -219,7 +249,16 @@ function Step3({ data, onUpdate }: StepProps) {
             <SectionTitle>Informasi Pelapor</SectionTitle>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                 <FormInputText id="reporterName" label="Nama Pelapor" placeholder="Nama Anda" value={data.reporterName} onChange={e => onUpdate({ reporterName: e.target.value })} />
-                <FormInputSelect id="reporterUnit" label="Unit Kerja Pelapor" placeholder="Pilih unit tempat Anda bekerja" items={unitOptions} value={data.reporterUnit} onValueChange={val => onUpdate({ reporterUnit: val })} />
+                <FormInputCombobox 
+                    id="reporterUnit" 
+                    label="Unit Kerja Pelapor"
+                    placeholder="Pilih unit"
+                    searchPlaceholder="Cari unit..."
+                    notFoundMessage="Unit tidak ditemukan."
+                    items={unitOptions} 
+                    value={data.reporterUnit} 
+                    onValueChange={val => onUpdate({ reporterUnit: val })} 
+                />
             </div>
         </div>
     )

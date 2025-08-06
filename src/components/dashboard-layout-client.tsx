@@ -34,6 +34,7 @@ import { usePathname } from 'next/navigation'
 import { UserNav } from "@/components/user-nav"
 import { Button } from "@/components/ui/button"
 import React from "react"
+import { Breadcrumb } from "@/components/molecules/breadcrumb"
 
 const navItems = [
   { 
@@ -67,26 +68,26 @@ const adminNavItems = [
 
 function NavItem({ item, pathname }: { item: any; pathname: string }) {
   const [isOpen, setIsOpen] = React.useState(false);
+  const isParentActive = item.subItems?.some((subItem: any) => pathname.startsWith(subItem.href));
+
+  React.useEffect(() => {
+    if (isParentActive) {
+      setIsOpen(true);
+    }
+  }, [isParentActive]);
 
   if (item.subItems) {
-    const isParentActive = item.subItems.some((subItem: any) => pathname.startsWith(subItem.href));
-    
-    React.useEffect(() => {
-      if (isParentActive) {
-        setIsOpen(true);
-      }
-    }, [isParentActive]);
-
     return (
       <SidebarMenuItem>
         <SidebarMenuButton
           onClick={() => setIsOpen(!isOpen)}
           isActive={isParentActive}
           tooltip={item.label}
-          asChild={false} 
+          asChild={false}
+          size="lg"
         >
           <div>
-            <item.icon className="size-5" />
+            <item.icon className="size-6" />
             <span>{item.label}</span>
             <ChevronDown className={`ml-auto size-5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
           </div>
@@ -95,8 +96,8 @@ function NavItem({ item, pathname }: { item: any; pathname: string }) {
           <SidebarMenuSub>
             {item.subItems.map((subItem: any) => (
               <SidebarMenuSubItem key={subItem.href}>
-                 <Link href={subItem.href} passHref>
-                    <SidebarMenuSubButton asChild={false} isActive={pathname.startsWith(subItem.href)}>
+                 <Link href={subItem.href} passHref legacyBehavior>
+                    <SidebarMenuSubButton as="a" isActive={pathname.startsWith(subItem.href)}>
                         <span>{subItem.label}</span>
                     </SidebarMenuSubButton>
                   </Link>
@@ -115,9 +116,10 @@ function NavItem({ item, pathname }: { item: any; pathname: string }) {
           asChild
           isActive={pathname.startsWith(item.href)}
           tooltip={item.label}
+          size="lg"
         >
            <div>
-            <item.icon className="size-5" />
+            <item.icon className="size-6" />
             <span>{item.label}</span>
           </div>
         </SidebarMenuButton>
@@ -173,9 +175,10 @@ export default function DashboardClientLayout({
                     asChild
                     isActive={pathname.startsWith(item.href)}
                     tooltip={item.label}
+                    size="lg"
                   >
                     <div>
-                      <item.icon className="size-5" />
+                      <item.icon className="size-6" />
                       <span>{item.label}</span>
                     </div>
                   </SidebarMenuButton>
@@ -189,9 +192,9 @@ export default function DashboardClientLayout({
           <SidebarMenu>
             <SidebarMenuItem>
               <Link href="/">
-                <SidebarMenuButton tooltip="Logout" asChild>
+                <SidebarMenuButton tooltip="Logout" asChild size="lg">
                   <div>
-                    <LogOut className="size-5" />
+                    <LogOut className="size-6" />
                     <span>Logout</span>
                   </div>
                 </SidebarMenuButton>
@@ -203,6 +206,7 @@ export default function DashboardClientLayout({
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
             <SidebarTrigger className="md:hidden" />
+            <Breadcrumb navItems={[...navItems, ...adminNavItems]} />
             <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
                 <div className="ml-auto flex-1 sm:flex-initial">
                    {/* Search can go here */}

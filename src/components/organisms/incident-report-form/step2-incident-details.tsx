@@ -8,7 +8,6 @@ import { FormInputTime } from "@/components/molecules/form-input-time"
 import { FormInputTextarea } from "@/components/molecules/form-input-textarea"
 import { FormInputSelect } from "@/components/molecules/form-input-select"
 import { FormInputText } from "@/components/molecules/form-input-text"
-import { FormInputCombobox } from "@/components/molecules/form-input-combobox"
 import { HOSPITAL_UNITS } from "@/lib/constants"
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
@@ -44,7 +43,7 @@ export function Step2IncidentDetails({ data, onUpdate }: StepProps) {
             <FormInputSelect id="type" label="Jenis Insiden" placeholder="Pilih jenis insiden" items={incidentTypeOptions} value={data.type} onValueChange={val => onUpdate({ type: val })} containerClassName="grid grid-cols-1 md:grid-cols-form-label-full gap-x-4" />
             <FormInputText id="incidentSubject" label="Insiden mengenai" placeholder="Contoh: Pasien, Keluarga Pasien, Pengunjung" value={data.incidentSubject} onChange={e => onUpdate({ incidentSubject: e.target.value })} />
             <FormInputSelect id="incidentLocation" label="Lokasi Insiden" placeholder="Pilih lokasi insiden" items={incidentLocationOptions} value={data.incidentLocation} onValueChange={val => onUpdate({ incidentLocation: val })} />
-            <FormInputCombobox id="relatedUnit" label="Unit Terkait Insiden" placeholder="Pilih unit" searchPlaceholder="Cari unit..." notFoundMessage="Unit tidak ditemukan." items={unitOptions} value={data.relatedUnit} onValueChange={val => onUpdate({ relatedUnit: val })} />
+            <FormInputSelect id="relatedUnit" label="Unit Terkait Insiden" placeholder="Pilih unit" items={unitOptions} value={data.relatedUnit} onValueChange={val => onUpdate({ relatedUnit: val })} />
         </div>
     )
 }

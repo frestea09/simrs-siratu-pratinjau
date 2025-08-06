@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { format } from "date-fns"
-import { CalendarIcon, Check, ChevronsUpDown } from "lucide-react"
+import { CalendarIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -26,9 +26,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Calendar } from "../ui/calendar"
 import { cn } from "@/lib/utils"
 import { HOSPITAL_UNITS } from "@/lib/constants"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../ui/command"
 import { useUserStore } from "@/store/user-store"
 import { useLogStore } from "@/store/log-store"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 
 const formSchema = z.object({
   serviceType: z.string({required_error: "Jenis pelayanan harus diisi"}).min(1, "Jenis pelayanan harus diisi"),
@@ -54,7 +54,6 @@ export function SpmInputForm({ setOpen, spmIndicator }: SpmInputFormProps) {
   const { currentUser } = useUserStore()
   const { addLog } = useLogStore()
   const isEditMode = !!spmIndicator;
-  const [popoverOpen, setPopoverOpen] = React.useState(false)
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -108,60 +107,21 @@ export function SpmInputForm({ setOpen, spmIndicator }: SpmInputFormProps) {
                     control={form.control}
                     name="serviceType"
                     render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                        <FormLabel>Jenis Pelayanan / Unit</FormLabel>
-                        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-                            <PopoverTrigger asChild>
-                            <FormControl>
-                                <Button
-                                variant="outline"
-                                role="combobox"
-                                className={cn(
-                                    "w-full justify-between",
-                                    !field.value && "text-muted-foreground"
-                                )}
-                                >
-                                {field.value
-                                    ? unitOptions.find(
-                                        (unit) => unit.value === field.value
-                                    )?.label
-                                    : "Pilih unit"}
-                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                </Button>
-                            </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                            <Command>
-                                <CommandInput placeholder="Cari unit..." />
-                                <CommandList>
-                                    <CommandEmpty>Unit tidak ditemukan.</CommandEmpty>
-                                    <CommandGroup>
+                         <FormItem>
+                            <FormLabel>Jenis Pelayanan / Unit</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Pilih unit" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
                                     {unitOptions.map((unit) => (
-                                        <CommandItem
-                                        value={unit.label}
-                                        key={unit.value}
-                                        onSelect={() => {
-                                            form.setValue("serviceType", unit.value)
-                                            setPopoverOpen(false)
-                                        }}
-                                        >
-                                        <Check
-                                            className={cn(
-                                            "mr-2 h-4 w-4",
-                                            unit.value === field.value
-                                                ? "opacity-100"
-                                                : "opacity-0"
-                                            )}
-                                        />
-                                        {unit.label}
-                                        </CommandItem>
+                                        <SelectItem key={unit.value} value={unit.value}>{unit.label}</SelectItem>
                                     ))}
-                                    </CommandGroup>
-                                </CommandList>
-                            </Command>
-                            </PopoverContent>
-                        </Popover>
-                        <FormMessage />
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
                         </FormItem>
                     )}
                 />

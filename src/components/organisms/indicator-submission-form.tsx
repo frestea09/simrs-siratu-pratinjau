@@ -5,7 +5,6 @@ import * as React from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { Check, ChevronsUpDown } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -31,9 +30,6 @@ import { useToast } from "@/hooks/use-toast"
 import { HOSPITAL_UNITS } from "@/lib/constants"
 import { useUserStore } from "@/store/user-store"
 import { useLogStore } from "@/store/log-store"
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../ui/command"
-import { cn } from "@/lib/utils"
 
 const formSchema = z.object({
   name: z.string().min(5, {
@@ -61,7 +57,6 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
   const { currentUser } = useUserStore();
   const { addLog } = useLogStore();
   const isEditMode = !!indicator;
-  const [popoverOpen, setPopoverOpen] = React.useState(false)
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -125,56 +120,20 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                 control={form.control}
                 name="unit"
                 render={({ field }) => (
-                    <FormItem className="flex flex-col">
+                    <FormItem>
                       <FormLabel>Unit</FormLabel>
-                      <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              className="w-full justify-between"
-                            >
-                              {field.value
-                                ? unitOptions.find(
-                                    (unit) => unit.value === field.value
-                                  )?.label
-                                : "Pilih unit"}
-                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                          <Command>
-                            <CommandInput placeholder="Cari unit..." />
-                             <CommandList>
-                                <CommandEmpty>Unit tidak ditemukan.</CommandEmpty>
-                                <CommandGroup>
-                                  {unitOptions.map((unit) => (
-                                    <CommandItem
-                                      value={unit.label}
-                                      key={unit.value}
-                                      onSelect={() => {
-                                        form.setValue("unit", unit.value)
-                                        setPopoverOpen(false)
-                                      }}
-                                    >
-                                      <Check
-                                        className={cn(
-                                          "mr-2 h-4 w-4",
-                                          unit.value === field.value
-                                            ? "opacity-100"
-                                            : "opacity-0"
-                                        )}
-                                      />
-                                      {unit.label}
-                                    </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
+                       <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Pilih unit" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                {unitOptions.map((unit) => (
+                                    <SelectItem key={unit.value} value={unit.value}>{unit.label}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                       <FormMessage />
                     </FormItem>
                 )}

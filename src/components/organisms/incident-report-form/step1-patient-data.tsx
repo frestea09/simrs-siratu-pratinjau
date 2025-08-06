@@ -9,7 +9,6 @@ import { FormInputRadio } from "@/components/molecules/form-input-radio"
 import { FormInputSelect } from "@/components/molecules/form-input-select"
 import { FormInputDate } from "@/components/molecules/form-input-date"
 import { FormInputTime } from "@/components/molecules/form-input-time"
-import { FormInputCombobox } from "@/components/molecules/form-input-combobox"
 import { HOSPITAL_UNITS } from "@/lib/constants"
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
@@ -51,7 +50,7 @@ export function Step1PatientData({ data, onUpdate }: StepProps) {
              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                 <FormInputDate id="entry-date" label="Tanggal Masuk RS" selected={data.entryDate ? new Date(data.entryDate) : undefined} onSelect={date => onUpdate({ entryDate: date?.toISOString() })}/>
                 <FormInputTime id="entry-time" label="Jam Masuk RS" value={data.entryTime} onChange={e => onUpdate({ entryTime: e.target.value })}/>
-                <FormInputCombobox id="careRoom" label="Ruangan Perawatan" placeholder="Pilih ruangan" searchPlaceholder="Cari ruangan..." notFoundMessage="Ruangan tidak ditemukan." items={unitOptions} value={data.careRoom} onValueChange={val => onUpdate({ careRoom: val })} />
+                <FormInputSelect id="careRoom" label="Ruangan Perawatan" placeholder="Pilih ruangan" items={unitOptions} value={data.careRoom} onValueChange={val => onUpdate({ careRoom: val })} />
             </div>
         </div>
     )

@@ -7,7 +7,7 @@ import { Incident } from "@/store/incident-store"
 import { FormInputTextarea } from "@/components/molecules/form-input-textarea"
 import { FormInputRadio } from "@/components/molecules/form-input-radio"
 import { FormInputText } from "@/components/molecules/form-input-text"
-import { FormInputCombobox } from "@/components/molecules/form-input-combobox"
+import { FormInputSelect } from "@/components/molecules/form-input-select"
 import { HOSPITAL_UNITS } from "@/lib/constants"
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
@@ -42,7 +42,7 @@ export function Step3FollowUp({ data, onUpdate }: StepProps) {
             <SectionTitle>Informasi Pelapor</SectionTitle>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                 <FormInputText id="reporterName" label="Nama Pelapor" placeholder="Nama Anda" value={data.reporterName} onChange={e => onUpdate({ reporterName: e.target.value })} />
-                <FormInputCombobox id="reporterUnit" label="Unit Kerja Pelapor" placeholder="Pilih unit" searchPlaceholder="Cari unit..." notFoundMessage="Unit tidak ditemukan." items={unitOptions} value={data.reporterUnit} onValueChange={val => onUpdate({ reporterUnit: val })} />
+                <FormInputSelect id="reporterUnit" label="Unit Kerja Pelapor" placeholder="Pilih unit" items={unitOptions} value={data.reporterUnit} onValueChange={val => onUpdate({ reporterUnit: val })} />
             </div>
         </div>
     )

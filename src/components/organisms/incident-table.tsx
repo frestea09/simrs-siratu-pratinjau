@@ -18,12 +18,16 @@ type IncidentTableProps = {
 export function IncidentTable({ incidents }: IncidentTableProps) {
   const getSeverityVariant = (severity: string) => {
     switch (severity) {
-      case "Rendah":
-        return "secondary"
+      case "Tinggi":
+        return "destructive"
+      case "Sangat Tinggi":
+        return "destructive"
       case "Sedang":
         return "outline"
+      case "Rendah":
+        return "secondary"
       default:
-        return "destructive"
+        return "default"
     }
   }
 
@@ -36,9 +40,9 @@ export function IncidentTable({ incidents }: IncidentTableProps) {
       <TableHeader>
         <TableRow>
           <TableHead>ID Insiden</TableHead>
-          <TableHead>Tanggal</TableHead>
+          <TableHead>Tanggal Lapor</TableHead>
           <TableHead>Jenis Insiden</TableHead>
-          <TableHead>Tingkat</TableHead>
+          <TableHead>Tingkat Risiko</TableHead>
           <TableHead>Status</TableHead>
         </TableRow>
       </TableHeader>

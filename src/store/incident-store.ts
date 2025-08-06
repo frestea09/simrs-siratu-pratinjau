@@ -10,7 +10,7 @@ export type Incident = {
 
 type IncidentState = {
   incidents: Incident[]
-  addIncident: (incident: Omit<Incident, 'id' | 'date' | 'status'>) => void
+  addIncident: (incident: Pick<Incident, 'type' | 'severity'>) => void
 }
 
 const initialIncidents: Incident[] = [
@@ -25,13 +25,13 @@ export const useIncidentStore = create<IncidentState>((set) => ({
   addIncident: (incident) =>
     set((state) => ({
       incidents: [
-        ...state.incidents,
         {
           ...incident,
           id: `IKP-${String(state.incidents.length + 13).padStart(3, '0')}`,
           date: new Date().toISOString().split('T')[0],
           status: 'Investigasi',
         },
+        ...state.incidents,
       ],
     })),
 }))

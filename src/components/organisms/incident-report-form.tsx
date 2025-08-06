@@ -11,6 +11,8 @@ import { FormInputTime } from "@/components/molecules/form-input-time"
 import { FormInputSelect } from "@/components/molecules/form-input-select"
 import { FormInputTextarea } from "@/components/molecules/form-input-textarea"
 import { Stepper } from "@/components/molecules/stepper"
+import { useIncidentStore } from "@/store/incident-store"
+import { useToast } from "@/hooks/use-toast"
 
 const steps = [
     { id: '01', name: 'Data Pasien' },
@@ -28,9 +30,42 @@ type IncidentReportFormProps = {
 
 export function IncidentReportForm({ setOpen }: IncidentReportFormProps) {
     const [currentStep, setCurrentStep] = React.useState(0)
-    
+    const { addIncident } = useIncidentStore()
+    const { toast } = useToast()
+
+    const [incidentType, setIncidentType] = React.useState('KNC');
+    const [riskGrading, setRiskGrading] = React.useState('biru');
+
     const next = () => setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev))
     const prev = () => setCurrentStep((prev) => (prev > 0 ? prev - 1 : prev))
+
+    const handleSave = () => {
+        const severityMap: { [key: string]: string } = {
+            biru: 'Rendah',
+            hijau: 'Sedang',
+            kuning: 'Tinggi',
+            merah: 'Sangat Tinggi',
+        };
+        const incidentTypeMap: { [key: string]: string } = {
+            'KPC': 'Kondisi Potensial Cedera (KPC)',
+            'KNC': 'Kejadian Nyaris Cedera (KNC)',
+            'KTC': 'Kejadian Tidak Cedera (KTC)',
+            'KTD': 'Kejadian Tidak Diharapkan (KTD)',
+            'Sentinel': 'Kejadian Sentinel',
+        };
+
+        addIncident({
+            type: incidentTypeMap[incidentType] || 'N/A',
+            severity: severityMap[riskGrading] || 'N/A',
+        });
+        
+        toast({
+            title: "Laporan Berhasil Disimpan",
+            description: "Laporan insiden baru telah ditambahkan ke daftar.",
+        });
+        
+        setOpen(false);
+    }
 
     return (
         <div className="flex flex-col md:flex-row gap-8 p-1">
@@ -139,7 +174,7 @@ export function IncidentReportForm({ setOpen }: IncidentReportFormProps) {
                         {currentStep < steps.length - 1 ? (
                             <Button onClick={next}>Lanjutkan</Button>
                         ) : (
-                            <Button onClick={() => setOpen(false)} size="lg">Simpan Laporan</Button>
+                            <Button onClick={handleSave} size="lg">Simpan Laporan</Button>
                         )}
                     </div>
                 </div>

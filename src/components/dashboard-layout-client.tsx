@@ -18,6 +18,7 @@ import {
   ShieldAlert,
   ClipboardCheck,
   BarChart3,
+  FileText,
   Users,
   Settings,
   Hospital,

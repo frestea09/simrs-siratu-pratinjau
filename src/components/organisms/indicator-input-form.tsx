@@ -154,7 +154,7 @@ export function IndicatorInputForm() {
                 placeholder="Tambahkan catatan atau analisis jika hasil tidak sesuai standar."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="text-base min-h-[110px]"
+                className="text-base min-h-[44px]"
             />
         </div>
       </div>

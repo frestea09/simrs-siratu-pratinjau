@@ -1,3 +1,7 @@
+"use client"
+
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import {
@@ -9,9 +13,27 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useToast } from "@/hooks/use-toast"
 import { Hospital } from 'lucide-react'
 
 export default function LoginPage() {
+  const router = useRouter()
+  const { toast } = useToast()
+  const [username, setUsername] = useState("")
+  const [password, setPassword] = useState("")
+
+  const handleLogin = () => {
+    if (username === "admin@sim.rs" && password === "123456") {
+      router.push("/dashboard/overview")
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Login Gagal",
+        description: "Username atau password salah.",
+      })
+    }
+  }
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="mx-auto max-w-sm w-full">
@@ -27,12 +49,14 @@ export default function LoginPage() {
         <CardContent>
           <div className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="email">Username</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="m@example.com"
+                id="username"
+                type="text"
+                placeholder="admin@sim.rs"
                 required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
               />
             </div>
             <div className="grid gap-2">
@@ -45,10 +69,21 @@ export default function LoginPage() {
                   Lupa password?
                 </Link>
               </div>
-              <Input id="password" type="password" required />
+              <Input 
+                id="password" 
+                type="password" 
+                required 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleLogin()
+                  }
+                }}
+              />
             </div>
-            <Button type="submit" className="w-full as" asChild>
-              <Link href="/dashboard/overview">Login</Link>
+            <Button onClick={handleLogin} type="submit" className="w-full">
+              Login
             </Button>
           </div>
         </CardContent>

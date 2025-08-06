@@ -27,6 +27,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import {
@@ -38,7 +41,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { SubmittedIndicator } from "@/store/indicator-store"
+import { SubmittedIndicator, useIndicatorStore } from "@/store/indicator-store"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
@@ -56,6 +59,7 @@ const getStatusVariant = (status: SubmittedIndicator['status']) => {
     }
 }
 
+const statusOptions: SubmittedIndicator['status'][] = ['Menunggu Persetujuan', 'Diverifikasi', 'Ditolak'];
 
 export const columns: ColumnDef<SubmittedIndicator>[] = [
   {
@@ -105,6 +109,7 @@ export const columns: ColumnDef<SubmittedIndicator>[] = [
     enableHiding: false,
     cell: ({ row }) => {
       const indicator = row.original
+      const { updateSubmittedIndicatorStatus } = useIndicatorStore.getState()
 
       return (
         <DropdownMenu>
@@ -121,9 +126,18 @@ export const columns: ColumnDef<SubmittedIndicator>[] = [
             >
               Salin ID Indikator
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
             <DropdownMenuItem>Lihat Detail</DropdownMenuItem>
-            <DropdownMenuItem>Ubah Status</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuSub>
+                <DropdownMenuSubTrigger>Ubah Status</DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                    {statusOptions.map((status) => (
+                        <DropdownMenuItem key={status} onSelect={() => updateSubmittedIndicatorStatus(indicator.id, status)}>
+                            {status}
+                        </DropdownMenuItem>
+                    ))}
+                </DropdownMenuSubContent>
+            </DropdownMenuSub>
           </DropdownMenuContent>
         </DropdownMenu>
       )
@@ -172,8 +186,6 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
     }
   }, [date, table]);
 
-
-  const statusOptions = ['Menunggu Persetujuan', 'Diverifikasi', 'Ditolak'];
 
   return (
     <div className="w-full">
@@ -329,3 +341,5 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
     </div>
   )
 }
+
+    

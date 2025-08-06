@@ -1,12 +1,12 @@
 
 "use client"
 
+import * as React from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -15,8 +15,10 @@ import { PlusCircle } from "lucide-react"
 import { IndicatorSubmissionForm } from "./indicator-submission-form"
 
 export function IndicatorSubmissionDialog() {
+  const [open, setOpen] = React.useState(false)
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
           <PlusCircle className="mr-2 h-4 w-4" />
@@ -30,7 +32,7 @@ export function IndicatorSubmissionDialog() {
             Isi detail indikator yang akan diajukan. Klik simpan jika sudah selesai.
           </DialogDescription>
         </DialogHeader>
-        <IndicatorSubmissionForm />
+        <IndicatorSubmissionForm setOpen={setOpen} />
       </DialogContent>
     </Dialog>
   )

@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -16,7 +17,7 @@ export default function IndicatorsPage() {
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">Indikator Mutu</h2>
       </div>
-      <Tabs defaultValue="reporting" className="space-y-4">
+      <Tabs defaultValue="submission" className="space-y-4">
         <TabsList>
           <TabsTrigger value="submission">Pengajuan Indikator</TabsTrigger>
           <TabsTrigger value="reporting">Pelaporan Capaian</TabsTrigger>

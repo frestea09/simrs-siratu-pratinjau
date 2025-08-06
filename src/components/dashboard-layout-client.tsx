@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import {
@@ -102,11 +101,11 @@ function NavItem({ item, pathname, openMenu, setOpenMenu }: { item: any; pathnam
           </div>
         </SidebarMenuButton>
         {isOpen && (
-          <SidebarMenuSub>
+          <SidebarMenuSub className="mt-1">
             {item.subItems.map((subItem: any) => (
               <SidebarMenuSubItem key={subItem.href}>
-                 <Link href={subItem.href} asChild>
-                    <SidebarMenuSubButton isActive={pathname.startsWith(subItem.href)}>
+                 <Link href={subItem.href} passHref legacyBehavior>
+                    <SidebarMenuSubButton as="a" isActive={pathname.startsWith(subItem.href)}>
                         <span>{subItem.label}</span>
                     </SidebarMenuSubButton>
                   </Link>

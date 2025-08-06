@@ -13,6 +13,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  FilterFn,
 } from "@tanstack/react-table"
 import { ArrowUpDown, ChevronDown, MoreHorizontal, Calendar as CalendarIcon } from "lucide-react"
 import { DateRange } from "react-day-picker"
@@ -61,6 +62,25 @@ const getStatusVariant = (status: SubmittedIndicator['status']) => {
 
 const statusOptions: SubmittedIndicator['status'][] = ['Menunggu Persetujuan', 'Diverifikasi', 'Ditolak'];
 
+const dateRangeFilter: FilterFn<SubmittedIndicator> = (row, columnId, value, addMeta) => {
+    const date = new Date(row.original.submissionDate);
+    const [start, end] = value as [Date, Date];
+    
+    if (start && !end) {
+        return date >= start;
+    }
+    if (!start && end) {
+        return date <= end;
+    }
+    if (start && end) {
+        // Set end time to end of day
+        const localEndDate = new Date(end);
+        localEndDate.setHours(23, 59, 59, 999);
+        return date >= start && date <= localEndDate;
+    }
+    return true;
+}
+
 export const columns: ColumnDef<SubmittedIndicator>[] = [
   {
     accessorKey: "id",
@@ -92,7 +112,8 @@ export const columns: ColumnDef<SubmittedIndicator>[] = [
   {
     accessorKey: "submissionDate",
     header: "Tgl. Pengajuan",
-    cell: ({ row }) => <div>{row.getValue("submissionDate")}</div>,
+    cell: ({ row }) => <div>{format(new Date(row.getValue("submissionDate")), "dd MMM yyyy")}</div>,
+    filterFn: dateRangeFilter,
   },
   {
     accessorKey: "status",
@@ -126,7 +147,7 @@ export const columns: ColumnDef<SubmittedIndicator>[] = [
             >
               Salin ID Indikator
             </DropdownMenuItem>
-            <DropdownMenuItem>Lihat Detail</DropdownMenuItem>
+            <DropdownMenuItem disabled>Lihat Detail</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuSub>
                 <DropdownMenuSubTrigger>Ubah Status</DropdownMenuSubTrigger>
@@ -179,11 +200,9 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
   })
   
   React.useEffect(() => {
-    if (date?.from && date?.to) {
-        table.getColumn('submissionDate')?.setFilterValue([date.from.toISOString().split('T')[0], date.to.toISOString().split('T')[0]]);
-    } else {
-        table.getColumn('submissionDate')?.setFilterValue(undefined);
-    }
+    const from = date?.from;
+    const to = date?.to;
+    table.getColumn("submissionDate")?.setFilterValue(from || to ? [from, to] : undefined);
   }, [date, table]);
 
 
@@ -307,7 +326,7 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  Tidak ada hasil.
                 </TableCell>
               </TableRow>
             )}
@@ -316,8 +335,8 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+          {table.getFilteredSelectedRowModel().rows.length} dari{" "}
+          {table.getFilteredRowModel().rows.length} baris dipilih.
         </div>
         <div className="space-x-2">
           <Button
@@ -326,7 +345,7 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
-            Previous
+            Sebelumnya
           </Button>
           <Button
             variant="outline"
@@ -334,12 +353,10 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
-            Next
+            Berikutnya
           </Button>
         </div>
       </div>
     </div>
   )
 }
-
-    

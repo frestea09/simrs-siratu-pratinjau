@@ -78,7 +78,9 @@ function NavItem({ item, pathname, openMenu, setOpenMenu }: { item: any; pathnam
     if (isParentActive && !isOpen) {
       setOpenMenu(item.label);
     }
-  }, [isParentActive, item.label, setOpenMenu, isOpen]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isParentActive, item.label]);
+
 
   const handleClick = () => {
     if (item.subItems) {

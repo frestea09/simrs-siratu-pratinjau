@@ -98,7 +98,7 @@ function NavItem({ item, pathname }: { item: any; pathname: string }) {
             {item.subItems.map((subItem: any) => (
               <SidebarMenuSubItem key={subItem.href}>
                  <Link href={subItem.href} asChild>
-                    <SidebarMenuSubButton isActive={pathname.startsWith(subItem.href)}>
+                    <SidebarMenuSubButton asChild isActive={pathname.startsWith(subItem.href)}>
                         <span>{subItem.label}</span>
                     </SidebarMenuSubButton>
                   </Link>

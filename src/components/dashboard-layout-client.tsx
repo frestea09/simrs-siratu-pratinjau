@@ -28,6 +28,7 @@ import {
   ChevronDown,
   FolderKanban,
   FileText,
+  Bell,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from 'next/navigation'
@@ -97,9 +98,11 @@ function NavItem({ item, pathname }: { item: any; pathname: string }) {
             {item.subItems.map((subItem: any) => (
               <SidebarMenuSubItem key={subItem.href}>
                  <Link href={subItem.href} passHref legacyBehavior>
-                    <SidebarMenuSubButton as="a" isActive={pathname.startsWith(subItem.href)}>
-                        <span>{subItem.label}</span>
-                    </SidebarMenuSubButton>
+                    <a>
+                        <SidebarMenuSubButton asChild isActive={pathname.startsWith(subItem.href)}>
+                            <span>{subItem.label}</span>
+                        </SidebarMenuSubButton>
+                    </a>
                   </Link>
               </SidebarMenuSubItem>
             ))}
@@ -134,6 +137,20 @@ export default function DashboardClientLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const allNavItems = [...navItems, ...adminNavItems];
+  
+  const getCurrentPage = () => {
+    for (const item of allNavItems) {
+      if (item.href === pathname) return item;
+      if (item.subItems) {
+        const subItem = item.subItems.find(sub => pathname.startsWith(sub.href));
+        if (subItem) return subItem;
+      }
+    }
+    return null;
+  };
+  
+  const currentPage = getCurrentPage();
 
   return (
     <SidebarProvider>
@@ -204,14 +221,22 @@ export default function DashboardClientLayout({
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
-            <SidebarTrigger className="md:hidden" />
-            <Breadcrumb navItems={[...navItems, ...adminNavItems]} />
-            <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-                <div className="ml-auto flex-1 sm:flex-initial">
-                   {/* Search can go here */}
+        <header className="sticky top-0 z-10 flex h-auto min-h-16 flex-col border-b bg-background px-4 md:px-6">
+            <div className="flex items-center w-full">
+                <SidebarTrigger className="md:hidden" />
+                <h1 className="text-2xl font-bold flex-1">
+                    {currentPage?.label || 'Dashboard'}
+                </h1>
+                <div className="ml-auto flex items-center gap-2">
+                    <Button variant="ghost" size="icon" className="rounded-full">
+                        <Bell className="h-5 w-5" />
+                        <span className="sr-only">Notifikasi</span>
+                    </Button>
+                    <UserNav />
                 </div>
-                <UserNav />
+            </div>
+            <div className="pb-2">
+                <Breadcrumb navItems={allNavItems} />
             </div>
         </header>
         <main className="flex-1 overflow-auto">

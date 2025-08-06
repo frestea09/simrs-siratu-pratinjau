@@ -79,7 +79,7 @@ export function LogTable({ logs }: LogTableProps) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
   const table = useReactTable({
-    data: logs,
+    data: logs.logs,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,

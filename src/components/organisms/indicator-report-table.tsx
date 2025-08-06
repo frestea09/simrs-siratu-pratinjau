@@ -14,7 +14,7 @@ import {
   useReactTable,
   FilterFn,
 } from "@tanstack/react-table"
-import { ArrowUpDown, Calendar as CalendarIcon } from "lucide-react"
+import { ArrowUpDown, Calendar as CalendarIcon, Download } from "lucide-react"
 import { DateRange } from "react-day-picker"
 import { format } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"

@@ -15,12 +15,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { Hospital } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Terminal } from "lucide-react"
 
 export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
+  const [username, setUsername] = useState("admin@sim.rs")
+  const [password, setPassword] = useState("123456")
 
   const handleLogin = () => {
     if (username === "admin@sim.rs" && password === "123456") {
@@ -86,6 +88,13 @@ export default function LoginPage() {
               Login
             </Button>
           </div>
+          <Alert className="mt-4">
+            <Terminal className="h-4 w-4" />
+            <AlertTitle>Info Demo</AlertTitle>
+            <AlertDescription>
+              Gunakan <b>admin@sim.rs</b> & password <b>123456</b>
+            </AlertDescription>
+          </Alert>
         </CardContent>
       </Card>
     </div>

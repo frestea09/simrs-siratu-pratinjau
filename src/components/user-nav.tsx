@@ -13,20 +13,30 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useUserStore } from "@/store/user-store"
+import { useUserStore } from "@/store/user-store.tsx"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import React from "react"
 
 export function UserNav() {
   const router = useRouter()
   const { currentUser, clearCurrentUser } = useUserStore()
+  const [isClient, setIsClient] = React.useState(false)
+
+  React.useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   const handleLogout = () => {
     clearCurrentUser()
     router.push("/")
   }
 
-  if (!currentUser) return null;
+  if (!isClient || !currentUser) {
+     return (
+        <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
+     )
+  }
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();

@@ -61,6 +61,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
   const { currentUser } = useUserStore();
   const { addLog } = useLogStore();
   const isEditMode = !!indicator;
+  const [popoverOpen, setPopoverOpen] = React.useState(false)
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -126,7 +127,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                 render={({ field }) => (
                     <FormItem className="flex flex-col">
                       <FormLabel>Unit</FormLabel>
-                      <Popover>
+                      <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button
@@ -155,6 +156,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                                       key={unit.value}
                                       onSelect={() => {
                                         form.setValue("unit", unit.value)
+                                        setPopoverOpen(false)
                                       }}
                                     >
                                       <Check

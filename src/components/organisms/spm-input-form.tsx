@@ -54,6 +54,7 @@ export function SpmInputForm({ setOpen, spmIndicator }: SpmInputFormProps) {
   const { currentUser } = useUserStore()
   const { addLog } = useLogStore()
   const isEditMode = !!spmIndicator;
+  const [popoverOpen, setPopoverOpen] = React.useState(false)
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -109,7 +110,7 @@ export function SpmInputForm({ setOpen, spmIndicator }: SpmInputFormProps) {
                     render={({ field }) => (
                         <FormItem className="flex flex-col">
                         <FormLabel>Jenis Pelayanan / Unit</FormLabel>
-                        <Popover>
+                        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
                             <PopoverTrigger asChild>
                             <FormControl>
                                 <Button
@@ -141,6 +142,7 @@ export function SpmInputForm({ setOpen, spmIndicator }: SpmInputFormProps) {
                                         key={unit.value}
                                         onSelect={() => {
                                             form.setValue("serviceType", unit.value)
+                                            setPopoverOpen(false)
                                         }}
                                         >
                                         <Check

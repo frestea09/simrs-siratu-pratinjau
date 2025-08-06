@@ -11,6 +11,9 @@ import {
   SidebarFooter,
   SidebarTrigger,
   SidebarInset,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
 } from "@/components/ui/sidebar"
 import {
   LayoutDashboard,
@@ -23,25 +26,105 @@ import {
   Settings,
   Hospital,
   LogOut,
+  ChevronDown,
+  FolderKanban,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from 'next/navigation'
 import { UserNav } from "@/components/user-nav"
 import { Button } from "@/components/ui/button"
+import React from "react"
 
 const navItems = [
-  { href: "/dashboard/overview", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/dashboard/indicators", icon: HeartPulse, label: "Indikator Mutu" },
-  { href: "/dashboard/incidents", icon: ShieldAlert, label: "Insiden Keselamatan" },
-  { href: "/dashboard/surveys", icon: ClipboardCheck, label: "Survei Budaya" },
-  { href: "/dashboard/risks", icon: BarChart3, label: "Manajemen Risiko" },
-  { href: "/dashboard/reports", icon: FileText, label: "Laporan" },
+  { 
+    href: "/dashboard/overview", 
+    icon: LayoutDashboard, 
+    label: "Dashboard" 
+  },
+  {
+    label: "Layanan",
+    icon: HeartPulse,
+    subItems: [
+      { href: "/dashboard/indicators", icon: HeartPulse, label: "Indikator Mutu" },
+      { href: "/dashboard/incidents", icon: ShieldAlert, label: "Insiden Keselamatan" },
+    ]
+  },
+  {
+    label: "Manajemen",
+    icon: FolderKanban,
+    subItems: [
+      { href: "/dashboard/surveys", icon: ClipboardCheck, label: "Survei Budaya" },
+      { href: "/dashboard/risks", icon: BarChart3, label: "Manajemen Risiko" },
+      { href: "/dashboard/reports", icon: FileText, label: "Laporan" },
+    ]
+  },
 ]
 
 const adminNavItems = [
     { href: "/dashboard/users", icon: Users, label: "Manajemen Pengguna" },
     { href: "/dashboard/settings", icon: Settings, label: "Pengaturan" },
 ]
+
+function NavItem({ item, pathname }: { item: any; pathname: string }) {
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  if (item.subItems) {
+    const isParentActive = item.subItems.some((subItem: any) => pathname.startsWith(subItem.href));
+    
+    React.useEffect(() => {
+      if (isParentActive) {
+        setIsOpen(true);
+      }
+    }, [isParentActive]);
+
+    return (
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          onClick={() => setIsOpen(!isOpen)}
+          isActive={isParentActive}
+          tooltip={item.label}
+          asChild={false} 
+        >
+          <div>
+            <item.icon className="size-4" />
+            <span>{item.label}</span>
+            <ChevronDown className={`ml-auto size-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+          </div>
+        </SidebarMenuButton>
+        {isOpen && (
+          <SidebarMenuSub>
+            {item.subItems.map((subItem: any) => (
+              <SidebarMenuSubItem key={subItem.href}>
+                 <Link href={subItem.href} passHref>
+                    <SidebarMenuSubButton isActive={pathname.startsWith(subItem.href)} asChild>
+                        <span>{subItem.label}</span>
+                    </SidebarMenuSubButton>
+                  </Link>
+              </SidebarMenuSubItem>
+            ))}
+          </SidebarMenuSub>
+        )}
+      </SidebarMenuItem>
+    );
+  }
+
+  return (
+    <SidebarMenuItem>
+      <Link href={item.href}>
+        <SidebarMenuButton
+          asChild
+          isActive={pathname.startsWith(item.href)}
+          tooltip={item.label}
+        >
+           <div>
+            <item.icon className="size-4" />
+            <span>{item.label}</span>
+          </div>
+        </SidebarMenuButton>
+      </Link>
+    </SidebarMenuItem>
+  );
+}
 
 export default function DashboardClientLayout({
   children,
@@ -76,21 +159,8 @@ export default function DashboardClientLayout({
 
         <SidebarContent className="p-2">
           <SidebarMenu>
-            {navItems.map((item) => (
-              <SidebarMenuItem key={item.href}>
-                <Link href={item.href}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname.startsWith(item.href)}
-                    tooltip={item.label}
-                  >
-                    <div>
-                      <item.icon className="size-4" />
-                      <span>{item.label}</span>
-                    </div>
-                  </SidebarMenuButton>
-                </Link>
-              </SidebarMenuItem>
+            {navItems.map((item, index) => (
+              <NavItem key={index} item={item} pathname={pathname} />
             ))}
           </SidebarMenu>
           

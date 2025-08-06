@@ -25,9 +25,11 @@ import { useToast } from "@/hooks/use-toast"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Calendar } from "../ui/calendar"
 import { cn } from "@/lib/utils"
+import { HOSPITAL_UNITS } from "@/lib/constants"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 
 const formSchema = z.object({
-  serviceType: z.string().min(3, "Jenis pelayanan harus diisi"),
+  serviceType: z.string({required_error: "Jenis pelayanan harus diisi"}),
   indicator: z.string().min(5, "Nama indikator harus diisi"),
   reportingDate: z.date({
     required_error: "Tanggal pelaporan harus diisi.",
@@ -41,6 +43,8 @@ type SpmInputFormProps = {
     setOpen: (open: boolean) => void;
     spmIndicator?: SpmIndicator;
 }
+
+const unitOptions = HOSPITAL_UNITS.map(unit => ({ value: unit, label: unit }));
 
 export function SpmInputForm({ setOpen, spmIndicator }: SpmInputFormProps) {
   const { toast } = useToast()
@@ -90,10 +94,19 @@ export function SpmInputForm({ setOpen, spmIndicator }: SpmInputFormProps) {
                     name="serviceType"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Jenis Pelayanan</FormLabel>
-                        <FormControl>
-                            <Input placeholder="Contoh: Pelayanan Gawat Darurat" {...field} />
-                        </FormControl>
+                        <FormLabel>Jenis Pelayanan / Unit</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Pilih unit" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {unitOptions.map(opt => (
+                                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         <FormMessage />
                         </FormItem>
                     )}
@@ -202,3 +215,5 @@ export function SpmInputForm({ setOpen, spmIndicator }: SpmInputFormProps) {
     </Form>
   )
 }
+
+    

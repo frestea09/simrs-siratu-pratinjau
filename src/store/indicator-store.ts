@@ -5,6 +5,7 @@ export type SubmittedIndicator = {
   id: string;
   name: string;
   description: string;
+  unit: string;
   frequency: 'Harian' | 'Mingguan' | 'Bulanan' | '6 Bulanan';
   status: 'Menunggu Persetujuan' | 'Diverifikasi' | 'Ditolak';
   submissionDate: string;
@@ -118,3 +119,5 @@ export const useIndicatorStore = create<IndicatorState>((set) => ({
       )
     }))
 }))
+
+    

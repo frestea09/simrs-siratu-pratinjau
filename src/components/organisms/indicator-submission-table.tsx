@@ -85,13 +85,6 @@ const dateRangeFilter: FilterFn<SubmittedIndicator> = (row, columnId, value, add
 
 export const columns: ColumnDef<SubmittedIndicator>[] = [
   {
-    accessorKey: "id",
-    header: "ID",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("id")}</div>
-    ),
-  },
-  {
     accessorKey: "name",
     header: ({ column }) => {
       return (
@@ -105,6 +98,11 @@ export const columns: ColumnDef<SubmittedIndicator>[] = [
       )
     },
     cell: ({ row }) => <div className="font-medium">{row.getValue("name")}</div>,
+  },
+    {
+    accessorKey: "unit",
+    header: "Unit",
+    cell: ({ row }) => <div>{row.getValue("unit")}</div>,
   },
   {
     accessorKey: "frequency",
@@ -185,7 +183,7 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
     []
   )
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
+    React.useState<VisibilityState>({ id: false })
   const [rowSelection, setRowSelection] = React.useState({})
   const [date, setDate] = React.useState<DateRange | undefined>()
 
@@ -369,3 +367,5 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
     </div>
   )
 }
+
+    

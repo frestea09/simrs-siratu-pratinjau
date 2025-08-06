@@ -1,3 +1,4 @@
+
 import { create } from 'zustand'
 
 export type Incident = {
@@ -70,3 +71,5 @@ export const useIncidentStore = create<IncidentState>((set) => ({
         })
     }))
 }))
+
+    

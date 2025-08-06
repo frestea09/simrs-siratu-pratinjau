@@ -17,6 +17,7 @@ import { FormInputSelect } from "../molecules/form-input-select"
 import { FormInputTextarea } from "../molecules/form-input-textarea"
 import { FormInputTime } from "../molecules/form-input-time"
 import { Incident } from "@/store/incident-store"
+import { HOSPITAL_UNITS } from "@/lib/constants"
 
 
 const steps = [
@@ -134,6 +135,8 @@ type StepProps = {
     onUpdate: (newData: Partial<Incident>) => void;
 };
 
+const unitOptions = HOSPITAL_UNITS.map(unit => ({ value: unit, label: unit }));
+
 function Step1({ data, onUpdate }: StepProps) {
     return (
         <div className="space-y-6">
@@ -161,12 +164,7 @@ function Step1({ data, onUpdate }: StepProps) {
              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                 <FormInputDate id="entry-date" label="Tanggal Masuk RS" selected={data.entryDate ? new Date(data.entryDate) : undefined} onSelect={date => onUpdate({ entryDate: date?.toISOString() })}/>
                 <FormInputTime id="entry-time" label="Jam Masuk RS" value={data.entryTime} onChange={e => onUpdate({ entryTime: e.target.value })}/>
-                <FormInputSelect id="careRoom" label="Ruangan Perawatan" placeholder="Pilih ruangan" items={[
-                    { value: 'IGD', label: 'IGD' },
-                    { value: 'Poliklinik', label: 'Poliklinik' },
-                    { value: 'Rawat Inap', label: 'Rawat Inap' },
-                    { value: 'ICU', label: 'ICU' },
-                ]} value={data.careRoom} onValueChange={val => onUpdate({ careRoom: val })} />
+                <FormInputSelect id="careRoom" label="Ruangan Perawatan" placeholder="Pilih ruangan" items={unitOptions} value={data.careRoom} onValueChange={val => onUpdate({ careRoom: val })} />
             </div>
         </div>
     )
@@ -196,12 +194,7 @@ function Step2({ data, onUpdate }: StepProps) {
                 { value: 'Luar Gedung', label: 'Luar Gedung' },
                 { value: 'Lainnya', label: 'Lainnya' },
             ]} value={data.incidentLocation} onValueChange={val => onUpdate({ incidentLocation: val })} />
-            <FormInputSelect id="relatedUnit" label="Unit Terkait Insiden" placeholder="Pilih unit" items={[
-                { value: 'Rawat Jalan', label: 'Rawat Jalan' },
-                { value: 'Rawat Inap', label: 'Rawat Inap' },
-                { value: 'Farmasi', label: 'Farmasi' },
-                { value: 'Laboratorium', label: 'Laboratorium' },
-            ]} value={data.relatedUnit} onValueChange={val => onUpdate({ relatedUnit: val })} />
+            <FormInputSelect id="relatedUnit" label="Unit Terkait Insiden" placeholder="Pilih unit" items={unitOptions} value={data.relatedUnit} onValueChange={val => onUpdate({ relatedUnit: val })} />
         </div>
     )
 }
@@ -226,8 +219,10 @@ function Step3({ data, onUpdate }: StepProps) {
             <SectionTitle>Informasi Pelapor</SectionTitle>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                 <FormInputText id="reporterName" label="Nama Pelapor" placeholder="Nama Anda" value={data.reporterName} onChange={e => onUpdate({ reporterName: e.target.value })} />
-                <FormInputText id="reporterUnit" label="Unit Kerja Pelapor" placeholder="Unit tempat Anda bekerja" value={data.reporterUnit} onChange={e => onUpdate({ reporterUnit: e.target.value })}/>
+                <FormInputSelect id="reporterUnit" label="Unit Kerja Pelapor" placeholder="Pilih unit tempat Anda bekerja" items={unitOptions} value={data.reporterUnit} onValueChange={val => onUpdate({ reporterUnit: val })} />
             </div>
         </div>
     )
 }
+
+    

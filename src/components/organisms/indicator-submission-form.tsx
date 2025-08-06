@@ -27,11 +27,13 @@ import { Textarea } from "@/components/ui/textarea"
 import { DialogFooter } from "../ui/dialog"
 import { SubmittedIndicator, useIndicatorStore } from "@/store/indicator-store"
 import { useToast } from "@/hooks/use-toast"
+import { HOSPITAL_UNITS } from "@/lib/constants"
 
 const formSchema = z.object({
   name: z.string().min(5, {
     message: "Nama indikator harus memiliki setidaknya 5 karakter.",
   }),
+  unit: z.string({ required_error: "Anda harus memilih unit." }),
   frequency: z.enum(['Harian', 'Mingguan', 'Bulanan', '6 Bulanan'], {
     required_error: "Anda harus memilih frekuensi pelaporan.",
   }),
@@ -45,6 +47,8 @@ type IndicatorSubmissionFormProps = {
     indicator?: SubmittedIndicator;
 }
 
+const unitOptions = HOSPITAL_UNITS.map(unit => ({ value: unit, label: unit }));
+
 export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmissionFormProps) {
   const { toast } = useToast()
   const { submitIndicator, updateSubmittedIndicator } = useIndicatorStore()
@@ -54,6 +58,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
     resolver: zodResolver(formSchema),
     defaultValues: isEditMode ? {
         name: indicator.name,
+        unit: indicator.unit,
         frequency: indicator.frequency,
         description: indicator.description,
     } : {
@@ -82,43 +87,67 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
 
   return (
     <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
-            <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Nama Indikator</FormLabel>
-                <FormControl>
-                    <Input placeholder="Contoh: Kepatuhan Penggunaan APD" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            <FormField
-            control={form.control}
-            name="frequency"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Frekuensi Pelaporan</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
+             <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Nama Indikator</FormLabel>
                     <FormControl>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Pilih frekuensi" />
-                    </SelectTrigger>
+                        <Input placeholder="Contoh: Kepatuhan Penggunaan APD" {...field} />
                     </FormControl>
-                    <SelectContent>
-                        <SelectItem value="Harian">Harian</SelectItem>
-                        <SelectItem value="Mingguan">Mingguan</SelectItem>
-                        <SelectItem value="Bulanan">Bulanan</SelectItem>
-                        <SelectItem value="6 Bulanan">6 Bulanan</SelectItem>
-                    </SelectContent>
-                </Select>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                control={form.control}
+                name="unit"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Unit</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Pilih unit terkait" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            {unitOptions.map(opt => (
+                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="frequency"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Frekuensi Pelaporan</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Pilih frekuensi" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            <SelectItem value="Harian">Harian</SelectItem>
+                            <SelectItem value="Mingguan">Mingguan</SelectItem>
+                            <SelectItem value="Bulanan">Bulanan</SelectItem>
+                            <SelectItem value="6 Bulanan">6 Bulanan</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+            </div>
             <FormField
             control={form.control}
             name="description"
@@ -135,10 +164,12 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                 </FormItem>
             )}
             />
-            <DialogFooter>
+            <DialogFooter className="pt-4">
                 <Button type="submit">{isEditMode ? 'Simpan Perubahan' : 'Ajukan Indikator'}</Button>
             </DialogFooter>
         </form>
     </Form>
   )
 }
+
+    

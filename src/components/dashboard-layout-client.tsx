@@ -8,13 +8,9 @@ import {
   SidebarContent,
   SidebarMenu,
   SidebarMenuItem,
-  SidebarMenuButton,
   SidebarFooter,
   SidebarTrigger,
   SidebarInset,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
 } from "@/components/ui/sidebar"
 import {
   LayoutDashboard,
@@ -26,7 +22,6 @@ import {
   Settings,
   Hospital,
   LogOut,
-  ChevronDown,
   FolderKanban,
   FileText,
   Bell,
@@ -39,8 +34,9 @@ import { UserNav } from "@/components/user-nav"
 import { Button } from "@/components/ui/button"
 import React from "react"
 import { Breadcrumb } from "@/components/molecules/breadcrumb"
-import { useUserStore } from "@/store/user-store"
-import { useLogStore } from "@/store/log-store"
+import { useUserStore } from "@/store/user-store.tsx"
+import { useLogStore } from "@/store/log-store.tsx"
+import { NavItem } from "./molecules/nav-item"
 
 const navItems = [
   { 
@@ -73,74 +69,6 @@ const adminNavItems = [
     { href: "/dashboard/logs", icon: History, label: "Log Sistem" },
     { href: "/dashboard/settings", icon: Settings, label: "Pengaturan" },
 ]
-
-function NavItem({ item, pathname, openMenu, setOpenMenu }: { item: any; pathname: string; openMenu: string | null; setOpenMenu: (label: string | null) => void; }) {
-  const isParentActive = item.subItems?.some((subItem: any) => pathname.startsWith(subItem.href));
-  const isOpen = openMenu === item.label;
-
-  React.useEffect(() => {
-    if (isParentActive && !isOpen) {
-      setOpenMenu(item.label);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isParentActive, item.label]);
-
-
-  const handleClick = () => {
-    if (item.subItems) {
-      setOpenMenu(isOpen ? null : item.label);
-    }
-  };
-
-  if (item.subItems) {
-    return (
-      <SidebarMenuItem>
-        <SidebarMenuButton
-          onClick={handleClick}
-          isActive={isParentActive}
-          tooltip={item.label}
-          asChild={false}
-          size="lg"
-        >
-          <div>
-            <item.icon className="size-6" />
-            <span>{item.label}</span>
-            <ChevronDown className={`ml-auto size-5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-          </div>
-        </SidebarMenuButton>
-        <SidebarMenuSub className={`mt-1 pl-4 pr-0`}>
-          {isOpen && item.subItems.map((subItem: any) => (
-            <SidebarMenuSubItem key={subItem.href} className="mb-1">
-                <Link href={subItem.href} passHref legacyBehavior>
-                  <SidebarMenuSubButton as="a" isActive={pathname.startsWith(subItem.href)} className="h-9">
-                      <span>{subItem.label}</span>
-                  </SidebarMenuSubButton>
-                </Link>
-            </SidebarMenuSubItem>
-          ))}
-        </SidebarMenuSub>
-      </SidebarMenuItem>
-    );
-  }
-
-  return (
-    <SidebarMenuItem>
-       <Link href={item.href} passHref legacyBehavior>
-          <SidebarMenuButton
-            as="a"
-            isActive={pathname.startsWith(item.href)}
-            tooltip={item.label}
-            size="lg"
-          >
-            <div>
-              <item.icon className="size-6" />
-              <span>{item.label}</span>
-            </div>
-          </SidebarMenuButton>
-        </Link>
-    </SidebarMenuItem>
-  );
-}
 
 export default function DashboardClientLayout({
   children,
@@ -180,6 +108,14 @@ export default function DashboardClientLayout({
   
   const currentPage = getCurrentPage();
 
+  // Automatically open parent menu of active subitem
+  React.useEffect(() => {
+    const activeParent = navItems.find(item => item.subItems?.some(sub => pathname.startsWith(sub.href)));
+    if (activeParent) {
+      setOpenMenu(activeParent.label);
+    }
+  }, [pathname]);
+
   return (
     <SidebarProvider>
       <Sidebar
@@ -215,21 +151,7 @@ export default function DashboardClientLayout({
             <SidebarMenu className="mt-4">
               <p className="text-xs font-semibold text-muted-foreground px-2 group-data-[state=expanded]:block hidden mb-2">Administrasi</p>
               {adminNavItems.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                  <Link href={item.href} passHref legacyBehavior>
-                    <SidebarMenuButton
-                      as="a"
-                      isActive={pathname.startsWith(item.href)}
-                      tooltip={item.label}
-                      size="lg"
-                    >
-                      <div>
-                        <item.icon className="size-6" />
-                        <span>{item.label}</span>
-                      </div>
-                    </SidebarMenuButton>
-                  </Link>
-                </SidebarMenuItem>
+                <NavItem key={item.href} item={item} pathname={pathname} openMenu={openMenu} setOpenMenu={setOpenMenu} />
               ))}
             </SidebarMenu>
           )}
@@ -238,12 +160,7 @@ export default function DashboardClientLayout({
         <SidebarFooter className="p-2">
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton onClick={handleLogout} tooltip="Logout" size="lg">
-                <div>
-                  <LogOut className="size-6" />
-                  <span>Logout</span>
-                </div>
-              </SidebarMenuButton>
+              <NavItem item={{ label: 'Logout', icon: LogOut, onClick: handleLogout }} pathname={pathname} openMenu={openMenu} setOpenMenu={setOpenMenu} />
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>

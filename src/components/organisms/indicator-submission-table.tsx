@@ -15,7 +15,7 @@ import {
   useReactTable,
   FilterFn,
 } from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown, MoreHorizontal, Calendar as CalendarIcon, Pencil } from "lucide-react"
+import { ArrowUpDown, ChevronDown, MoreHorizontal, Calendar as CalendarIcon, Pencil, Eye } from "lucide-react"
 import { DateRange } from "react-day-picker"
 import { format } from "date-fns"
 
@@ -49,6 +49,7 @@ import { cn } from "@/lib/utils"
 import { IndicatorSubmissionDialog } from "./indicator-submission-dialog"
 import { useUserStore } from "@/store/user-store.tsx"
 import { useLogStore } from "@/store/log-store.tsx"
+import { IndicatorSubmissionDetailDialog } from "./indicator-submission-detail-dialog"
 
 const getStatusVariant = (status: SubmittedIndicator['status']) => {
     switch (status) {
@@ -85,114 +86,7 @@ const dateRangeFilter: FilterFn<SubmittedIndicator> = (row, columnId, value, add
     return true;
 }
 
-const ActionsCell = ({ row }: { row: any }) => {
-    const indicator = row.original as SubmittedIndicator
-    const { updateSubmittedIndicatorStatus } = useIndicatorStore.getState()
-    const { currentUser } = useUserStore();
-    const { addLog } = useLogStore();
 
-    const handleStatusChange = (status: SubmittedIndicator['status']) => {
-        updateSubmittedIndicatorStatus(indicator.id, status)
-        addLog({
-            user: currentUser?.name || 'System',
-            action: 'UPDATE_INDICATOR_STATUS',
-            details: `Status indikator "${indicator.name}" (${indicator.id}) diubah menjadi ${status}.`,
-        });
-    }
-
-    const canVerify = currentUser?.role === 'Komite Mutu' || currentUser?.role === 'Admin Sistem' || currentUser?.role === 'Kepala Unit/Instalasi' || currentUser?.role === 'Direktur';
-
-    return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                    <span className="sr-only">Open menu</span>
-                    <MoreHorizontal className="h-4 w-4" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                <DropdownMenuItem asChild>
-                    <IndicatorSubmissionDialog indicator={indicator} trigger={
-                        <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full">
-                            <Pencil className="mr-2 h-4 w-4" />
-                            <span>Edit</span>
-                        </button>
-                    } />
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                    onClick={() => navigator.clipboard.writeText(indicator.id)}
-                >
-                    Salin ID Indikator
-                </DropdownMenuItem>
-                {canVerify && (
-                    <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuSub>
-                            <DropdownMenuSubTrigger>Ubah Status</DropdownMenuSubTrigger>
-                            <DropdownMenuSubContent>
-                                {statusOptions.map((status) => (
-                                    <DropdownMenuItem key={status} onSelect={() => handleStatusChange(status)}>
-                                        {status}
-                                    </DropdownMenuItem>
-                                ))}
-                            </DropdownMenuSubContent>
-                        </DropdownMenuSub>
-                    </>
-                )}
-            </DropdownMenuContent>
-        </DropdownMenu>
-    )
-}
-
-export const columns: ColumnDef<SubmittedIndicator>[] = [
-  {
-    accessorKey: "name",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Nama Indikator
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
-    cell: ({ row }) => <div className="font-medium">{row.getValue("name")}</div>,
-  },
-    {
-    accessorKey: "unit",
-    header: "Unit",
-    cell: ({ row }) => <div>{row.getValue("unit")}</div>,
-  },
-  {
-    accessorKey: "frequency",
-    header: "Frekuensi",
-    cell: ({ row }) => <div>{row.getValue("frequency")}</div>,
-  },
-  {
-    accessorKey: "submissionDate",
-    header: "Tgl. Pengajuan",
-    cell: ({ row }) => <div>{format(new Date(row.getValue("submissionDate")), "dd MMM yyyy")}</div>,
-    filterFn: dateRangeFilter,
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => (
-      <Badge variant={getStatusVariant(row.getValue("status"))}>{row.getValue("status")}</Badge>
-    ),
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id))
-    },
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ActionsCell,
-  },
-]
 
 type IndicatorSubmissionTableProps = {
   indicators: SubmittedIndicator[]
@@ -207,6 +101,123 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
     React.useState<VisibilityState>({ id: false })
   const [rowSelection, setRowSelection] = React.useState({})
   const [date, setDate] = React.useState<DateRange | undefined>()
+  const [selectedIndicator, setSelectedIndicator] = React.useState<SubmittedIndicator | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = React.useState(false);
+
+  const { updateSubmittedIndicatorStatus } = useIndicatorStore.getState()
+  const { currentUser } = useUserStore();
+  const { addLog } = useLogStore();
+
+  const handleStatusChange = (indicator: SubmittedIndicator, status: SubmittedIndicator['status']) => {
+      updateSubmittedIndicatorStatus(indicator.id, status)
+      addLog({
+          user: currentUser?.name || 'System',
+          action: 'UPDATE_INDICATOR_STATUS',
+          details: `Status indikator "${indicator.name}" (${indicator.id}) diubah menjadi ${status}.`,
+      });
+  }
+
+  const columns: ColumnDef<SubmittedIndicator>[] = [
+    {
+      accessorKey: "name",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Nama Indikator
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => <div className="font-medium">{row.getValue("name")}</div>,
+    },
+      {
+      accessorKey: "unit",
+      header: "Unit",
+      cell: ({ row }) => <div>{row.getValue("unit")}</div>,
+    },
+    {
+      accessorKey: "frequency",
+      header: "Frekuensi",
+      cell: ({ row }) => <div>{row.getValue("frequency")}</div>,
+    },
+    {
+      accessorKey: "submissionDate",
+      header: "Tgl. Pengajuan",
+      cell: ({ row }) => <div>{format(new Date(row.getValue("submissionDate")), "dd MMM yyyy")}</div>,
+      filterFn: dateRangeFilter,
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <Badge variant={getStatusVariant(row.getValue("status"))}>{row.getValue("status")}</Badge>
+      ),
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id))
+      },
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: ({ row }) => {
+          const indicator = row.original as SubmittedIndicator
+          const canVerify = currentUser?.role === 'Admin Sistem' || currentUser?.role === 'Komite Mutu' || currentUser?.role === 'Kepala Unit/Instalasi' || currentUser?.role === 'Direktur';
+      
+          return (
+              <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                      <DropdownMenuItem onClick={() => {
+                        setSelectedIndicator(indicator)
+                        setIsDetailOpen(true)
+                      }}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          Lihat Detail
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                          <IndicatorSubmissionDialog indicator={indicator} trigger={
+                              <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full">
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  <span>Edit</span>
+                              </button>
+                          } />
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                          onClick={() => navigator.clipboard.writeText(indicator.id)}
+                      >
+                          Salin ID Indikator
+                      </DropdownMenuItem>
+                      {canVerify && (
+                          <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuSub>
+                                  <DropdownMenuSubTrigger>Ubah Status</DropdownMenuSubTrigger>
+                                  <DropdownMenuSubContent>
+                                      {statusOptions.map((status) => (
+                                          <DropdownMenuItem key={status} onSelect={() => handleStatusChange(indicator, status)}>
+                                              {status}
+                                          </DropdownMenuItem>
+                                      ))}
+                                  </DropdownMenuSubContent>
+                              </DropdownMenuSub>
+                          </>
+                      )}
+                  </DropdownMenuContent>
+              </DropdownMenu>
+          )
+      }
+    },
+  ]
+
 
   const table = useReactTable({
     data: indicators,
@@ -385,6 +396,11 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
           </Button>
         </div>
       </div>
+      <IndicatorSubmissionDetailDialog 
+        indicator={selectedIndicator}
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+      />
     </div>
   )
 }

@@ -97,7 +97,7 @@ function NavItem({ item, pathname }: { item: any; pathname: string }) {
           <SidebarMenuSub>
             {item.subItems.map((subItem: any) => (
               <SidebarMenuSubItem key={subItem.href}>
-                 <Link href={subItem.href}>
+                 <Link href={subItem.href} asChild>
                     <SidebarMenuSubButton isActive={pathname.startsWith(subItem.href)}>
                         <span>{subItem.label}</span>
                     </SidebarMenuSubButton>
@@ -112,9 +112,8 @@ function NavItem({ item, pathname }: { item: any; pathname: string }) {
 
   return (
     <SidebarMenuItem>
-      <Link href={item.href}>
+      <Link href={item.href} asChild>
         <SidebarMenuButton
-          asChild
           isActive={pathname.startsWith(item.href)}
           tooltip={item.label}
           size="lg"
@@ -185,9 +184,8 @@ export default function DashboardClientLayout({
             <p className="text-xs font-semibold text-muted-foreground px-2 group-data-[state=expanded]:block hidden mb-2">Administrasi</p>
              {adminNavItems.map((item) => (
               <SidebarMenuItem key={item.href}>
-                <Link href={item.href}>
+                <Link href={item.href} asChild>
                   <SidebarMenuButton
-                    asChild
                     isActive={pathname.startsWith(item.href)}
                     tooltip={item.label}
                     size="lg"
@@ -206,8 +204,8 @@ export default function DashboardClientLayout({
         <SidebarFooter className="p-2">
           <SidebarMenu>
             <SidebarMenuItem>
-              <Link href="/">
-                <SidebarMenuButton tooltip="Logout" asChild size="lg">
+              <Link href="/" asChild>
+                <SidebarMenuButton tooltip="Logout" size="lg">
                   <div>
                     <LogOut className="size-6" />
                     <span>Logout</span>

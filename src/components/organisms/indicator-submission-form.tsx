@@ -5,6 +5,7 @@ import * as React from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
+import { Check, ChevronsUpDown } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -28,9 +29,11 @@ import { DialogFooter } from "../ui/dialog"
 import { SubmittedIndicator, useIndicatorStore } from "@/store/indicator-store"
 import { useToast } from "@/hooks/use-toast"
 import { HOSPITAL_UNITS } from "@/lib/constants"
-import { FormInputCombobox } from "../molecules/form-input-combobox"
 import { useUserStore } from "@/store/user-store"
 import { useLogStore } from "@/store/log-store"
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../ui/command"
+import { cn } from "@/lib/utils"
 
 const formSchema = z.object({
   name: z.string().min(5, {

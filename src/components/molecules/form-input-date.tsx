@@ -19,10 +19,11 @@ type FormInputDateProps = {
   id: string
   label: string
   containerClassName?: string
+  selected?: Date
+  onSelect?: (date: Date | undefined) => void
 }
 
-export function FormInputDate({ id, label, containerClassName = "grid grid-cols-1 md:grid-cols-form-label gap-x-4 gap-y-2 items-center" }: FormInputDateProps) {
-  const [date, setDate] = React.useState<Date>()
+export function FormInputDate({ id, label, containerClassName = "grid grid-cols-1 md:grid-cols-form-label gap-x-4 gap-y-2 items-center", selected, onSelect }: FormInputDateProps) {
 
   return (
     <div className={containerClassName}>
@@ -34,18 +35,18 @@ export function FormInputDate({ id, label, containerClassName = "grid grid-cols-
                 variant={"outline"}
                 className={cn(
                 "justify-start text-left font-normal",
-                !date && "text-muted-foreground"
+                !selected && "text-muted-foreground"
                 )}
             >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : <span>Pilih tanggal</span>}
+                {selected ? format(selected, "PPP") : <span>Pilih tanggal</span>}
             </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
             <Calendar
                 mode="single"
-                selected={date}
-                onSelect={setDate}
+                selected={selected}
+                onSelect={onSelect}
                 initialFocus
             />
             </PopoverContent>
@@ -53,3 +54,5 @@ export function FormInputDate({ id, label, containerClassName = "grid grid-cols-
     </div>
   )
 }
+
+    

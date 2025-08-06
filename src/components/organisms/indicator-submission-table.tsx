@@ -47,8 +47,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { IndicatorSubmissionDialog } from "./indicator-submission-dialog"
-import { useUserStore } from "@/store/user-store"
-import { useLogStore } from "@/store/log-store"
+import { useUserStore } from "@/store/user-store.tsx"
+import { useLogStore } from "@/store/log-store.tsx"
 
 const getStatusVariant = (status: SubmittedIndicator['status']) => {
     switch (status) {
@@ -100,7 +100,7 @@ const ActionsCell = ({ row }: { row: any }) => {
         });
     }
 
-    const canVerify = currentUser?.role === 'Komite Mutu' || currentUser?.role === 'Admin Sistem';
+    const canVerify = currentUser?.role === 'Komite Mutu' || currentUser?.role === 'Admin Sistem' || currentUser?.role === 'Kepala Unit/Instalasi';
 
     return (
         <DropdownMenu>
@@ -388,5 +388,3 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
     </div>
   )
 }
-
-    

@@ -5,7 +5,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import React, { createContext, useContext, useRef } from 'react';
 
-export type UserRole = 'Admin Sistem' | 'PIC Mutu' | 'PJ Ruangan' | 'Komite Mutu';
+export type UserRole = 'Admin Sistem' | 'PIC Mutu' | 'PJ Ruangan' | 'Komite Mutu' | 'Kepala Unit/Instalasi';
 
 export type User = {
   id: string;
@@ -31,6 +31,7 @@ const initialUsers: User[] = [
     { id: 'user-2', name: 'Delina (PIC Mutu)', email: 'delina@sim.rs', password: '123456', role: 'PIC Mutu', unit: 'PPI' },
     { id: 'user-3', name: 'Deti (PJ Ruangan)', email: 'deti@sim.rs', password: '123456', role: 'PJ Ruangan', unit: 'RANAP' },
     { id: 'user-4', name: 'Devin (Komite Mutu)', email: 'devin@sim.rs', password: '123456', role: 'Komite Mutu' },
+    { id: 'user-5', name: 'Deka (Kepala Unit)', email: 'deka@sim.rs', password: '123456', role: 'Kepala Unit/Instalasi', unit: 'IGD' },
 ]
 
 const createUserStore = () => create<UserState>()(

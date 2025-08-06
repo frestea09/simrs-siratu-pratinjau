@@ -154,7 +154,7 @@ export const columns: ColumnDef<User>[] = [
   },
 ]
 
-const roleOptions: User['role'][] = ['Admin Sistem', 'PIC Mutu', 'PJ Ruangan', 'Komite Mutu'];
+const roleOptions: User['role'][] = ['Admin Sistem', 'PIC Mutu', 'PJ Ruangan', 'Komite Mutu', 'Kepala Unit/Instalasi'];
 
 type UserTableProps = {
   users: User[]
@@ -209,7 +209,7 @@ export function UserTable({ users }: UserTableProps) {
                 onCheckedChange={(value) => {
                    const currentFilter = (table.getColumn("role")?.getFilterValue() as string[] | undefined) || [];
                    const newFilter = value ? [...currentFilter, role] : currentFilter.filter(s => s !== role);
-                   table.getColumn("role")?.setFilterValue(newFilter.length ? newFilter : newFilter);
+                   table.getColumn("role")?.setFilterValue(newFilter.length ? newFilter : undefined);
                 }}
               >
                 {role}

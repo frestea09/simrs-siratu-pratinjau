@@ -27,7 +27,6 @@ import { DialogFooter } from "../ui/dialog"
 import { User, useUserStore, UserRole } from "@/store/user-store.tsx"
 import { useToast } from "@/hooks/use-toast"
 import { useLogStore } from "@/store/log-store.tsx"
-import { FormInputSelect } from "../molecules/form-input-select"
 import { HOSPITAL_UNITS } from "@/lib/constants"
 
 const formSchema = z.object({
@@ -40,12 +39,12 @@ const formSchema = z.object({
   password: z.string().min(6, {
     message: "Password harus memiliki setidaknya 6 karakter.",
   }),
-  role: z.enum(['Admin Sistem', 'PIC Mutu', 'PJ Ruangan', 'Komite Mutu'], {
+  role: z.enum(['Admin Sistem', 'PIC Mutu', 'PJ Ruangan', 'Komite Mutu', 'Kepala Unit/Instalasi'], {
     required_error: "Anda harus memilih peran.",
   }),
   unit: z.string().optional(),
 }).refine(data => {
-    if (['PIC Mutu', 'PJ Ruangan'].includes(data.role) && !data.unit) {
+    if (['PIC Mutu', 'PJ Ruangan', 'Kepala Unit/Instalasi'].includes(data.role) && !data.unit) {
         return false;
     }
     return true;
@@ -65,6 +64,7 @@ const roleOptions: {value: UserRole, label: string}[] = [
     { value: "PIC Mutu", label: "PIC Mutu" },
     { value: "PJ Ruangan", label: "PJ Ruangan" },
     { value: "Komite Mutu", label: "Komite Mutu" },
+    { value: "Kepala Unit/Instalasi", label: "Kepala Unit/Instalasi" },
 ]
 
 
@@ -194,7 +194,7 @@ export function UserForm({ setOpen, userToEdit }: UserFormProps) {
                         </FormItem>
                     )}
                 />
-                {(selectedRole === 'PIC Mutu' || selectedRole === 'PJ Ruangan') && (
+                {(selectedRole === 'PIC Mutu' || selectedRole === 'PJ Ruangan' || selectedRole === 'Kepala Unit/Instalasi') && (
                      <FormField
                         control={form.control}
                         name="unit"

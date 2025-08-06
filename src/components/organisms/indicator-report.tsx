@@ -3,7 +3,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Download } from "lucide-react"
+import { Download, PlusCircle } from "lucide-react"
 import { useIndicatorStore } from "@/store/indicator-store"
 import { IndicatorReportTable } from "./indicator-report-table"
 import React from "react"
@@ -41,7 +41,7 @@ export function IndicatorReport() {
                                     <TooltipTrigger asChild>
                                         <span tabIndex={0}>
                                             <Button disabled>
-                                                <Download className="mr-2 h-4 w-4" />
+                                                <PlusCircle className="mr-2 h-4 w-4" />
                                                 Input Data Capaian
                                             </Button>
                                         </span>

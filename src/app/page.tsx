@@ -36,14 +36,18 @@ export default function LoginPage() {
     const username = formData.get("username") as string;
     const password = formData.get("password") as string;
     
-    const user = users[username as keyof typeof users];
+    // Trim any whitespace from the input
+    const trimmedUsername = username.trim();
+
+    const user = users[trimmedUsername as keyof typeof users];
+    
     if (user && user.password === password) {
       router.push("/dashboard/overview")
     } else {
       toast({
         variant: "destructive",
         title: "Login Gagal",
-        description: "Username atau password salah.",
+        description: "Username atau password salah. Silakan coba lagi.",
       })
     }
   }

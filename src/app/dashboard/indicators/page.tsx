@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { IndicatorInputForm } from "@/components/organisms/indicator-input-form"
 import { IndicatorReport } from "@/components/organisms/indicator-report"
-import { IndicatorSubmissionForm } from "@/components/organisms/indicator-submission-form"
+import { IndicatorSubmissionDialog } from "@/components/organisms/indicator-submission-dialog"
 import { IndicatorSubmissionTable } from "@/components/organisms/indicator-submission-table"
 import { useIndicatorStore } from "@/store/indicator-store"
 
@@ -25,21 +25,15 @@ export default function IndicatorsPage() {
         <TabsContent value="submission" className="space-y-4">
             <Card>
                 <CardHeader>
-                    <CardTitle>Pengajuan Indikator Mutu Baru</CardTitle>
-                    <CardDescription>
-                        Ajukan indikator mutu baru untuk diverifikasi oleh Komite Mutu.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <IndicatorSubmissionForm />
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Status Pengajuan</CardTitle>
-                    <CardDescription>
-                        Daftar indikator mutu yang telah diajukan beserta status verifikasinya.
-                    </CardDescription>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle>Status Pengajuan</CardTitle>
+                            <CardDescription>
+                                Daftar indikator mutu yang telah diajukan beserta status verifikasinya.
+                            </CardDescription>
+                        </div>
+                        <IndicatorSubmissionDialog />
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <IndicatorSubmissionTable indicators={submittedIndicators} />

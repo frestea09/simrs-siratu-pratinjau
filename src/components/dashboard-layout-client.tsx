@@ -51,6 +51,7 @@ const navItems = [
     subItems: [
       { href: "/dashboard/indicators", icon: HeartPulse, label: "Indikator Mutu" },
       { href: "/dashboard/incidents", icon: ShieldAlert, label: "Insiden Keselamatan" },
+      { href: "/dashboard/spm", icon: ListChecks, label: "Standar Pelayanan Minimal" },
     ]
   },
   {
@@ -60,7 +61,6 @@ const navItems = [
       { href: "/dashboard/surveys", icon: ClipboardCheck, label: "Survei Budaya" },
       { href: "/dashboard/risks", icon: BarChart3, label: "Manajemen Risiko" },
       { href: "/dashboard/reports", icon: FileText, label: "Laporan" },
-      { href: "/dashboard/spm", icon: ListChecks, label: "Standar Pelayanan Minimal" },
     ]
   },
 ]

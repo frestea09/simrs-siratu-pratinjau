@@ -13,6 +13,7 @@ import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { useIndicatorStore } from "@/store/indicator-store"
 import { useToast } from "@/hooks/use-toast"
+import { Textarea } from "../ui/textarea"
 
 export function IndicatorInputForm() {
   const { toast } = useToast()
@@ -22,17 +23,19 @@ export function IndicatorInputForm() {
   const [date, setDate] = React.useState<Date>()
   const [numerator, setNumerator] = React.useState("")
   const [denominator, setDenominator] = React.useState("")
+  const [standard, setStandard] = React.useState("")
+  const [notes, setNotes] = React.useState("")
 
   const verifiedIndicators = submittedIndicators.filter(
     (indicator) => indicator.status === 'Diverifikasi'
   )
 
   const handleSubmit = () => {
-    if (!selectedIndicator || !date || !numerator || !denominator) {
+    if (!selectedIndicator || !date || !numerator || !denominator || !standard) {
         toast({
             variant: "destructive",
             title: "Data Tidak Lengkap",
-            description: "Harap isi semua kolom untuk menyimpan data.",
+            description: "Harap isi semua kolom (kecuali Catatan) untuk menyimpan data.",
         })
         return
     }
@@ -41,7 +44,9 @@ export function IndicatorInputForm() {
         indicator: selectedIndicator,
         period: format(date, "yyyy-MM"),
         numerator: Number(numerator),
-        denominator: Number(denominator)
+        denominator: Number(denominator),
+        standard: Number(standard),
+        notes: notes,
     })
 
     toast({
@@ -54,7 +59,11 @@ export function IndicatorInputForm() {
     setDate(undefined)
     setNumerator("")
     setDenominator("")
+    setStandard("")
+    setNotes("")
   }
+
+  const isTimeBased = selectedIndicator === "Waktu Tunggu Rawat Jalan";
 
   return (
     <div className="space-y-4">
@@ -92,7 +101,7 @@ export function IndicatorInputForm() {
           </Popover>
         </div>
       </div>
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid md:grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label htmlFor="numerator">Numerator</Label>
           <Input 
@@ -111,9 +120,29 @@ export function IndicatorInputForm() {
             placeholder="Contoh: 1000" 
             value={denominator}
             onChange={(e) => setDenominator(e.target.value)}
+            disabled={isTimeBased}
+          />
+        </div>
+         <div className="space-y-2">
+          <Label htmlFor="standard">Standar ({isTimeBased ? "menit" : "%"})</Label>
+          <Input 
+            id="standard" 
+            type="number" 
+            placeholder={isTimeBased ? "Contoh: 60" : "Contoh: 100"}
+            value={standard}
+            onChange={(e) => setStandard(e.target.value)}
           />
         </div>
       </div>
+       <div className="space-y-2">
+          <Label htmlFor="notes">Catatan (Opsional)</Label>
+          <Textarea
+            id="notes"
+            placeholder="Tambahkan catatan atau analisis jika diperlukan."
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+        </div>
       <Button onClick={handleSubmit}>Simpan Data</Button>
     </div>
   )

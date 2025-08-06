@@ -14,13 +14,16 @@ export type Indicator = {
   period: string
   numerator: number
   denominator: number
+  standard: number // The standard (percentage or minutes)
+  notes?: string
   ratio: string
+  status: 'Memenuhi Standar' | 'Tidak Memenuhi Standar' | 'N/A'
 }
 
 type IndicatorState = {
   indicators: Indicator[]
   submittedIndicators: SubmittedIndicator[]
-  addIndicator: (indicator: Omit<Indicator, 'ratio'>) => void
+  addIndicator: (indicator: Omit<Indicator, 'ratio' | 'status'>) => void
   submitIndicator: (indicator: Omit<SubmittedIndicator, 'id' | 'status' | 'submissionDate'>) => void
   updateSubmittedIndicatorStatus: (id: string, status: SubmittedIndicator['status']) => void
 }
@@ -32,15 +35,14 @@ const initialSubmittedIndicators: SubmittedIndicator[] = [
   { id: 'IND-004', name: 'Angka Kejadian Pasien Jatuh', description: 'Jumlah pasien jatuh selama perawatan di rumah sakit.', frequency: 'Bulanan', status: 'Menunggu Persetujuan', submissionDate: '2023-06-12' },
 ];
 
-
 const initialIndicators: Indicator[] = [
-  { indicator: "Kepatuhan Kebersihan Tangan", period: "2023-06", numerator: 980, denominator: 1000, ratio: "98.0%" },
-  { indicator: "Ketepatan Identifikasi Pasien", period: "2023-06", numerator: 495, denominator: 500, ratio: "99.0%" },
-  { indicator: "Waktu Tunggu Rawat Jalan", period: "2023-06", numerator: 45, denominator: 1, ratio: "45 min" },
-  { indicator: "Kepatuhan Kebersihan Tangan", period: "2023-05", numerator: 950, denominator: 1000, ratio: "95.0%" },
+  { indicator: "Kepatuhan Kebersihan Tangan", period: "2023-06", numerator: 980, denominator: 1000, standard: 100, ratio: "98.0%", status: 'Tidak Memenuhi Standar' },
+  { indicator: "Ketepatan Identifikasi Pasien", period: "2023-06", numerator: 495, denominator: 500, standard: 100, ratio: "99.0%", status: 'Tidak Memenuhi Standar' },
+  { indicator: "Waktu Tunggu Rawat Jalan", period: "2023-06", numerator: 45, denominator: 1, standard: 60, ratio: "45 min", status: 'Memenuhi Standar' },
+  { indicator: "Kepatuhan Kebersihan Tangan", period: "2023-05", numerator: 950, denominator: 1000, standard: 90, ratio: "95.0%", status: 'Memenuhi Standar' },
 ];
 
-const calculateRatio = (indicator: Omit<Indicator, 'ratio'>): string => {
+const calculateRatio = (indicator: Omit<Indicator, 'ratio' | 'status'>): string => {
     if (indicator.indicator === "Waktu Tunggu Rawat Jalan") {
         return `${indicator.numerator} min`
     }
@@ -49,14 +51,37 @@ const calculateRatio = (indicator: Omit<Indicator, 'ratio'>): string => {
     return `${ratio.toFixed(1)}%`
 }
 
+const calculateStatus = (indicator: Omit<Indicator, 'ratio' | 'status'>): Indicator['status'] => {
+    if (indicator.indicator === "Waktu Tunggu Rawat Jalan") {
+        // Lower is better for wait times
+        return indicator.numerator <= indicator.standard ? 'Memenuhi Standar' : 'Tidak Memenuhi Standar';
+    }
+    
+    if (indicator.denominator === 0) return 'N/A';
+    
+    const ratioValue = (indicator.numerator / indicator.denominator) * 100;
+    
+    // Higher is better for percentages
+    return ratioValue >= indicator.standard ? 'Memenuhi Standar' : 'Tidak Memenuhi Standar';
+}
+
+
 export const useIndicatorStore = create<IndicatorState>((set) => ({
-  indicators: initialIndicators.map(i => ({...i, ratio: calculateRatio(i)})),
+  indicators: initialIndicators.map(i => ({
+      ...i, 
+      ratio: calculateRatio(i),
+      status: calculateStatus(i)
+  })),
   submittedIndicators: initialSubmittedIndicators,
   addIndicator: (indicator) =>
     set((state) => ({
       indicators: [
           ...state.indicators,
-          {...indicator, ratio: calculateRatio(indicator)}
+          {
+              ...indicator, 
+              ratio: calculateRatio(indicator),
+              status: calculateStatus(indicator)
+          }
       ],
     })),
   submitIndicator: (indicator) =>

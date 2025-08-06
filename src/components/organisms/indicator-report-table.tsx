@@ -31,20 +31,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Indicator, useIndicatorStore } from "@/store/indicator-store"
+import { Indicator } from "@/store/indicator-store"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
+import { Badge } from "../ui/badge"
 
 const dateRangeFilter: FilterFn<Indicator> = (row, columnId, value, addMeta) => {
-    // Period is in "yyyy-MM" format. We need to convert it to a Date object.
     const rowDate = new Date(row.original.period);
     const [start, end] = value as [Date, Date];
 
-    // Normalize start date to the beginning of the month
     const normalizedStart = start ? new Date(start.getFullYear(), start.getMonth(), 1) : null;
-    
-    // Normalize end date to the end of the month
     const normalizedEnd = end ? new Date(end.getFullYear(), end.getMonth() + 1, 0) : null;
     
     if (normalizedStart && !normalizedEnd) {
@@ -83,25 +80,35 @@ export const columns: ColumnDef<Indicator>[] = [
     filterFn: dateRangeFilter,
   },
   {
-    accessorKey: "numerator",
-    header: () => <div className="text-right">Numerator</div>,
-    cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("numerator"))
-      return <div className="text-right font-medium">{amount}</div>
-    },
-  },
-  {
-    accessorKey: "denominator",
-    header: () => <div className="text-right">Denominator</div>,
-    cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("denominator"))
-      return <div className="text-right font-medium">{amount}</div>
-    },
-  },
-  {
     accessorKey: "ratio",
     header: () => <div className="text-right">Capaian</div>,
     cell: ({ row }) => <div className="text-right font-semibold">{row.getValue("ratio")}</div>,
+  },
+  {
+    accessorKey: "standard",
+    header: () => <div className="text-right">Standar</div>,
+    cell: ({ row }) => {
+      const standard = row.original.standard;
+      const isTimeBased = row.original.indicator === "Waktu Tunggu Rawat Jalan";
+      return <div className="text-right">{`${standard}${isTimeBased ? ' min' : '%'}`}</div>;
+    },
+  },
+  {
+    accessorKey: "status",
+    header: () => <div className="text-center">Status</div>,
+    cell: ({ row }) => {
+      const status = row.getValue("status") as Indicator['status'];
+      return (
+        <div className="text-center">
+            <Badge variant={status === 'Memenuhi Standar' ? 'default' : 'destructive'}>{status}</Badge>
+        </div>
+      )
+    },
+  },
+  {
+    accessorKey: "notes",
+    header: "Catatan",
+    cell: ({ row }) => <div className="text-sm text-muted-foreground">{row.getValue("notes") || "-"}</div>,
   },
 ]
 
@@ -115,7 +122,9 @@ export function IndicatorReportTable({ indicators }: IndicatorReportTableProps) 
     []
   )
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
+    React.useState<VisibilityState>({
+      notes: false,
+    })
   const [rowSelection, setRowSelection] = React.useState({})
   const [date, setDate] = React.useState<DateRange | undefined>()
 
@@ -190,6 +199,9 @@ export function IndicatorReportTable({ indicators }: IndicatorReportTableProps) 
                 selected={date}
                 onSelect={setDate}
                 numberOfMonths={2}
+                captionLayout="dropdown-buttons"
+                fromYear={2020}
+                toYear={new Date().getFullYear()}
               />
             </PopoverContent>
           </Popover>

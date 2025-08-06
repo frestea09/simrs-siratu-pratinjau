@@ -13,6 +13,7 @@ export type User = {
   email: string;
   password?: string;
   role: UserRole;
+  unit?: string;
 }
 
 type UserState = {
@@ -27,8 +28,8 @@ type UserState = {
 
 const initialUsers: User[] = [
     { id: 'user-1', name: 'Admin Sistem', email: 'admin@sim.rs', password: '123456', role: 'Admin Sistem' },
-    { id: 'user-2', name: 'Delina (PIC Mutu)', email: 'delina@sim.rs', password: '123456', role: 'PIC Mutu' },
-    { id: 'user-3', name: 'Deti (PJ Ruangan)', email: 'deti@sim.rs', password: '123456', role: 'PJ Ruangan' },
+    { id: 'user-2', name: 'Delina (PIC Mutu)', email: 'delina@sim.rs', password: '123456', role: 'PIC Mutu', unit: 'PPI' },
+    { id: 'user-3', name: 'Deti (PJ Ruangan)', email: 'deti@sim.rs', password: '123456', role: 'PJ Ruangan', unit: 'RANAP' },
     { id: 'user-4', name: 'Devin (Komite Mutu)', email: 'devin@sim.rs', password: '123456', role: 'Komite Mutu' },
 ]
 

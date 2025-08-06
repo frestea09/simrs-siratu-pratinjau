@@ -24,9 +24,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { DialogFooter } from "../ui/dialog"
-import { User, useUserStore } from "@/store/user-store"
+import { User, useUserStore, UserRole } from "@/store/user-store.tsx"
 import { useToast } from "@/hooks/use-toast"
-import { useLogStore } from "@/store/log-store"
+import { useLogStore } from "@/store/log-store.tsx"
+import { FormInputSelect } from "../molecules/form-input-select"
+import { HOSPITAL_UNITS } from "@/lib/constants"
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -41,12 +43,30 @@ const formSchema = z.object({
   role: z.enum(['Admin Sistem', 'PIC Mutu', 'PJ Ruangan', 'Komite Mutu'], {
     required_error: "Anda harus memilih peran.",
   }),
-})
+  unit: z.string().optional(),
+}).refine(data => {
+    if (['PIC Mutu', 'PJ Ruangan'].includes(data.role) && !data.unit) {
+        return false;
+    }
+    return true;
+}, {
+    message: 'Unit harus dipilih untuk peran ini.',
+    path: ['unit'],
+});
 
 type UserFormProps = {
     setOpen: (open: boolean) => void;
     userToEdit?: User;
 }
+
+const unitOptions = HOSPITAL_UNITS.map(unit => ({ value: unit, label: unit }));
+const roleOptions: {value: UserRole, label: string}[] = [
+    { value: "Admin Sistem", label: "Admin Sistem" },
+    { value: "PIC Mutu", label: "PIC Mutu" },
+    { value: "PJ Ruangan", label: "PJ Ruangan" },
+    { value: "Komite Mutu", label: "Komite Mutu" },
+]
+
 
 export function UserForm({ setOpen, userToEdit }: UserFormProps) {
   const { toast } = useToast()
@@ -64,12 +84,26 @@ export function UserForm({ setOpen, userToEdit }: UserFormProps) {
       name: "",
       email: "",
       password: "",
+      unit: undefined,
     },
   })
+  
+  const selectedRole = form.watch("role");
+
+  React.useEffect(() => {
+    if (selectedRole === 'Admin Sistem' || selectedRole === 'Komite Mutu') {
+        form.setValue('unit', undefined);
+    }
+  }, [selectedRole, form]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    const finalValues = { ...values };
+    if (finalValues.role === 'Admin Sistem' || finalValues.role === 'Komite Mutu') {
+        delete finalValues.unit;
+    }
+
     if (isEditMode && userToEdit) {
-        updateUser(userToEdit.id, values)
+        updateUser(userToEdit.id, finalValues)
         addLog({
             user: currentUser?.name || 'System',
             action: 'UPDATE_USER',
@@ -80,7 +114,7 @@ export function UserForm({ setOpen, userToEdit }: UserFormProps) {
             description: `Data untuk pengguna "${values.name}" telah berhasil diperbarui.`,
         })
     } else {
-        const newId = addUser(values)
+        const newId = addUser(finalValues as Omit<User, 'id'>)
         addLog({
             user: currentUser?.name || 'System',
             action: 'ADD_USER',
@@ -137,29 +171,55 @@ export function UserForm({ setOpen, userToEdit }: UserFormProps) {
                 </FormItem>
             )}
             />
-            <FormField
-            control={form.control}
-            name="role"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Peran</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Pilih peran untuk pengguna" />
-                    </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                        <SelectItem value="Admin Sistem">Admin Sistem</SelectItem>
-                        <SelectItem value="PIC Mutu">PIC Mutu</SelectItem>
-                        <SelectItem value="PJ Ruangan">PJ Ruangan</SelectItem>
-                        <SelectItem value="Komite Mutu">Komite Mutu</SelectItem>
-                    </SelectContent>
-                </Select>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                    control={form.control}
+                    name="role"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Peran</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Pilih peran untuk pengguna" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                {roleOptions.map(role => (
+                                    <SelectItem key={role.value} value={role.value}>{role.label}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                {(selectedRole === 'PIC Mutu' || selectedRole === 'PJ Ruangan') && (
+                     <FormField
+                        control={form.control}
+                        name="unit"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Unit</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Pilih unit" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                     {unitOptions.map(unit => (
+                                        <SelectItem key={unit.value} value={unit.value}>{unit.label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
+            </div>
+            
             <DialogFooter className="pt-4">
                 <Button type="submit">{isEditMode ? 'Simpan Perubahan' : 'Tambah Pengguna'}</Button>
             </DialogFooter>

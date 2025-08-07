@@ -4,7 +4,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { PlusCircle } from "lucide-react"
-import { IndicatorCategory, useIndicatorStore } from "@/store/indicator-store"
+import { Indicator, IndicatorCategory, useIndicatorStore } from "@/store/indicator-store"
 import { IndicatorReportTable } from "./indicator-report-table"
 import React from "react"
 import { IndicatorInputDialog } from "./indicator-input-dialog"
@@ -33,6 +33,7 @@ export function IndicatorReport({ category, title, description, showInputButton 
     const { currentUser } = useUserStore();
     const [reportData, setReportData] = React.useState<any[] | null>(null)
     const [reportColumns, setReportColumns] = React.useState<ColumnDef<any>[] | null>(null)
+    const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
 
     const userCanSeeAll = currentUser && centralRoles.includes(currentUser.role);
     
@@ -56,6 +57,7 @@ export function IndicatorReport({ category, title, description, showInputButton 
     const handleExport = (data: any[], columns: ColumnDef<any>[]) => {
         setReportData(data);
         setReportColumns(columns);
+        setIsPreviewOpen(true);
     };
 
     const inputDialogButton = (
@@ -103,8 +105,8 @@ export function IndicatorReport({ category, title, description, showInputButton 
             </Card>
              {reportData && reportColumns && (
                 <ReportPreviewDialog
-                    open={!!reportData}
-                    onOpenChange={(open) => !open && setReportData(null)}
+                    open={isPreviewOpen}
+                    onOpenChange={setIsPreviewOpen}
                     data={reportData}
                     columns={reportColumns}
                     title={`Laporan Capaian ${title || `Indikator ${category}`}`}

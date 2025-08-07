@@ -13,6 +13,7 @@ import {
   getSortedRowModel,
   useReactTable,
   FilterFn,
+  RowData,
 } from "@tanstack/react-table"
 import { ArrowUpDown, Calendar as CalendarIcon, Download, Filter } from "lucide-react"
 import { DateRange } from "react-day-picker"
@@ -37,6 +38,13 @@ import { Badge } from "../ui/badge"
 import { ReportDetailDialog } from "./report-detail-dialog"
 import { ActionsCell } from "./indicator-report-table/actions-cell"
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu"
+
+declare module '@tanstack/react-table' {
+    interface FilterFns {
+        dateRangeFilter: FilterFn<RowData>
+        categoryFilter: FilterFn<RowData>
+    }
+}
 
 const dateRangeFilter: FilterFn<Indicator> = (row, columnId, value) => {
     const rowDate = new Date(row.original.period);
@@ -88,13 +96,13 @@ export function IndicatorReportTable({ indicators, onExport }: IndicatorReportTa
       accessorKey: "category",
       header: "Kategori",
       cell: ({ row }) => <Badge variant="outline">{row.getValue("category")}</Badge>,
-      filterFn: categoryFilter,
+      filterFn: 'categoryFilter',
     },
     {
       accessorKey: "period",
       header: "Periode",
       cell: ({ row }) => <div>{format(new Date(row.getValue("period")), "MMMM yyyy", { locale: IndonesianLocale })}</div>,
-      filterFn: dateRangeFilter,
+      filterFn: 'dateRangeFilter',
     },
     {
       accessorKey: "ratio",
@@ -132,6 +140,10 @@ export function IndicatorReportTable({ indicators, onExport }: IndicatorReportTa
   const table = useReactTable({
     data: indicators,
     columns,
+    filterFns: {
+        dateRangeFilter,
+        categoryFilter
+    },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),

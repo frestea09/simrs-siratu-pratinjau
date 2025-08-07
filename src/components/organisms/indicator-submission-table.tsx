@@ -14,6 +14,7 @@ import {
   getSortedRowModel,
   useReactTable,
   FilterFn,
+  RowData,
 } from "@tanstack/react-table"
 import { ArrowUpDown, ChevronDown, MoreHorizontal, Calendar as CalendarIcon, Pencil, Eye, Filter } from "lucide-react"
 import { DateRange } from "react-day-picker"
@@ -50,6 +51,13 @@ import { IndicatorSubmissionDialog } from "./indicator-submission-dialog"
 import { useUserStore } from "@/store/user-store.tsx"
 import { useLogStore } from "@/store/log-store.tsx"
 import { IndicatorSubmissionDetailDialog } from "./indicator-submission-detail-dialog"
+
+declare module '@tanstack/react-table' {
+    interface FilterFns {
+        dateRangeFilter: FilterFn<RowData>
+        categoryFilter: FilterFn<RowData>
+    }
+}
 
 const getStatusVariant = (status: SubmittedIndicator['status']) => {
     switch (status) {
@@ -145,7 +153,7 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
       accessorKey: "category",
       header: "Kategori",
       cell: ({ row }) => <Badge variant="outline">{row.getValue("category")}</Badge>,
-      filterFn: categoryFilter,
+      filterFn: 'categoryFilter',
     },
       {
       accessorKey: "unit",
@@ -156,7 +164,7 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
       accessorKey: "submissionDate",
       header: "Tgl. Pengajuan",
       cell: ({ row }) => <div>{format(new Date(row.getValue("submissionDate")), "dd MMM yyyy")}</div>,
-      filterFn: dateRangeFilter,
+      filterFn: 'dateRangeFilter',
     },
     {
       accessorKey: "status",
@@ -235,6 +243,10 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
   const table = useReactTable({
     data: indicators,
     columns,
+    filterFns: {
+      dateRangeFilter,
+      categoryFilter,
+    },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),

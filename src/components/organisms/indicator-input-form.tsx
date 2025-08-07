@@ -18,6 +18,14 @@ import { DialogFooter } from "../ui/dialog"
 import { useUserStore } from "@/store/user-store"
 import { useLogStore } from "@/store/log-store"
 
+const centralRoles = [
+  'Admin Sistem',
+  'Direktur',
+  'Sub. Komite Peningkatan Mutu',
+  'Sub. Komite Keselamatan Pasien',
+  'Sub. Komite Manajemen Risiko'
+];
+
 type IndicatorInputFormProps = {
     setOpen: (open: boolean) => void;
     indicatorToEdit?: Indicator;
@@ -54,10 +62,18 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit }: IndicatorInputF
     }
   }, [indicatorToEdit, submittedIndicators])
 
+  const userCanSeeAll = currentUser && centralRoles.includes(currentUser.role);
 
-  const verifiedIndicators = submittedIndicators.filter(
-    (indicator) => indicator.status === 'Diverifikasi'
-  )
+  const verifiedIndicators = React.useMemo(() => {
+      const allVerified = submittedIndicators.filter(
+          (indicator) => indicator.status === 'Diverifikasi'
+      );
+      if (userCanSeeAll || !currentUser?.unit) {
+          return allVerified;
+      }
+      return allVerified.filter(indicator => indicator.unit === currentUser.unit);
+  }, [submittedIndicators, currentUser, userCanSeeAll]);
+
 
   const handleSubmit = () => {
     if (!selectedSubmittedIndicator || !date || !numerator || !denominator) {
@@ -72,6 +88,7 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit }: IndicatorInputF
     const dataToSave = {
         indicator: selectedSubmittedIndicator.name,
         category: selectedSubmittedIndicator.category,
+        unit: selectedSubmittedIndicator.unit, // Add unit to saved data
         period: format(date, "yyyy-MM"),
         numerator: Number(numerator),
         denominator: Number(denominator),
@@ -127,7 +144,7 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit }: IndicatorInputF
             <SelectContent>
               {verifiedIndicators.map(indicator => (
                 <SelectItem key={indicator.id} value={indicator.id} className="text-base">
-                  {indicator.name} ({indicator.category})
+                  {indicator.name} ({indicator.unit})
                 </SelectItem>
               ))}
             </SelectContent>

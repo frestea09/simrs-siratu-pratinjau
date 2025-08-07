@@ -157,7 +157,7 @@ export const columns: ColumnDef<User>[] = [
 const roleOptions: UserRole[] = ['Admin Sistem', 'PIC Mutu', 'PJ Ruangan', 'Kepala Unit/Instalasi', 'Direktur', 'Sub. Komite Peningkatan Mutu', 'Sub. Komite Keselamatan Pasien', 'Sub. Komite Manajemen Risiko'];
 
 type UserTableProps = {
-  users: User[]
+  users: User[] 
 }
 
 export function UserTable({ users }: UserTableProps) {

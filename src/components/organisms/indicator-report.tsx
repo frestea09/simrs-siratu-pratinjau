@@ -11,16 +11,38 @@ import { IndicatorInputDialog } from "./indicator-input-dialog"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { ColumnDef } from "@tanstack/react-table"
 import { ReportPreviewDialog } from "./report-preview-dialog"
+import { useUserStore } from "@/store/user-store.tsx"
+
+const centralRoles = [
+  'Admin Sistem',
+  'Direktur',
+  'Sub. Komite Peningkatan Mutu',
+  'Sub. Komite Keselamatan Pasien',
+  'Sub. Komite Manajemen Risiko'
+];
 
 export function IndicatorReport() {
-    const indicators = useIndicatorStore((state) => state.indicators)
-    const submittedIndicators = useIndicatorStore((state) => state.submittedIndicators)
+    const { indicators, submittedIndicators } = useIndicatorStore()
+    const { currentUser } = useUserStore();
     const [reportData, setReportData] = React.useState<any[] | null>(null)
     const [reportColumns, setReportColumns] = React.useState<ColumnDef<any>[] | null>(null)
 
-    const hasVerifiedIndicators = submittedIndicators.some(
-        (indicator) => indicator.status === 'Diverifikasi'
-    );
+    const userCanSeeAll = currentUser && centralRoles.includes(currentUser.role);
+    
+    const filteredIndicators = React.useMemo(() => {
+        if (userCanSeeAll || !currentUser?.unit) {
+            return indicators;
+        }
+        return indicators.filter(indicator => indicator.unit === currentUser.unit);
+    }, [indicators, currentUser, userCanSeeAll]);
+
+    const hasVerifiedIndicators = React.useMemo(() => {
+        const relevantIndicators = userCanSeeAll || !currentUser?.unit
+            ? submittedIndicators
+            : submittedIndicators.filter(i => i.unit === currentUser.unit);
+        
+        return relevantIndicators.some(indicator => indicator.status === 'Diverifikasi');
+    }, [submittedIndicators, currentUser, userCanSeeAll]);
     
     const handleExport = (data: any[], columns: ColumnDef<any>[]) => {
         setReportData(data);
@@ -39,7 +61,8 @@ export function IndicatorReport() {
                         <div>
                             <CardTitle>Laporan Indikator Mutu</CardTitle>
                             <CardDescription>
-                                Riwayat data indikator mutu yang telah diinput.
+                                Riwayat data indikator mutu yang telah diinput. 
+                                {currentUser?.unit && !userCanSeeAll && ` (Unit: ${currentUser.unit})`}
                             </CardDescription>
                         </div>
                         <div className="flex items-center gap-2">
@@ -56,7 +79,7 @@ export function IndicatorReport() {
                                         </span>
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                        <p>Tidak ada indikator yang diverifikasi untuk diinput.</p>
+                                        <p>Tidak ada indikator yang diverifikasi untuk unit Anda.</p>
                                     </TooltipContent>
                                 </Tooltip>
                             )}
@@ -64,7 +87,7 @@ export function IndicatorReport() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <IndicatorReportTable indicators={indicators} onExport={handleExport}/>
+                    <IndicatorReportTable indicators={filteredIndicators} onExport={handleExport}/>
                 </CardContent>
             </Card>
              {reportData && reportColumns && (

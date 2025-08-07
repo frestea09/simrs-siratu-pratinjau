@@ -65,6 +65,14 @@ const categoryOptions: {value: IndicatorCategory, label: string}[] = [
     { value: 'IPU', label: 'Indikator Prioritas Unit (IPU)'},
 ]
 
+const centralRoles = [
+  'Admin Sistem',
+  'Direktur',
+  'Sub. Komite Peningkatan Mutu',
+  'Sub. Komite Keselamatan Pasien',
+  'Sub. Komite Manajemen Risiko'
+];
+
 export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmissionFormProps) {
   const { toast } = useToast()
   const { submitIndicator, updateSubmittedIndicator, submittedIndicators } = useIndicatorStore()
@@ -72,6 +80,8 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
   const { currentUser } = useUserStore();
   const { addLog } = useLogStore();
   const isEditMode = !!indicator;
+  
+  const userCanSelectUnit = currentUser && centralRoles.includes(currentUser.role);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -85,6 +95,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
         standardUnit: indicator.standardUnit,
     } : {
       name: "",
+      unit: userCanSelectUnit ? "" : currentUser?.unit,
       description: "",
       standard: 100,
       standardUnit: '%',
@@ -227,7 +238,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                 render={({ field }) => (
                     <FormItem>
                       <FormLabel>Unit</FormLabel>
-                       <Select onValueChange={field.onChange} defaultValue={field.value}>
+                       <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!userCanSelectUnit}>
                             <FormControl>
                             <SelectTrigger>
                                 <SelectValue placeholder="Pilih unit" />
@@ -329,5 +340,3 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
     </Form>
   )
 }
-
-    

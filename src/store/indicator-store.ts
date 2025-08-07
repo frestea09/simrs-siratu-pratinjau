@@ -20,6 +20,7 @@ export type Indicator = {
   id: string;
   indicator: string;
   category: IndicatorCategory;
+  unit: string;
   period: string;
   numerator: number;
   denominator: number;

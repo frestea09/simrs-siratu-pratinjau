@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { IndicatorReport } from "@/components/organisms/indicator-report"
 import { IndicatorSubmissionDialog } from "@/components/organisms/indicator-submission-dialog"
 import { IndicatorSubmissionTable } from "@/components/organisms/indicator-submission-table"
-import { useIndicatorStore, SubmittedIndicator } from "@/store/indicator-store"
+import { useIndicatorStore } from "@/store/indicator-store"
 import { useUserStore } from "@/store/user-store.tsx"
 import React from "react"
 
@@ -25,11 +25,12 @@ export default function IndicatorsPage() {
   const userCanSeeAll = currentUser && centralRoles.includes(currentUser.role);
 
   const filteredSubmittedIndicators = React.useMemo(() => {
-    const ipuIndicators = submittedIndicators.filter(i => i.category === 'IPU');
+    // This page is for IPU, but also the master entry for INM and IMP-RS
     if (userCanSeeAll || !currentUser?.unit) {
-      return ipuIndicators;
+      return submittedIndicators;
     }
-    return ipuIndicators.filter(indicator => indicator.unit === currentUser.unit);
+    // For unit users, they can only see their own unit's submissions
+    return submittedIndicators.filter(indicator => indicator.unit === currentUser.unit);
   }, [submittedIndicators, currentUser, userCanSeeAll]);
 
   return (
@@ -40,17 +41,17 @@ export default function IndicatorsPage() {
       <Tabs defaultValue="report" className="space-y-4">
         <TabsList>
           <TabsTrigger value="submission">Pengajuan Indikator</TabsTrigger>
-          <TabsTrigger value="report">Laporan & Input Capaian</TabsTrigger>
+          <TabsTrigger value="report">Laporan & Input Capaian IPU</TabsTrigger>
         </TabsList>
         <TabsContent value="submission" className="space-y-4">
             <Card>
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div>
-                            <CardTitle>Status Pengajuan IPU</CardTitle>
+                            <CardTitle>Status Pengajuan Indikator (INM, IMP-RS, IPU)</CardTitle>
                             <CardDescription>
-                                Daftar indikator prioritas unit yang telah diajukan beserta status verifikasinya.
-                                {currentUser?.unit && !userCanSeeAll && ` (Unit: ${currentUser.unit})`}
+                                Daftar semua indikator yang telah diajukan beserta status verifikasinya.
+                                {currentUser?.unit && !userCanSeeAll && ` (Hanya menampilkan untuk Unit: ${currentUser.unit})`}
                             </CardDescription>
                         </div>
                         <IndicatorSubmissionDialog />
@@ -62,7 +63,11 @@ export default function IndicatorsPage() {
             </Card>
         </TabsContent>
         <TabsContent value="report" className="space-y-4">
-          <IndicatorReport category="IPU"/>
+          <IndicatorReport 
+            category="IPU"
+            title="Laporan Indikator Prioritas Unit"
+            description="Riwayat data Indikator Prioritas Unit (IPU) yang telah diinput."
+          />
         </TabsContent>
       </Tabs>
     </div>

@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { DialogFooter } from "../ui/dialog"
-import { SubmittedIndicator, useIndicatorStore } from "@/store/indicator-store"
+import { SubmittedIndicator, useIndicatorStore, IndicatorCategory } from "@/store/indicator-store"
 import { useToast } from "@/hooks/use-toast"
 import { HOSPITAL_UNITS } from "@/lib/constants"
 import { useUserStore } from "@/store/user-store"
@@ -34,6 +34,9 @@ import { useLogStore } from "@/store/log-store"
 const formSchema = z.object({
   name: z.string().min(5, {
     message: "Nama indikator harus memiliki setidaknya 5 karakter.",
+  }),
+  category: z.enum(['INM', 'IMP-RS', 'IPU'], {
+    required_error: "Anda harus memilih kategori indikator.",
   }),
   unit: z.string({ required_error: "Anda harus memilih unit." }),
   frequency: z.enum(['Harian', 'Mingguan', 'Bulanan', '6 Bulanan'], {
@@ -54,6 +57,11 @@ type IndicatorSubmissionFormProps = {
 }
 
 const unitOptions = HOSPITAL_UNITS.map(unit => ({ value: unit, label: unit }));
+const categoryOptions: {value: IndicatorCategory, label: string}[] = [
+    { value: 'INM', label: 'Indikator Nasional Mutu (INM)'},
+    { value: 'IMP-RS', label: 'Indikator Mutu Prioritas RS (IMP-RS)'},
+    { value: 'IPU', label: 'Indikator Prioritas Unit (IPU)'},
+]
 
 export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmissionFormProps) {
   const { toast } = useToast()
@@ -66,6 +74,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
     resolver: zodResolver(formSchema),
     defaultValues: isEditMode ? {
         name: indicator.name,
+        category: indicator.category,
         unit: indicator.unit,
         frequency: indicator.frequency,
         description: indicator.description,
@@ -109,7 +118,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
 
   return (
     <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
              <FormField
                 control={form.control}
                 name="name"
@@ -124,6 +133,28 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                 )}
                 />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Kategori Indikator</FormLabel>
+                           <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Pilih kategori" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {categoryOptions.map((cat) => (
+                                        <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                          <FormMessage />
+                        </FormItem>
+                    )}
+                />
                 <FormField
                 control={form.control}
                 name="unit"
@@ -146,6 +177,8 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                     </FormItem>
                 )}
                 />
+            </div>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                 control={form.control}
                 name="frequency"
@@ -169,9 +202,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                     </FormItem>
                 )}
                 />
-            </div>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
+                 <FormField
                     control={form.control}
                     name="standard"
                     render={({ field }) => (

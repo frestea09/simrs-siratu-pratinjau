@@ -14,7 +14,7 @@ import {
   useReactTable,
   FilterFn,
 } from "@tanstack/react-table"
-import { ArrowUpDown, Calendar as CalendarIcon, Download } from "lucide-react"
+import { ArrowUpDown, Calendar as CalendarIcon, Download, Filter } from "lucide-react"
 import { DateRange } from "react-day-picker"
 import { format } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
@@ -29,13 +29,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Indicator } from "@/store/indicator-store"
+import { Indicator, IndicatorCategory } from "@/store/indicator-store"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { Badge } from "../ui/badge"
 import { ReportDetailDialog } from "./report-detail-dialog"
 import { ActionsCell } from "./indicator-report-table/actions-cell"
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu"
 
 const dateRangeFilter: FilterFn<Indicator> = (row, columnId, value) => {
     const rowDate = new Date(row.original.period);
@@ -49,6 +50,17 @@ const dateRangeFilter: FilterFn<Indicator> = (row, columnId, value) => {
     if (normalizedStart && normalizedEnd) return rowDate >= normalizedStart && rowDate <= normalizedEnd;
     return true;
 }
+
+const categoryFilter: FilterFn<Indicator> = (row, id, value) => {
+    return value.includes(row.original.category);
+}
+
+const categoryOptions: {value: IndicatorCategory, label: string}[] = [
+    { value: 'INM', label: 'INM'},
+    { value: 'IMP-RS', label: 'IMP-RS'},
+    { value: 'IPU', label: 'IPU'},
+]
+
 
 type IndicatorReportTableProps = {
   indicators: Indicator[]
@@ -71,6 +83,12 @@ export function IndicatorReportTable({ indicators, onExport }: IndicatorReportTa
         </Button>
       ),
       cell: ({ row }) => <div className="font-medium">{row.getValue("indicator")}</div>,
+    },
+    {
+      accessorKey: "category",
+      header: "Kategori",
+      cell: ({ row }) => <Badge variant="outline">{row.getValue("category")}</Badge>,
+      filterFn: categoryFilter,
     },
     {
       accessorKey: "period",
@@ -149,6 +167,34 @@ export function IndicatorReportTable({ indicators, onExport }: IndicatorReportTa
             <Calendar initialFocus mode="range" defaultMonth={date?.from} selected={date} onSelect={setDate} numberOfMonths={2} captionLayout="dropdown-buttons" fromYear={2020} toYear={new Date().getFullYear()} />
           </PopoverContent>
         </Popover>
+         <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="flex-shrink-0">
+              <Filter className="mr-2 h-4 w-4" />
+              Kategori
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Filter by Kategori</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {categoryOptions.map((cat) => (
+              <DropdownMenuCheckboxItem
+                key={cat.value}
+                className="capitalize"
+                checked={
+                  (table.getColumn("category")?.getFilterValue() as string[] | undefined)?.includes(cat.value) ?? false
+                }
+                onCheckedChange={(value) => {
+                   const currentFilter = (table.getColumn("category")?.getFilterValue() as string[] | undefined) || [];
+                   const newFilter = value ? [...currentFilter, cat.value] : currentFilter.filter(s => s !== cat.value);
+                   table.getColumn("category")?.setFilterValue(newFilter.length ? newFilter : undefined);
+                }}
+              >
+                {cat.label}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
          <Button variant="outline" className="ml-auto" onClick={() => onExport(table.getFilteredRowModel().rows.map(row => row.original), columns.filter(c => c.id !== 'actions'))}>
             <Download className="mr-2 h-4 w-4" />
             Unduh Laporan

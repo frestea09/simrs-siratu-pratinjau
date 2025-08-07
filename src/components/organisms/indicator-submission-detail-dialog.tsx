@@ -6,7 +6,7 @@ import { id as IndonesianLocale } from "date-fns/locale"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { SubmittedIndicator } from "@/store/indicator-store"
+import { SubmittedIndicator, IndicatorCategory } from "@/store/indicator-store"
 
 type IndicatorSubmissionDetailDialogProps = {
     indicator: SubmittedIndicator | null
@@ -30,6 +30,12 @@ const getStatusVariant = (status?: SubmittedIndicator['status']) => {
     }
 }
 
+const categoryLabels: Record<IndicatorCategory, string> = {
+    INM: "Indikator Nasional Mutu",
+    'IMP-RS': "Indikator Mutu Prioritas RS",
+    IPU: "Indikator Prioritas Unit"
+}
+
 export function IndicatorSubmissionDetailDialog({ indicator, open, onOpenChange }: IndicatorSubmissionDetailDialogProps) {
     if (!indicator) return null;
 
@@ -45,6 +51,7 @@ export function IndicatorSubmissionDetailDialog({ indicator, open, onOpenChange 
                 <div className="grid gap-3 py-4">
                     <DetailItem label="ID Pengajuan" value={indicator.id} />
                     <DetailItem label="Nama Indikator" value={indicator.name} />
+                    <DetailItem label="Kategori" value={<Badge variant="outline">{categoryLabels[indicator.category]}</Badge>} />
                     <DetailItem label="Unit" value={indicator.unit} />
                     <DetailItem label="Frekuensi Lapor" value={indicator.frequency} />
                     <DetailItem 

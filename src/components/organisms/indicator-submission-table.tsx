@@ -15,7 +15,7 @@ import {
   useReactTable,
   FilterFn,
 } from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown, MoreHorizontal, Calendar as CalendarIcon, Pencil, Eye } from "lucide-react"
+import { ArrowUpDown, ChevronDown, MoreHorizontal, Calendar as CalendarIcon, Pencil, Eye, Filter } from "lucide-react"
 import { DateRange } from "react-day-picker"
 import { format } from "date-fns"
 
@@ -42,7 +42,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { SubmittedIndicator, useIndicatorStore } from "@/store/indicator-store"
+import { SubmittedIndicator, useIndicatorStore, IndicatorCategory } from "@/store/indicator-store"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
@@ -65,6 +65,11 @@ const getStatusVariant = (status: SubmittedIndicator['status']) => {
 }
 
 const statusOptions: SubmittedIndicator['status'][] = ['Menunggu Persetujuan', 'Diverifikasi', 'Ditolak'];
+const categoryOptions: {value: IndicatorCategory, label: string}[] = [
+    { value: 'INM', label: 'INM'},
+    { value: 'IMP-RS', label: 'IMP-RS'},
+    { value: 'IPU', label: 'IPU'},
+]
 
 const dateRangeFilter: FilterFn<SubmittedIndicator> = (row, columnId, value, addMeta) => {
     const date = new Date(row.original.submissionDate);
@@ -86,6 +91,9 @@ const dateRangeFilter: FilterFn<SubmittedIndicator> = (row, columnId, value, add
     return true;
 }
 
+const categoryFilter: FilterFn<SubmittedIndicator> = (row, columnId, value) => {
+    return value.includes(row.original.category);
+}
 
 
 type IndicatorSubmissionTableProps = {
@@ -133,15 +141,16 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
       },
       cell: ({ row }) => <div className="font-medium">{row.getValue("name")}</div>,
     },
+    {
+      accessorKey: "category",
+      header: "Kategori",
+      cell: ({ row }) => <Badge variant="outline">{row.getValue("category")}</Badge>,
+      filterFn: categoryFilter,
+    },
       {
       accessorKey: "unit",
       header: "Unit",
       cell: ({ row }) => <div>{row.getValue("unit")}</div>,
-    },
-    {
-      accessorKey: "frequency",
-      header: "Frekuensi",
-      cell: ({ row }) => <div>{row.getValue("frequency")}</div>,
     },
     {
       accessorKey: "submissionDate",
@@ -301,28 +310,54 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
-              Status <ChevronDown className="ml-2 h-4 w-4" />
+              <Filter className="mr-2 h-4 w-4" /> Filter
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+            <DropdownMenuLabel>Filter berdasarkan</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {statusOptions.map((status) => (
-              <DropdownMenuCheckboxItem
-                key={status}
-                className="capitalize"
-                checked={
-                  (table.getColumn("status")?.getFilterValue() as string[] | undefined)?.includes(status) ?? false
-                }
-                onCheckedChange={(value) => {
-                   const currentFilter = (table.getColumn("status")?.getFilterValue() as string[] | undefined) || [];
-                   const newFilter = value ? [...currentFilter, status] : currentFilter.filter(s => s !== status);
-                   table.getColumn("status")?.setFilterValue(newFilter.length ? newFilter : undefined);
-                }}
-              >
-                {status}
-              </DropdownMenuCheckboxItem>
-            ))}
+             <DropdownMenuSub>
+                <DropdownMenuSubTrigger>Kategori</DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                    {categoryOptions.map((cat) => (
+                        <DropdownMenuCheckboxItem
+                            key={cat.value}
+                            className="capitalize"
+                            checked={
+                                (table.getColumn("category")?.getFilterValue() as string[] | undefined)?.includes(cat.value) ?? false
+                            }
+                            onCheckedChange={(value) => {
+                                const currentFilter = (table.getColumn("category")?.getFilterValue() as string[] | undefined) || [];
+                                const newFilter = value ? [...currentFilter, cat.value] : currentFilter.filter(s => s !== cat.value);
+                                table.getColumn("category")?.setFilterValue(newFilter.length ? newFilter : undefined);
+                            }}
+                        >
+                            {cat.label}
+                        </DropdownMenuCheckboxItem>
+                    ))}
+                </DropdownMenuSubContent>
+            </DropdownMenuSub>
+            <DropdownMenuSub>
+                <DropdownMenuSubTrigger>Status</DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                    {statusOptions.map((status) => (
+                    <DropdownMenuCheckboxItem
+                        key={status}
+                        className="capitalize"
+                        checked={
+                        (table.getColumn("status")?.getFilterValue() as string[] | undefined)?.includes(status) ?? false
+                        }
+                        onCheckedChange={(value) => {
+                        const currentFilter = (table.getColumn("status")?.getFilterValue() as string[] | undefined) || [];
+                        const newFilter = value ? [...currentFilter, status] : currentFilter.filter(s => s !== status);
+                        table.getColumn("status")?.setFilterValue(newFilter.length ? newFilter : undefined);
+                        }}
+                    >
+                        {status}
+                    </DropdownMenuCheckboxItem>
+                    ))}
+                </DropdownMenuSubContent>
+            </DropdownMenuSub>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

@@ -28,6 +28,10 @@ export function ReportDetailDialog({ indicator, open, onOpenChange }: ReportDeta
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-3 items-center gap-4">
+                        <span className="text-sm font-medium text-muted-foreground">Kategori</span>
+                        <Badge variant="outline" className="w-fit">{indicator.category}</Badge>
+                    </div>
+                    <div className="grid grid-cols-3 items-center gap-4">
                         <span className="text-sm font-medium text-muted-foreground">Capaian</span>
                         <span className="col-span-2 text-sm font-semibold">{indicator.ratio}</span>
                     </div>

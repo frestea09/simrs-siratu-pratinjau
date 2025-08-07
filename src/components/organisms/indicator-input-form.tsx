@@ -71,6 +71,7 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit }: IndicatorInputF
 
     const dataToSave = {
         indicator: selectedSubmittedIndicator.name,
+        category: selectedSubmittedIndicator.category,
         period: format(date, "yyyy-MM"),
         numerator: Number(numerator),
         denominator: Number(denominator),
@@ -126,7 +127,7 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit }: IndicatorInputF
             <SelectContent>
               {verifiedIndicators.map(indicator => (
                 <SelectItem key={indicator.id} value={indicator.id} className="text-base">
-                  {indicator.name} ({indicator.frequency})
+                  {indicator.name} ({indicator.category})
                 </SelectItem>
               ))}
             </SelectContent>

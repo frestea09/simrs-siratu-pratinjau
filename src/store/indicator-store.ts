@@ -1,9 +1,12 @@
 
 import { create } from 'zustand'
 
+export type IndicatorCategory = 'INM' | 'IMP-RS' | 'IPU';
+
 export type SubmittedIndicator = {
   id: string;
   name: string;
+  category: IndicatorCategory;
   description: string;
   unit: string;
   frequency: 'Harian' | 'Mingguan' | 'Bulanan' | '6 Bulanan';
@@ -15,15 +18,16 @@ export type SubmittedIndicator = {
 
 export type Indicator = {
   id: string;
-  indicator: string
-  period: string
-  numerator: number
-  denominator: number
-  standard: number
+  indicator: string;
+  category: IndicatorCategory;
+  period: string;
+  numerator: number;
+  denominator: number;
+  standard: number;
   standardUnit: '%' | 'menit';
-  notes?: string
-  ratio: string
-  status: 'Memenuhi Standar' | 'Tidak Memenuhi Standar' | 'N/A'
+  notes?: string;
+  ratio: string;
+  status: 'Memenuhi Standar' | 'Tidak Memenuhi Standar' | 'N/A';
 }
 
 type IndicatorState = {

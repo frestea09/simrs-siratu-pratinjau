@@ -44,16 +44,13 @@ export function IndicatorReport({ category, title, description, showInputButton 
         return categoryIndicators.filter(indicator => indicator.unit === currentUser.unit);
     }, [indicators, currentUser, userCanSeeAll, category]);
 
-    // This check is now specific for categories that need verification (like IPU)
     const hasVerifiedIndicators = React.useMemo(() => {
-        if (category !== 'IPU') return true; // Assume other types are always ready
-
-        const relevantSubmitted = submittedIndicators.filter(i => i.category === category);
+        const relevantSubmitted = submittedIndicators.filter(i => i.category === category && i.status === 'Diverifikasi');
         const relevantIndicators = userCanSeeAll || !currentUser?.unit
             ? relevantSubmitted
             : relevantSubmitted.filter(i => i.unit === currentUser.unit);
         
-        return relevantIndicators.some(indicator => indicator.status === 'Diverifikasi');
+        return relevantIndicators.length > 0;
     }, [submittedIndicators, currentUser, userCanSeeAll, category]);
     
     const handleExport = (data: any[], columns: ColumnDef<any>[]) => {
@@ -62,7 +59,7 @@ export function IndicatorReport({ category, title, description, showInputButton 
     };
 
     const inputDialogButton = (
-        <IndicatorInputDialog />
+        <IndicatorInputDialog category={category} />
     );
 
     return (

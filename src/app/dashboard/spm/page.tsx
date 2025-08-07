@@ -29,7 +29,7 @@ export default function SpmPage() {
   const userCanSeeAll = currentUser && centralRoles.includes(currentUser.role);
 
   const hasIndicatorsToInput = React.useMemo(() => {
-    const relevantSubmitted = submittedIndicators.filter(i => i.category === 'SPM');
+    const relevantSubmitted = submittedIndicators.filter(i => i.category === 'SPM' && i.status === 'Diverifikasi');
     const relevantIndicators = userCanSeeAll || !currentUser?.unit
         ? relevantSubmitted
         : relevantSubmitted.filter(i => i.unit === currentUser.unit);
@@ -38,7 +38,7 @@ export default function SpmPage() {
   }, [submittedIndicators, currentUser, userCanSeeAll]);
 
   const inputDialogButton = (
-    <IndicatorInputDialog />
+    <IndicatorInputDialog category="SPM" />
   );
 
   const spmIndicators = React.useMemo(() => indicators.filter(i => i.category === 'SPM'), [indicators]);

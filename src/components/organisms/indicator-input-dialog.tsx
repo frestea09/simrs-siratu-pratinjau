@@ -13,14 +13,15 @@ import {
 } from "@/components/ui/dialog"
 import { PlusCircle } from "lucide-react"
 import { IndicatorInputForm } from "./indicator-input-form"
-import { Indicator } from "@/store/indicator-store"
+import { Indicator, IndicatorCategory } from "@/store/indicator-store"
 
 type IndicatorInputDialogProps = {
   indicatorToEdit?: Indicator;
   trigger?: React.ReactNode;
+  category: IndicatorCategory;
 }
 
-export function IndicatorInputDialog({ indicatorToEdit, trigger }: IndicatorInputDialogProps) {
+export function IndicatorInputDialog({ indicatorToEdit, trigger, category }: IndicatorInputDialogProps) {
   const [open, setOpen] = React.useState(false)
   const isEditMode = !!indicatorToEdit;
 
@@ -43,7 +44,7 @@ export function IndicatorInputDialog({ indicatorToEdit, trigger }: IndicatorInpu
             {isEditMode ? 'Ubah detail capaian di bawah ini.' : 'Isi detail capaian yang akan disimpan. Klik simpan jika sudah selesai.'}
           </DialogDescription>
         </DialogHeader>
-        <IndicatorInputForm setOpen={setOpen} indicatorToEdit={indicatorToEdit} />
+        <IndicatorInputForm setOpen={setOpen} indicatorToEdit={indicatorToEdit} category={category} />
       </DialogContent>
     </Dialog>
   )

@@ -28,7 +28,7 @@ export default function InmPage() {
   const userCanSeeAll = currentUser && centralRoles.includes(currentUser.role);
 
   const hasIndicatorsToInput = React.useMemo(() => {
-    const relevantSubmitted = submittedIndicators.filter(i => i.category === 'INM');
+    const relevantSubmitted = submittedIndicators.filter(i => i.category === 'INM' && i.status === 'Diverifikasi');
     const relevantIndicators = userCanSeeAll || !currentUser?.unit
         ? relevantSubmitted
         : relevantSubmitted.filter(i => i.unit === currentUser.unit);
@@ -37,7 +37,7 @@ export default function InmPage() {
   }, [submittedIndicators, currentUser, userCanSeeAll]);
 
   const inputDialogButton = (
-    <IndicatorInputDialog />
+    <IndicatorInputDialog category="INM" />
   );
 
   const inmIndicators = React.useMemo(() => indicators.filter(i => i.category === 'INM'), [indicators]);

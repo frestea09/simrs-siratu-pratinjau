@@ -28,7 +28,7 @@ export default function ImpRsPage() {
   const userCanSeeAll = currentUser && centralRoles.includes(currentUser.role);
   
   const hasIndicatorsToInput = React.useMemo(() => {
-    const relevantSubmitted = submittedIndicators.filter(i => i.category === 'IMP-RS');
+    const relevantSubmitted = submittedIndicators.filter(i => i.category === 'IMP-RS' && i.status === 'Diverifikasi');
     const relevantIndicators = userCanSeeAll || !currentUser?.unit
         ? relevantSubmitted
         : relevantSubmitted.filter(i => i.unit === currentUser.unit);
@@ -37,7 +37,7 @@ export default function ImpRsPage() {
   }, [submittedIndicators, currentUser, userCanSeeAll]);
 
   const inputDialogButton = (
-    <IndicatorInputDialog />
+    <IndicatorInputDialog category="IMP-RS" />
   );
 
   const impRsIndicators = React.useMemo(() => indicators.filter(i => i.category === 'IMP-RS'), [indicators]);

@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils"
 import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
-import { useIndicatorStore, Indicator, SubmittedIndicator } from "@/store/indicator-store"
+import { useIndicatorStore, Indicator, SubmittedIndicator, IndicatorCategory } from "@/store/indicator-store"
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "../ui/textarea"
 import { DialogFooter } from "../ui/dialog"
@@ -29,9 +29,10 @@ const centralRoles = [
 type IndicatorInputFormProps = {
     setOpen: (open: boolean) => void;
     indicatorToEdit?: Indicator;
+    category: IndicatorCategory;
 }
 
-export function IndicatorInputForm({ setOpen, indicatorToEdit }: IndicatorInputFormProps) {
+export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: IndicatorInputFormProps) {
   const { toast } = useToast()
   const { addIndicator, updateIndicator, submittedIndicators } = useIndicatorStore()
   const { currentUser } = useUserStore()
@@ -66,13 +67,13 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit }: IndicatorInputF
 
   const verifiedIndicators = React.useMemo(() => {
       const allVerified = submittedIndicators.filter(
-          (indicator) => indicator.status === 'Diverifikasi'
+          (indicator) => indicator.status === 'Diverifikasi' && indicator.category === category
       );
       if (userCanSeeAll || !currentUser?.unit) {
           return allVerified;
       }
       return allVerified.filter(indicator => indicator.unit === currentUser.unit);
-  }, [submittedIndicators, currentUser, userCanSeeAll]);
+  }, [submittedIndicators, currentUser, userCanSeeAll, category]);
 
 
   const handleSubmit = () => {

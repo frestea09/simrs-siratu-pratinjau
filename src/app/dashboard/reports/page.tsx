@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { useIndicatorStore, Indicator, IndicatorCategory, SubmittedIndicator } from "@/store/indicator-store"
+import { useIndicatorStore, IndicatorCategory, SubmittedIndicator } from "@/store/indicator-store"
 import { Download, Table as TableIcon } from "lucide-react"
 import { ReportPreviewDialog } from "@/components/organisms/report-preview-dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -51,7 +51,7 @@ export default function ReportsPage() {
     CATEGORIES.forEach(category => {
         const categoryIndicators = uniqueIndicators.filter(si => si.category === category);
 
-        categoryIndicators.forEach((masterIndicator, index) => {
+        yearlyData[category] = categoryIndicators.map((masterIndicator, index) => {
             const monthlyAchievements: { [key: string]: string } = {};
 
             MONTHS.forEach((_, monthIndex) => {
@@ -65,13 +65,13 @@ export default function ReportsPage() {
                 monthlyAchievements[monthIndex.toString()] = achievement ? achievement.ratio : '-';
             });
 
-            yearlyData[category].push({
+            return {
                 no: index + 1,
                 indicator: masterIndicator.name,
                 description: masterIndicator.description,
                 standard: `${masterIndicator.standard}${masterIndicator.standardUnit}`,
                 months: monthlyAchievements
-            });
+            };
         });
     });
 
@@ -80,7 +80,7 @@ export default function ReportsPage() {
   };
 
   const ReportTable = ({ data, title }: { data: YearlyReportData[], title: string }) => {
-    if (data.length === 0) return null;
+    if (!data || data.length === 0) return null;
     return (
         <div className="mb-8">
             <h3 className="text-xl font-bold mb-4">{title}</h3>
@@ -90,7 +90,7 @@ export default function ReportsPage() {
                         <TableRow className="bg-gray-100 text-gray-800">
                             <TableHead className="w-[50px] font-bold">No</TableHead>
                             <TableHead className="min-w-[200px] font-bold">Indikator</TableHead>
-                            <TableHead className="min-w-[300px] font-bold">Indikator Penilaian Mutu</TableHead>
+                            <TableHead className="min-w-[300px] font-bold">Deskripsi</TableHead>
                             <TableHead className="font-bold">Standar</TableHead>
                             {MONTHS.map((month, index) => <TableHead key={index} className="text-center font-bold">{month}</TableHead>)}
                         </TableRow>
@@ -102,7 +102,7 @@ export default function ReportsPage() {
                                 <TableCell>{row.indicator}</TableCell>
                                 <TableCell className="text-sm text-gray-600">{row.description}</TableCell>
                                 <TableCell>{row.standard}</TableCell>
-                                {MONTHS.map((_, index) => <TableCell key={index} className="text-center">{row.months[index]}</TableCell>)}
+                                {MONTHS.map((_, index) => <TableCell key={index} className="text-center">{row.months[index.toString()]}</TableCell>)}
                             </TableRow>
                         ))}
                     </TableBody>
@@ -174,4 +174,3 @@ export default function ReportsPage() {
     </div>
   );
 }
-

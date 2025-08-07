@@ -30,6 +30,8 @@ import { useToast } from "@/hooks/use-toast"
 import { HOSPITAL_UNITS } from "@/lib/constants"
 import { useUserStore } from "@/store/user-store"
 import { useLogStore } from "@/store/log-store"
+import { Combobox } from "../ui/combobox"
+import { useSpmStore } from "@/store/spm-store"
 
 const formSchema = z.object({
   name: z.string().min(5, {
@@ -65,7 +67,8 @@ const categoryOptions: {value: IndicatorCategory, label: string}[] = [
 
 export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmissionFormProps) {
   const { toast } = useToast()
-  const { submitIndicator, updateSubmittedIndicator } = useIndicatorStore()
+  const { submitIndicator, updateSubmittedIndicator, submittedIndicators } = useIndicatorStore()
+  const { spmIndicators } = useSpmStore()
   const { currentUser } = useUserStore();
   const { addLog } = useLogStore();
   const isEditMode = !!indicator;
@@ -87,6 +90,54 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
       standardUnit: '%',
     },
   })
+
+  const selectedCategory = form.watch("category");
+
+  const availableIndicators = React.useMemo(() => {
+    const verifiedInmAndImp = submittedIndicators
+        .filter(i => i.status === 'Diverifikasi' && (i.category === 'INM' || i.category === 'IMP-RS'))
+        .map(i => ({ 
+            value: `ind-${i.id}`, 
+            label: `[${i.category}] ${i.name}`,
+            source: 'indicator',
+            data: i
+        }));
+
+    const allSpm = spmIndicators.map(s => ({
+        value: `spm-${s.id}`,
+        label: `[SPM] ${s.indicator}`,
+        source: 'spm',
+        data: s
+    }));
+    
+    return [...verifiedInmAndImp, ...allSpm];
+  }, [submittedIndicators, spmIndicators]);
+
+  const handleAdoptIndicator = (value: string) => {
+    const selected = availableIndicators.find(i => i.value === value);
+    if (!selected) return;
+    
+    if (selected.source === 'indicator') {
+        const indicatorData = selected.data as SubmittedIndicator;
+        form.setValue('name', indicatorData.name);
+        form.setValue('description', indicatorData.description);
+        form.setValue('standard', indicatorData.standard);
+        form.setValue('standardUnit', indicatorData.standardUnit);
+    } else if (selected.source === 'spm') {
+        const spmData = selected.data as any; // SPM Indicator
+        form.setValue('name', spmData.indicator);
+        // SPM doesn't have a detailed description, so we create a generic one
+        form.setValue('description', `Pencapaian untuk SPM: ${spmData.indicator} dari unit ${spmData.serviceType}.`);
+        // SPM target/achievement are strings like '100%'. We need to parse them.
+        const standardMatch = spmData.target.match(/(\d+)/);
+        const standard = standardMatch ? parseInt(standardMatch[1], 10) : 100;
+        const unit = spmData.target.includes('%') ? '%' : 'menit';
+        
+        form.setValue('standard', standard);
+        form.setValue('standardUnit', unit);
+    }
+  }
+
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     if (isEditMode && indicator.id) {
@@ -119,19 +170,6 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
   return (
     <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
-             <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Nama Indikator</FormLabel>
-                    <FormControl>
-                        <Input placeholder="Contoh: Kepatuhan Penggunaan APD" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                     control={form.control}
@@ -155,6 +193,34 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                         </FormItem>
                     )}
                 />
+                 {selectedCategory === 'IPU' && (
+                    <FormItem>
+                        <FormLabel>Ambil dari Indikator yang Ada (Opsional)</FormLabel>
+                        <Combobox
+                            options={availableIndicators}
+                            placeholder="Pilih dari INM/IMP-RS/SPM..."
+                            searchPlaceholder="Cari indikator..."
+                            onSelect={handleAdoptIndicator}
+                        />
+                    </FormItem>
+                )}
+            </div>
+
+             <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Nama Indikator</FormLabel>
+                    <FormControl>
+                        <Input placeholder="Contoh: Kepatuhan Penggunaan APD" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                 control={form.control}
                 name="unit"
@@ -177,9 +243,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                     </FormItem>
                 )}
                 />
-            </div>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
+                 <FormField
                 control={form.control}
                 name="frequency"
                 render={({ field }) => (
@@ -202,6 +266,26 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                     </FormItem>
                 )}
                 />
+            </div>
+            
+            <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Deskripsi</FormLabel>
+                <FormControl>
+                    <Textarea
+                    placeholder="Jelaskan tujuan dan cara pengukuran indikator ini."
+                    {...field}
+                    />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  <FormField
                     control={form.control}
                     name="standard"
@@ -237,22 +321,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                     )}
                 />
             </div>
-            <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Deskripsi</FormLabel>
-                <FormControl>
-                    <Textarea
-                    placeholder="Jelaskan tujuan dan cara pengukuran indikator ini."
-                    {...field}
-                    />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
+            
             <DialogFooter className="pt-4">
                 <Button type="submit">{isEditMode ? 'Simpan Perubahan' : 'Ajukan Indikator'}</Button>
             </DialogFooter>
@@ -260,3 +329,5 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
     </Form>
   )
 }
+
+    

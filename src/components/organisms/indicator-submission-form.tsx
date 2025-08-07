@@ -31,7 +31,6 @@ import { HOSPITAL_UNITS } from "@/lib/constants"
 import { useUserStore } from "@/store/user-store"
 import { useLogStore } from "@/store/log-store"
 import { Combobox } from "../ui/combobox"
-import { useSpmStore } from "@/store/spm-store"
 
 const formSchema = z.object({
   name: z.string().min(5, {
@@ -77,7 +76,6 @@ const centralRoles = [
 export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmissionFormProps) {
   const { toast } = useToast()
   const { submitIndicator, updateSubmittedIndicator, submittedIndicators } = useIndicatorStore()
-  const { spmIndicators } = useSpmStore()
   const { currentUser } = useUserStore();
   const { addLog } = useLogStore();
   const isEditMode = !!indicator;
@@ -106,48 +104,28 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
   const selectedCategory = form.watch("category");
 
   const availableIndicators = React.useMemo(() => {
-    const verifiedInmAndImp = submittedIndicators
-        .filter(i => i.status === 'Diverifikasi' && (i.category === 'INM' || i.category === 'IMP-RS'))
+    return submittedIndicators
+        .filter(i => 
+            i.status === 'Diverifikasi' && 
+            (i.category === 'INM' || i.category === 'IMP-RS' || i.category === 'SPM')
+        )
         .map(i => ({ 
             value: `ind-${i.id}`, 
             label: `[${i.category}] ${i.name}`,
             source: 'indicator',
             data: i
         }));
-
-    const allSpm = spmIndicators.map(s => ({
-        value: `spm-${s.id}`,
-        label: `[SPM] ${s.indicator}`,
-        source: 'spm',
-        data: s
-    }));
-    
-    return [...verifiedInmAndImp, ...allSpm];
-  }, [submittedIndicators, spmIndicators]);
+  }, [submittedIndicators]);
 
   const handleAdoptIndicator = (value: string) => {
     const selected = availableIndicators.find(i => i.value === value);
     if (!selected) return;
     
-    if (selected.source === 'indicator') {
-        const indicatorData = selected.data as SubmittedIndicator;
-        form.setValue('name', indicatorData.name);
-        form.setValue('description', indicatorData.description);
-        form.setValue('standard', indicatorData.standard);
-        form.setValue('standardUnit', indicatorData.standardUnit);
-    } else if (selected.source === 'spm') {
-        const spmData = selected.data as any; // SPM Indicator
-        form.setValue('name', spmData.indicator);
-        // SPM doesn't have a detailed description, so we create a generic one
-        form.setValue('description', `Pencapaian untuk SPM: ${spmData.indicator} dari unit ${spmData.serviceType}.`);
-        // SPM target/achievement are strings like '100%'. We need to parse them.
-        const standardMatch = spmData.target.match(/(\d+)/);
-        const standard = standardMatch ? parseInt(standardMatch[1], 10) : 100;
-        const unit = spmData.target.includes('%') ? '%' : 'menit';
-        
-        form.setValue('standard', standard);
-        form.setValue('standardUnit', unit);
-    }
+    const indicatorData = selected.data as SubmittedIndicator;
+    form.setValue('name', indicatorData.name);
+    form.setValue('description', indicatorData.description);
+    form.setValue('standard', indicatorData.standard);
+    form.setValue('standardUnit', indicatorData.standardUnit);
   }
 
 
@@ -337,3 +315,5 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
     </Form>
   )
 }
+
+    

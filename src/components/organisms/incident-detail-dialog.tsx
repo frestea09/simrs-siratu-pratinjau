@@ -71,11 +71,6 @@ export const IncidentDetailDialog = ({ incident, open, onOpenChange }: IncidentD
                          <DetailItem label="Pernah Terjadi di Unit Lain?" value={incident.hasHappenedBefore} />
                          <DetailItem label="Grading Risiko" value={incident.severity} />
                     </DetailSection>
-                     <Separator />
-                    <DetailSection title="Informasi Pelapor">
-                        <DetailItem label="Nama Pelapor" value={incident.reporterName} />
-                        <DetailItem label="Unit Kerja Pelapor" value={incident.reporterUnit} />
-                    </DetailSection>
                 </div>
                 <DialogFooter>
                     <Button variant="outline" onClick={() => onOpenChange(false)}>Tutup</Button>

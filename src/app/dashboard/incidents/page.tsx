@@ -8,8 +8,12 @@ import { IncidentTable } from "@/components/organisms/incident-table"
 import { useIncidentStore } from "@/store/incident-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { ReportPreviewDialog } from "@/components/organisms/report-preview-dialog"
+import { useUserStore } from "@/store/user-store.tsx"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { ShieldAlert } from "lucide-react"
 
 export default function IncidentsPage() {
+  const { currentUser } = useUserStore()
   const incidents = useIncidentStore((state) => state.incidents)
   const [reportData, setReportData] = React.useState<any[] | null>(null)
   const [reportColumns, setReportColumns] = React.useState<ColumnDef<any>[] | null>(null)
@@ -18,34 +22,58 @@ export default function IncidentsPage() {
     setReportData(data);
     setReportColumns(columns);
   };
+  
+  const canViewIncidents = currentUser?.role === 'Sub. Komite Keselamatan Pasien';
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">Manajemen Insiden Keselamatan</h2>
+        {!canViewIncidents && <IncidentReportDialog />}
       </div>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Laporan Insiden</CardTitle>
-              <CardDescription>Daftar insiden keselamatan yang dilaporkan.</CardDescription>
-            </div>
-            <IncidentReportDialog />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <IncidentTable incidents={incidents} onExport={handleExport} />
-        </CardContent>
-      </Card>
-      {reportData && reportColumns && (
-          <ReportPreviewDialog
-              open={!!reportData}
-              onOpenChange={(open) => !open && setReportData(null)}
-              data={reportData}
-              columns={reportColumns}
-              title="Laporan Insiden Keselamatan Pasien"
-          />
+      
+      {canViewIncidents ? (
+        <>
+            <Card>
+                <CardHeader>
+                <div className="flex items-center justify-between">
+                    <div>
+                    <CardTitle>Laporan Insiden</CardTitle>
+                    <CardDescription>Daftar insiden keselamatan yang dilaporkan.</CardDescription>
+                    </div>
+                    <IncidentReportDialog />
+                </div>
+                </CardHeader>
+                <CardContent>
+                <IncidentTable incidents={incidents} onExport={handleExport} />
+                </CardContent>
+            </Card>
+            {reportData && reportColumns && (
+                <ReportPreviewDialog
+                    open={!!reportData}
+                    onOpenChange={(open) => !open && setReportData(null)}
+                    data={reportData}
+                    columns={reportColumns}
+                    title="Laporan Insiden Keselamatan Pasien"
+                />
+            )}
+        </>
+      ) : (
+        <Card>
+            <CardHeader>
+                <CardTitle>Pelaporan Insiden</CardTitle>
+                <CardDescription>Gunakan tombol di pojok kanan atas untuk melaporkan insiden baru secara anonim.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Alert>
+                    <ShieldAlert className="h-4 w-4" />
+                    <AlertTitle>Akses Terbatas</AlertTitle>
+                    <AlertDescription>
+                        Hanya Sub. Komite Keselamatan Pasien yang dapat melihat daftar laporan insiden untuk menjaga kerahasiaan data.
+                    </AlertDescription>
+                </Alert>
+            </CardContent>
+        </Card>
       )}
     </div>
   )

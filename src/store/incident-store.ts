@@ -31,8 +31,7 @@ export type Incident = {
   firstActionBy?: string
   hasHappenedBefore?: string
   severity: string
-  reporterName?: string
-  reporterUnit?: string
+  // Reporter info is now omitted for anonymity
 }
 
 

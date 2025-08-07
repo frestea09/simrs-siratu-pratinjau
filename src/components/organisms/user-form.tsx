@@ -39,7 +39,7 @@ const formSchema = z.object({
   password: z.string().min(6, {
     message: "Password harus memiliki setidaknya 6 karakter.",
   }),
-  role: z.enum(['Admin Sistem', 'PIC Mutu', 'PJ Ruangan', 'Komite Mutu', 'Kepala Unit/Instalasi', 'Direktur'], {
+  role: z.enum(['Admin Sistem', 'PIC Mutu', 'PJ Ruangan', 'Kepala Unit/Instalasi', 'Direktur', 'Sub. Komite Peningkatan Mutu', 'Sub. Komite Keselamatan Pasien', 'Sub. Komite Manajemen Risiko'], {
     required_error: "Anda harus memilih peran.",
   }),
   unit: z.string().optional(),
@@ -62,7 +62,9 @@ const unitOptions = HOSPITAL_UNITS.map(unit => ({ value: unit, label: unit }));
 const roleOptions: {value: UserRole, label: string}[] = [
     { value: "Admin Sistem", label: "Admin Sistem" },
     { value: "Direktur", label: "Direktur" },
-    { value: "Komite Mutu", label: "Komite Mutu" },
+    { value: "Sub. Komite Peningkatan Mutu", label: "Sub. Komite Peningkatan Mutu" },
+    { value: "Sub. Komite Keselamatan Pasien", label: "Sub. Komite Keselamatan Pasien" },
+    { value: "Sub. Komite Manajemen Risiko", label: "Sub. Komite Manajemen Risiko" },
     { value: "Kepala Unit/Instalasi", label: "Kepala Unit/Instalasi" },
     { value: "PIC Mutu", label: "PIC Mutu" },
     { value: "PJ Ruangan", label: "PJ Ruangan" },

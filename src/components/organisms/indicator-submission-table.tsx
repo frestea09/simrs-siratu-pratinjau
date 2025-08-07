@@ -164,7 +164,11 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
       enableHiding: false,
       cell: ({ row }) => {
           const indicator = row.original as SubmittedIndicator
-          const canVerify = currentUser?.role === 'Admin Sistem' || currentUser?.role === 'Komite Mutu' || currentUser?.role === 'Kepala Unit/Instalasi' || currentUser?.role === 'Direktur';
+          const canVerify = currentUser?.role === 'Admin Sistem' || 
+                            currentUser?.role === 'Direktur' ||
+                            currentUser?.role === 'Sub. Komite Peningkatan Mutu' ||
+                            currentUser?.role === 'Sub. Komite Keselamatan Pasien' ||
+                            currentUser?.role === 'Kepala Unit/Instalasi';
       
           return (
               <DropdownMenu>

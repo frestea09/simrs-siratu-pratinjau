@@ -59,7 +59,8 @@ export default function ReportsPage() {
                 
                 const achievement = indicators.find(i => 
                     i.indicator === masterIndicator.name && 
-                    i.period === periodString
+                    new Date(i.period).getFullYear() === year &&
+                    new Date(i.period).getMonth() === monthIndex
                 );
                 
                 monthlyAchievements[monthIndex.toString()] = achievement ? achievement.ratio : '-';
@@ -141,7 +142,7 @@ export default function ReportsPage() {
         </CardContent>
       </Card>
       
-      {reportData && (
+      {reportData && isPreviewOpen && (
          <ReportPreviewDialog
             open={isPreviewOpen}
             onOpenChange={setPreviewOpen}

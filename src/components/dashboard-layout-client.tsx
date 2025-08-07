@@ -64,6 +64,7 @@ const navItems = [
       },
       { href: "/dashboard/indicators", icon: FolderKanban, label: "Manajemen Indikator" },
       { href: "/dashboard/incidents", icon: ShieldAlert, label: "Insiden Keselamatan" },
+      { href: "/dashboard/reports", icon: FileText, label: "Laporan" },
     ]
   },
   {

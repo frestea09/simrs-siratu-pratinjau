@@ -11,59 +11,50 @@ import {
   SidebarMenuSubButton,
 } from '@/components/ui/sidebar';
 import { ChevronDown } from 'lucide-react';
-
-type NavItemType = {
-  href?: string;
-  icon: React.ElementType;
-  label: string;
-  onClick?: () => void;
-  subItems?: NavItemType[];
-}
+import { NavItem as NavItemType } from '@/types/nav';
 
 type NavItemProps = {
   item: NavItemType;
   pathname: string;
-  openMenu: string | null;
-  setOpenMenu: (label: string | null) => void;
+  openMenus: { [key: string]: boolean };
+  setOpenMenus: (menus: { [key: string]: boolean } | ((prev: { [key: string]: boolean }) => { [key: string]: boolean })) => void;
+  isSubItem?: boolean;
 };
 
-export function NavItem({ item, pathname, openMenu, setOpenMenu }: NavItemProps) {
-  const isParentActive = item.subItems?.some((subItem: any) => pathname.startsWith(subItem.href));
-  const isOpen = openMenu === item.label;
+export function NavItem({ item, pathname, openMenus, setOpenMenus, isSubItem = false }: NavItemProps) {
+  const isParentActive = item.subItems?.some((subItem: any) => pathname.startsWith(subItem.href) || subItem.subItems?.some((subSub: any) => pathname.startsWith(subSub.href)));
+  const isOpen = openMenus[item.label] || false;
 
   const handleClick = () => {
     if (item.subItems) {
-      setOpenMenu(isOpen ? null : item.label);
+      setOpenMenus(prev => ({ ...prev, [item.label]: !isOpen }));
     } else if (item.onClick) {
       item.onClick();
     }
   };
 
   if (item.subItems) {
+    const ButtonComponent = isSubItem ? SidebarMenuSubButton : SidebarMenuButton;
+    
     return (
       <SidebarMenuItem>
-        <SidebarMenuButton
+        <ButtonComponent
           onClick={handleClick}
           isActive={isParentActive}
           tooltip={item.label}
           asChild={false}
           size="lg"
+          className={isSubItem ? 'w-full justify-between' : ''}
         >
           <div>
-            <item.icon className="size-6" />
+            {item.icon && <item.icon className="size-6" />}
             <span>{item.label}</span>
             <ChevronDown className={`ml-auto size-5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
           </div>
-        </SidebarMenuButton>
+        </ButtonComponent>
         <SidebarMenuSub className={`mt-1 pl-4 pr-0`}>
-          {isOpen && item.subItems.map((subItem: any) => (
-            <SidebarMenuSubItem key={subItem.href} className="mb-1">
-                <Link href={subItem.href} passHref legacyBehavior>
-                  <SidebarMenuSubButton as="a" isActive={pathname.startsWith(subItem.href)} className="h-9">
-                      <span>{subItem.label}</span>
-                  </SidebarMenuSubButton>
-                </Link>
-            </SidebarMenuSubItem>
+          {isOpen && item.subItems.map((subItem, index) => (
+             <NavItem key={index} item={subItem} pathname={pathname} openMenus={openMenus} setOpenMenus={setOpenMenus} isSubItem={true} />
           ))}
         </SidebarMenuSub>
       </SidebarMenuItem>
@@ -79,11 +70,24 @@ export function NavItem({ item, pathname, openMenu, setOpenMenu }: NavItemProps)
         onClick={item.onClick}
     >
         <div>
-            <item.icon className="size-6" />
+            {item.icon && <item.icon className="size-6" />}
             <span>{item.label}</span>
         </div>
     </SidebarMenuButton>
   );
+
+  const subButtonContent = (
+     <Link href={item.href || '#'} passHref legacyBehavior>
+        <SidebarMenuSubButton as="a" isActive={item.href ? pathname.startsWith(item.href) : false} className="h-9">
+            <span>{item.label}</span>
+        </SidebarMenuSubButton>
+    </Link>
+  );
+
+
+  if (isSubItem) {
+      return <SidebarMenuSubItem className="mb-1">{subButtonContent}</SidebarMenuSubItem>
+  }
 
   return (
     <SidebarMenuItem>

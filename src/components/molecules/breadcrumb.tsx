@@ -1,15 +1,11 @@
+
 "use client"
 
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
-
-type NavItem = {
-  href?: string;
-  label: string;
-  subItems?: NavItem[];
-};
+import { NavItem } from '@/types/nav';
 
 type BreadcrumbProps = {
   navItems: NavItem[];
@@ -52,7 +48,7 @@ export function Breadcrumb({ navItems }: BreadcrumbProps) {
             {index === breadcrumbs.length - 1 || crumb.href === '#' ? (
               <span className="font-medium text-foreground">{crumb.label}</span>
             ) : (
-              <Link href={crumb.href} className="hover:text-foreground">
+              <Link href={crumb.href || '#'} className="hover:text-foreground">
                 {crumb.label}
               </Link>
             )}

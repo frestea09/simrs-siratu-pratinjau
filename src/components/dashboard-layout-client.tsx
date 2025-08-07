@@ -30,6 +30,7 @@ import {
   Target,
   Building,
   Network,
+  Activity,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from 'next/navigation'
@@ -51,10 +52,16 @@ const navItems = [
     label: "Layanan",
     icon: HeartPulse,
     subItems: [
-      { href: "/dashboard/spm", icon: ListChecks, label: "Standar Pelayanan Minimal" },
-      { href: "/dashboard/inm", icon: Target, label: "Indikator Nasional Mutu" },
-      { href: "/dashboard/imp-rs", icon: Building, label: "Indikator Mutu Prioritas RS" },
-      { href: "/dashboard/ipu", icon: Network, label: "Indikator Prioritas Unit" },
+      {
+        label: "Indikator Mutu",
+        icon: Activity,
+        subItems: [
+          { href: "/dashboard/spm", icon: ListChecks, label: "Standar Pelayanan Minimal" },
+          { href: "/dashboard/inm", icon: Target, label: "Indikator Nasional Mutu" },
+          { href: "/dashboard/imp-rs", icon: Building, label: "Indikator Mutu Prioritas RS" },
+          { href: "/dashboard/ipu", icon: Network, label: "Indikator Prioritas Unit" },
+        ]
+      },
       { href: "/dashboard/indicators", icon: FolderKanban, label: "Manajemen Indikator" },
       { href: "/dashboard/incidents", icon: ShieldAlert, label: "Insiden Keselamatan" },
     ]
@@ -83,7 +90,7 @@ export default function DashboardClientLayout({
 }) {
   const pathname = usePathname()
   const router = useRouter();
-  const [openMenu, setOpenMenu] = React.useState<string | null>(null);
+  const [openMenus, setOpenMenus] = React.useState<{ [key: string]: boolean }>({});
   const { currentUser, clearCurrentUser } = useUserStore();
   const { addLog } = useLogStore();
 
@@ -99,27 +106,32 @@ export default function DashboardClientLayout({
     router.push('/');
   }
 
-  const allNavItems = [...navItems, ...adminNavItems];
-  
-  const getCurrentPage = () => {
-    for (const item of allNavItems) {
-      if (item.href === pathname) return item;
-      if (item.subItems) {
-        const subItem = item.subItems.find(sub => pathname.startsWith(sub.href));
-        if (subItem) return subItem;
+  const findPath = (items: any[], currentPath: string): any[] => {
+      for (const item of items) {
+        if (item.href === currentPath) {
+          return [item];
+        }
+        if (item.subItems) {
+          const subPath = findPath(item.subItems, currentPath);
+          if (subPath.length > 0) {
+            return [item, ...subPath];
+          }
+        }
       }
-    }
-    return null;
-  };
-  
-  const currentPage = getCurrentPage();
+      return [];
+    };
 
-  // Automatically open parent menu of active subitem
+  const breadcrumbPath = findPath(navItems.concat(adminNavItems), pathname);
+  const currentPage = breadcrumbPath[breadcrumbPath.length - 1];
+
+  // Automatically open parent menus of active subitem
   React.useEffect(() => {
-    const activeParent = navItems.find(item => item.subItems?.some(sub => pathname.startsWith(sub.href)));
-    if (activeParent) {
-      setOpenMenu(activeParent.label);
-    }
+    const newOpenMenus: { [key: string]: boolean } = {};
+    const activeParents = findPath(navItems.concat(adminNavItems), pathname);
+    activeParents.forEach(item => {
+        if(item.subItems) newOpenMenus[item.label] = true;
+    });
+    setOpenMenus(newOpenMenus);
   }, [pathname]);
 
   return (
@@ -149,7 +161,7 @@ export default function DashboardClientLayout({
         <SidebarContent className="p-2">
           <SidebarMenu>
             {navItems.map((item, index) => (
-              <NavItem key={index} item={item} pathname={pathname} openMenu={openMenu} setOpenMenu={setOpenMenu} />
+              <NavItem key={index} item={item} pathname={pathname} openMenus={openMenus} setOpenMenus={setOpenMenus} />
             ))}
           </SidebarMenu>
           
@@ -157,7 +169,7 @@ export default function DashboardClientLayout({
             <SidebarMenu className="mt-4">
               <p className="text-xs font-semibold text-muted-foreground px-2 group-data-[state=expanded]:block hidden mb-2">Administrasi</p>
               {adminNavItems.map((item) => (
-                <NavItem key={item.href} item={item} pathname={pathname} openMenu={openMenu} setOpenMenu={setOpenMenu} />
+                <NavItem key={item.href} item={item} pathname={pathname} openMenus={openMenus} setOpenMenus={setOpenMenus} />
               ))}
             </SidebarMenu>
           )}
@@ -166,7 +178,7 @@ export default function DashboardClientLayout({
         <SidebarFooter className="p-2">
           <SidebarMenu>
             <SidebarMenuItem>
-              <NavItem item={{ label: 'Logout', icon: LogOut, onClick: handleLogout }} pathname={pathname} openMenu={openMenu} setOpenMenu={setOpenMenu} />
+              <NavItem item={{ label: 'Logout', icon: LogOut, onClick: handleLogout }} pathname={pathname} openMenus={openMenus} setOpenMenus={setOpenMenus} />
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>
@@ -187,7 +199,7 @@ export default function DashboardClientLayout({
                 </div>
             </div>
             <div className="pb-2">
-                <Breadcrumb navItems={allNavItems} />
+                <Breadcrumb navItems={navItems.concat(adminNavItems)} />
             </div>
         </header>
         <main className="flex-1 overflow-auto">

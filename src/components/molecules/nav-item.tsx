@@ -44,15 +44,15 @@ export function NavItem({ item, pathname, openMenus, setOpenMenus, isSubItem = f
           tooltip={item.label}
           asChild={false}
           size="lg"
-          className={isSubItem ? 'w-full justify-between' : ''}
+          className={isSubItem ? 'w-full justify-between h-9' : ''}
         >
           <div>
             {item.icon && <item.icon className="size-6" />}
             <span>{item.label}</span>
-            <ChevronDown className={`ml-auto size-5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
           </div>
+           <ChevronDown className={`ml-auto size-5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
         </ButtonComponent>
-        <SidebarMenuSub className={`mt-1 pl-4 pr-0`}>
+        <SidebarMenuSub className={`mt-1 pr-0 ${isSubItem ? 'pl-4' : 'pl-3'}`}>
           {isOpen && item.subItems.map((subItem, index) => (
              <NavItem key={index} item={subItem} pathname={pathname} openMenus={openMenus} setOpenMenus={setOpenMenus} isSubItem={true} />
           ))}
@@ -79,6 +79,7 @@ export function NavItem({ item, pathname, openMenus, setOpenMenus, isSubItem = f
   const subButtonContent = (
      <Link href={item.href || '#'} passHref legacyBehavior>
         <SidebarMenuSubButton as="a" isActive={item.href ? pathname.startsWith(item.href) : false} className="h-9">
+             {item.icon && <item.icon className="size-4" />}
             <span>{item.label}</span>
         </SidebarMenuSubButton>
     </Link>

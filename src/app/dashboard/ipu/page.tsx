@@ -7,22 +7,33 @@ import { IndicatorReport } from "@/components/organisms/indicator-report"
 import { useIndicatorStore } from "@/store/indicator-store"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Target, ThumbsUp, ThumbsDown } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function IpuPage() {
   const { indicators } = useIndicatorStore()
 
   const ipuIndicators = React.useMemo(() => indicators.filter(i => i.category === 'IPU'), [indicators])
   
+  const uniqueIndicatorNames = React.useMemo(() => {
+    return [...new Set(ipuIndicators.map(i => i.indicator))]
+  }, [ipuIndicators])
+
+  const [selectedIndicator, setSelectedIndicator] = React.useState<string>("");
+
+  React.useEffect(() => {
+    if (uniqueIndicatorNames.length > 0 && !selectedIndicator) {
+      setSelectedIndicator(uniqueIndicatorNames[0]);
+    }
+  }, [uniqueIndicatorNames, selectedIndicator]);
+
   const totalIndicators = ipuIndicators.length
   const meetingStandard = ipuIndicators.filter(i => i.status === 'Memenuhi Standar').length
   const notMeetingStandard = totalIndicators - meetingStandard
 
   const chartData = React.useMemo(() => {
-    if (ipuIndicators.length === 0) return []
-    // Get the most recent 6 months of data for the first indicator
-    const firstIndicatorName = ipuIndicators[0].indicator;
+    if (ipuIndicators.length === 0 || !selectedIndicator) return []
     return ipuIndicators
-      .filter(i => i.indicator === firstIndicatorName)
+      .filter(i => i.indicator === selectedIndicator)
       .sort((a, b) => new Date(a.period).getTime() - new Date(b.period).getTime())
       .slice(-6)
       .map(i => ({
@@ -30,7 +41,7 @@ export default function IpuPage() {
         Capaian: parseFloat(i.ratio),
         Standar: i.standard
       }));
-  }, [ipuIndicators])
+  }, [ipuIndicators, selectedIndicator])
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -74,8 +85,24 @@ export default function IpuPage() {
       <div className="space-y-4">
         <Card>
           <CardHeader>
-            <CardTitle>Capaian Indikator Terkini</CardTitle>
-            <CardDescription>Menampilkan tren 6 bulan terakhir untuk: {ipuIndicators.length > 0 ? ipuIndicators[0].indicator : 'Belum ada data'}</CardDescription>
+             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <CardTitle>Capaian Indikator Terkini</CardTitle>
+                    <CardDescription>Menampilkan tren 6 bulan terakhir untuk: {selectedIndicator || 'Belum ada data'}</CardDescription>
+                </div>
+                {uniqueIndicatorNames.length > 0 && (
+                    <Select value={selectedIndicator} onValueChange={setSelectedIndicator}>
+                        <SelectTrigger className="w-full sm:w-[300px]">
+                            <SelectValue placeholder="Pilih indikator..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {uniqueIndicatorNames.map(name => (
+                                <SelectItem key={name} value={name}>{name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                )}
+             </div>
           </CardHeader>
           <CardContent className="pl-2">
             <ResponsiveContainer width="100%" height={350}>
@@ -96,7 +123,7 @@ export default function IpuPage() {
                     </LineChart>
                 ) : (
                     <div className="flex items-center justify-center h-full text-muted-foreground">
-                        Tidak cukup data untuk menampilkan grafik.
+                        Tidak cukup data untuk menampilkan grafik. Pilih indikator lain atau input data terlebih dahulu.
                     </div>
                 )}
             </ResponsiveContainer>

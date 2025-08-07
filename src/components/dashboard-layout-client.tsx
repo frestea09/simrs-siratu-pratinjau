@@ -52,6 +52,7 @@ const navItems = [
     label: "Layanan",
     icon: HeartPulse,
     subItems: [
+      { href: "/dashboard/indicators", icon: FolderKanban, label: "Manajemen Indikator" },
       {
         label: "Indikator Mutu",
         icon: Activity,
@@ -62,7 +63,6 @@ const navItems = [
           { href: "/dashboard/ipu", icon: Network, label: "Indikator Prioritas Unit" },
         ]
       },
-      { href: "/dashboard/indicators", icon: FolderKanban, label: "Manajemen Indikator" },
       { href: "/dashboard/incidents", icon: ShieldAlert, label: "Insiden Keselamatan" },
       { href: "/dashboard/reports", icon: FileText, label: "Laporan" },
     ]

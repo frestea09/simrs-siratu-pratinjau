@@ -28,9 +28,10 @@ type ReportPreviewDialogProps<TData> = {
   open: boolean
   onOpenChange: (open: boolean) => void
   data: TData[]
-  columns: ColumnDef<TData, any>[]
+  columns?: ColumnDef<TData, any>[]
   title: string
   description?: string
+  children?: React.ReactNode
 }
 
 export function ReportPreviewDialog<TData>({
@@ -40,12 +41,13 @@ export function ReportPreviewDialog<TData>({
   columns,
   title,
   description,
+  children,
 }: ReportPreviewDialogProps<TData>) {
   const reportRef = React.useRef<HTMLDivElement>(null)
 
   const table = useReactTable({
     data,
-    columns,
+    columns: columns || [],
     getCoreRowModel: getCoreRowModel(),
   })
   
@@ -70,7 +72,7 @@ export function ReportPreviewDialog<TData>({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl w-full">
+      <DialogContent className="max-w-7xl w-full">
         <DialogHeader>
           <DialogTitle>Pratinjau Laporan</DialogTitle>
           <DialogDescription>
@@ -85,53 +87,57 @@ export function ReportPreviewDialog<TData>({
               {description && <p className="text-center text-sm">{description}</p>}
                <p className="text-center text-xs text-gray-500 mt-1">RSUD Oto Iskandar Dinata</p>
             </header>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id} className="bg-gray-100">
-                      {headerGroup.headers.map((header) => {
-                        return (
-                          <TableHead key={header.id} className="font-bold text-black">
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
-                          </TableHead>
-                        )
-                      })}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows?.length ? (
-                    table.getRowModel().rows.map((row) => (
-                      <TableRow key={row.id} className="border-b">
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id} className="py-2 px-4">
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </TableCell>
+            
+            {children ? children : (
+                 <div className="rounded-md border">
+                    <Table>
+                        <TableHeader>
+                        {table.getHeaderGroups().map((headerGroup) => (
+                            <TableRow key={headerGroup.id} className="bg-gray-100">
+                            {headerGroup.headers.map((header) => {
+                                return (
+                                <TableHead key={header.id} className="font-bold text-black">
+                                    {header.isPlaceholder
+                                    ? null
+                                    : flexRender(
+                                        header.column.columnDef.header,
+                                        header.getContext()
+                                    )}
+                                </TableHead>
+                                )
+                            })}
+                            </TableRow>
                         ))}
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={columns.length}
-                        className="h-24 text-center"
-                      >
-                        Tidak ada data.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+                        </TableHeader>
+                        <TableBody>
+                        {table.getRowModel().rows?.length ? (
+                            table.getRowModel().rows.map((row) => (
+                            <TableRow key={row.id} className="border-b">
+                                {row.getVisibleCells().map((cell) => (
+                                <TableCell key={cell.id} className="py-2 px-4">
+                                    {flexRender(
+                                    cell.column.columnDef.cell,
+                                    cell.getContext()
+                                    )}
+                                </TableCell>
+                                ))}
+                            </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                            <TableCell
+                                colSpan={columns?.length || 1}
+                                className="h-24 text-center"
+                            >
+                                Tidak ada data.
+                            </TableCell>
+                            </TableRow>
+                        )}
+                        </TableBody>
+                    </Table>
+                </div>
+            )}
+           
              <footer className="mt-6 text-xs text-gray-500">
                 <p>Tanggal Cetak: {format(new Date(), "d MMMM yyyy HH:mm")}</p>
             </footer>

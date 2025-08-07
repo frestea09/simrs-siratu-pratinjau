@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { useIndicatorStore, Indicator, IndicatorCategory } from "@/store/indicator-store"
+import { useIndicatorStore, Indicator, IndicatorCategory, SubmittedIndicator } from "@/store/indicator-store"
 import { Download, Table as TableIcon } from "lucide-react"
 import { ReportPreviewDialog } from "@/components/organisms/report-preview-dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 type YearlyReportData = {
   no: number
   indicator: string
+  description: string;
   standard: string
   months: { [key: string]: string }
 }
@@ -25,7 +26,7 @@ const CATEGORY_LABELS: Record<IndicatorCategory, string> = {
   IPU: 'Indikator Prioritas Unit (IPU)',
   SPM: 'Standar Pelayanan Minimal (SPM)',
 };
-const MONTHS = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
 
 export default function ReportsPage() {
   const { indicators, submittedIndicators } = useIndicatorStore()
@@ -45,7 +46,6 @@ export default function ReportsPage() {
     const year = parseInt(selectedYear);
     const yearlyData: Record<IndicatorCategory, YearlyReportData[]> = { INM: [], 'IMP-RS': [], IPU: [], SPM: [] };
     
-    // Get all unique indicators for the year
     const uniqueIndicators = submittedIndicators.filter(si => si.status === 'Diverifikasi');
 
     CATEGORIES.forEach(category => {
@@ -68,6 +68,7 @@ export default function ReportsPage() {
             yearlyData[category].push({
                 no: index + 1,
                 indicator: masterIndicator.name,
+                description: masterIndicator.description,
                 standard: `${masterIndicator.standard}${masterIndicator.standardUnit}`,
                 months: monthlyAchievements
             });
@@ -82,22 +83,24 @@ export default function ReportsPage() {
     if (data.length === 0) return null;
     return (
         <div className="mb-8">
-            <h3 className="text-lg font-semibold mb-2">{title}</h3>
+            <h3 className="text-xl font-bold mb-4">{title}</h3>
             <div className="rounded-md border">
                 <Table>
                     <TableHeader>
-                        <TableRow className="bg-gray-100">
-                            <TableHead className="w-[50px]">No</TableHead>
-                            <TableHead className="min-w-[250px]">Indikator Penilaian Mutu</TableHead>
-                            <TableHead>Standar</TableHead>
-                            {MONTHS.map((month, index) => <TableHead key={index} className="text-center">{month.substring(0,3)}</TableHead>)}
+                        <TableRow className="bg-gray-100 text-gray-800">
+                            <TableHead className="w-[50px] font-bold">No</TableHead>
+                            <TableHead className="min-w-[200px] font-bold">Indikator</TableHead>
+                            <TableHead className="min-w-[300px] font-bold">Indikator Penilaian Mutu</TableHead>
+                            <TableHead className="font-bold">Standar</TableHead>
+                            {MONTHS.map((month, index) => <TableHead key={index} className="text-center font-bold">{month}</TableHead>)}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {data.map(row => (
                             <TableRow key={row.no}>
-                                <TableCell>{row.no}</TableCell>
+                                <TableCell className="font-medium">{row.no}</TableCell>
                                 <TableCell>{row.indicator}</TableCell>
+                                <TableCell className="text-sm text-gray-600">{row.description}</TableCell>
                                 <TableCell>{row.standard}</TableCell>
                                 {MONTHS.map((_, index) => <TableCell key={index} className="text-center">{row.months[index]}</TableCell>)}
                             </TableRow>
@@ -112,28 +115,28 @@ export default function ReportsPage() {
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Laporan</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Laporan Tahunan</h2>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Laporan Tahunan Capaian Indikator</CardTitle>
-          <CardDescription>Pilih tahun untuk melihat rekapitulasi capaian semua indikator mutu.</CardDescription>
+          <CardTitle>Generator Laporan Tahunan</CardTitle>
+          <CardDescription>Pilih tahun untuk membuat rekapitulasi capaian bulanan semua indikator mutu yang terverifikasi.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col sm:flex-row items-center gap-4">
           <div className="grid gap-2 w-full sm:w-auto">
-            <Label htmlFor="year">Pilih Tahun</Label>
+            <Label htmlFor="year">Pilih Tahun Laporan</Label>
             <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger id="year" className="w-full sm:w-[180px]">
+                <SelectTrigger id="year" className="w-full sm:w-[180px] h-11 text-base">
                     <SelectValue placeholder="Pilih tahun" />
                 </SelectTrigger>
                 <SelectContent>
-                    {availableYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
+                    {availableYears.map(year => <SelectItem key={year} value={year} className="text-base">{year}</SelectItem>)}
                 </SelectContent>
             </Select>
           </div>
-          <Button onClick={generateReport} className="w-full sm:w-auto mt-auto">
-            <Download className="mr-2 h-4 w-4" />
-            Buat & Unduh Laporan
+          <Button onClick={generateReport} className="w-full sm:w-auto mt-auto" size="lg">
+            <Download className="mr-2 h-5 w-5" />
+            Buat Laporan
           </Button>
         </CardContent>
       </Card>
@@ -143,8 +146,7 @@ export default function ReportsPage() {
             open={isPreviewOpen}
             onOpenChange={setPreviewOpen}
             data={[]} // Data is handled by children
-            title={`Laporan Capaian Indikator Mutu Tahun ${selectedYear}`}
-            description="Rekapitulasi capaian bulanan untuk semua indikator mutu yang terverifikasi."
+            title={`Pencapaian Indikator Mutu Tahun ${selectedYear}`}
           >
             {CATEGORIES.map(cat => (
                 <ReportTable key={cat} data={reportData[cat]} title={CATEGORY_LABELS[cat]} />
@@ -159,15 +161,17 @@ export default function ReportsPage() {
                     Tentang Halaman Laporan
                 </CardTitle>
             </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-                <p>Halaman ini berfungsi sebagai pusat untuk menghasilkan laporan gabungan dari semua data indikator yang telah diinput.</p>
+            <CardContent className="text-sm text-muted-foreground space-y-2">
+                <p>Halaman ini berfungsi sebagai pusat untuk menghasilkan laporan gabungan dari semua data indikator yang telah diinput dan diverifikasi.</p>
                 <ul className="list-disc pl-5 mt-2 space-y-1">
                     <li>Pilih tahun yang diinginkan untuk melihat rekapitulasi data tahunan.</li>
                     <li>Laporan akan mengelompokkan indikator berdasarkan kategorinya (INM, IMP-RS, IPU, SPM).</li>
-                    <li>Gunakan tombol "Cetak" pada jendela pratinjau untuk mencetak langsung atau menyimpan laporan sebagai file PDF.</li>
+                    <li>Hanya indikator dengan status **"Diverifikasi"** yang akan masuk ke dalam laporan.</li>
+                    <li>Gunakan tombol **"Cetak Laporan"** pada jendela pratinjau untuk mencetak langsung atau menyimpan laporan sebagai file PDF.</li>
                 </ul>
             </CardContent>
        </Card>
     </div>
   );
 }
+

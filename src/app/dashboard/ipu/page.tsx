@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { Bar, BarChart as BarChartRecharts, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { Line, LineChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, LabelList } from "recharts"
 import { IndicatorReport } from "@/components/organisms/indicator-report"
 import { useIndicatorStore } from "@/store/indicator-store"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -27,8 +27,8 @@ export default function IpuPage() {
       .slice(-6)
       .map(i => ({
         month: new Date(i.period).toLocaleString('default', { month: 'short' }),
-        value: parseFloat(i.ratio),
-        standard: i.standard
+        Capaian: parseFloat(i.ratio),
+        Standar: i.standard
       }));
   }, [ipuIndicators])
 
@@ -80,16 +80,20 @@ export default function IpuPage() {
           <CardContent className="pl-2">
             <ResponsiveContainer width="100%" height={350}>
                 {chartData.length > 0 ? (
-                    <BarChartRecharts data={chartData}>
+                    <LineChart data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} />
                         <XAxis dataKey="month" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                        <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}`} />
+                        <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
                         <Tooltip
-                        cursor={{ fill: 'hsl(var(--muted))' }}
-                        contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
+                          cursor={{ fill: 'hsl(var(--muted))' }}
+                          contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
                         />
-                        <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                    </BarChartRecharts>
+                        <Legend />
+                        <Line type="monotone" dataKey="Capaian" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }}>
+                           <LabelList dataKey="Capaian" position="top" />
+                        </Line>
+                        <Line type="monotone" dataKey="Standar" stroke="hsl(var(--destructive))" strokeWidth={2} strokeDasharray="5 5" />
+                    </LineChart>
                 ) : (
                     <div className="flex items-center justify-center h-full text-muted-foreground">
                         Tidak cukup data untuk menampilkan grafik.

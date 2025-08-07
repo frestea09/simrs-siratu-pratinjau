@@ -27,13 +27,23 @@ const severityOptions = [
     { value: 'biru', label: 'BIRU (Rendah)' }, { value: 'hijau', label: 'HIJAU (Sedang)' },
     { value: 'kuning', label: 'KUNING (Tinggi)' }, { value: 'merah', label: 'MERAH (Sangat Tinggi)' }
 ];
+const patientImpactOptions = [
+    { value: 'Kematian', label: 'Kematian' },
+    { value: 'Cedera ireversibel / Cedera Berat', label: 'Cedera ireversibel / Cedera Berat' },
+    { value: 'Cedera reversibel / Cedera Sedang', label: 'Cedera reversibel / Cedera Sedang' },
+    { value: 'Cedera Ringan', label: 'Cedera Ringan' },
+    { value: 'Tidak ada cedera', label: 'Tidak ada cedera' },
+];
 
 export function Step3FollowUp({ data, onUpdate }: StepProps) {
     return (
         <div className="space-y-6">
-            <SectionTitle>Tindak Lanjut</SectionTitle>
+            <SectionTitle>Tindak Lanjut & Dampak</SectionTitle>
             <FormInputTextarea id="firstAction" label="Tindakan yang dilakukan segera setelah kejadian" placeholder="Jelaskan tindakan pertama yang diberikan" value={data.firstAction} onChange={e => onUpdate({ firstAction: e.target.value })} containerClassName="grid grid-cols-1 md:grid-cols-form-label-full gap-x-4" />
             <FormInputRadio id="firstActionBy" label="Tindakan dilakukan oleh" items={firstActionByOptions} value={data.firstActionBy} onValueChange={val => onUpdate({ firstActionBy: val })} />
+            <FormInputRadio id="patientImpact" label="Akibat Insiden Terhadap Pasien" items={patientImpactOptions} orientation="vertical" value={data.patientImpact} onValueChange={val => onUpdate({ patientImpact: val })} />
+            <Separator />
+            <SectionTitle>Analisis & Pelaporan</SectionTitle>
             <FormInputRadio id="hasHappenedBefore" label="Apakah kejadian sama pernah terjadi di unit lain?" items={hasHappenedOptions} value={data.hasHappenedBefore} onValueChange={val => onUpdate({ hasHappenedBefore: val })} />
              <FormInputRadio id="severity" label="Grading Risiko Kejadian" items={severityOptions} orientation="vertical" value={data.severity} onValueChange={val => onUpdate({ severity: val })} />
             <Separator />

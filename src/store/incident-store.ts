@@ -31,6 +31,7 @@ export type Incident = {
   firstActionBy?: string
   hasHappenedBefore?: string
   severity: string
+  patientImpact?: string // New field
   // Reporter info is now omitted for anonymity
 }
 
@@ -71,5 +72,3 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
       })
   }))
 }))
-
-    

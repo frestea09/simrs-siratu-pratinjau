@@ -68,6 +68,7 @@ export const IncidentDetailDialog = ({ incident, open, onOpenChange }: IncidentD
                             <DetailItem label="Tindakan Segera" value={<p className="whitespace-pre-wrap">{incident.firstAction}</p>} />
                          </div>
                          <DetailItem label="Tindakan Dilakukan Oleh" value={incident.firstActionBy} />
+                         <DetailItem label="Akibat Insiden Terhadap Pasien" value={incident.patientImpact} />
                          <DetailItem label="Pernah Terjadi di Unit Lain?" value={incident.hasHappenedBefore} />
                          <DetailItem label="Grading Risiko" value={incident.severity} />
                     </DetailSection>

@@ -233,26 +233,22 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
-                control={form.control}
-                name="unit"
-                render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Unit</FormLabel>
-                       <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!userCanSelectUnit}>
-                            <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Pilih unit" />
-                            </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                {unitOptions.map((unit) => (
-                                    <SelectItem key={unit.value} value={unit.value}>{unit.label}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                      <FormMessage />
-                    </FormItem>
-                )}
+                    control={form.control}
+                    name="unit"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Unit</FormLabel>
+                           <Combobox
+                                options={unitOptions}
+                                placeholder="Pilih unit..."
+                                searchPlaceholder="Cari unit..."
+                                value={field.value}
+                                onSelect={(value) => form.setValue('unit', value)}
+                                disabled={!userCanSelectUnit}
+                            />
+                          <FormMessage />
+                        </FormItem>
+                    )}
                 />
                  <FormField
                 control={form.control}
@@ -340,3 +336,5 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
     </Form>
   )
 }
+
+    

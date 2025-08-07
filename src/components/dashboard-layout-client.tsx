@@ -29,7 +29,6 @@ import {
   History,
   Target,
   Building,
-  Network,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from 'next/navigation'
@@ -54,13 +53,13 @@ const navItems = [
       { href: "/dashboard/spm", icon: ListChecks, label: "Standar Pelayanan Minimal" },
       { href: "/dashboard/inm", icon: Target, label: "Indikator Nasional Mutu" },
       { href: "/dashboard/imp-rs", icon: Building, label: "Indikator Mutu Prioritas RS" },
-      { href: "/dashboard/indicators", icon: Network, label: "Indikator Prioritas Unit" },
+      { href: "/dashboard/indicators", icon: FolderKanban, label: "Manajemen Indikator" },
       { href: "/dashboard/incidents", icon: ShieldAlert, label: "Insiden Keselamatan" },
     ]
   },
   {
     label: "Manajemen",
-    icon: FolderKanban,
+    icon: ClipboardCheck,
     subItems: [
       { href: "/dashboard/surveys", icon: ClipboardCheck, label: "Survei Budaya" },
       { href: "/dashboard/risks", icon: BarChart3, label: "Manajemen Risiko" },

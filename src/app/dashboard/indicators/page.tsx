@@ -36,7 +36,7 @@ export default function IndicatorsPage() {
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Indikator Prioritas Unit (IPU)</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Manajemen Indikator</h2>
       </div>
       <Tabs defaultValue="report" className="space-y-4">
         <TabsList>
@@ -48,7 +48,7 @@ export default function IndicatorsPage() {
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div>
-                            <CardTitle>Status Pengajuan Indikator (INM, IMP-RS, IPU)</CardTitle>
+                            <CardTitle>Status Pengajuan Indikator (INM, IMP-RS, IPU, SPM)</CardTitle>
                             <CardDescription>
                                 Daftar semua indikator yang telah diajukan beserta status verifikasinya.
                                 {currentUser?.unit && !userCanSeeAll && ` (Hanya menampilkan untuk Unit: ${currentUser.unit})`}

@@ -206,7 +206,7 @@ export function SpmInputForm({ setOpen, spmIndicator }: SpmInputFormProps) {
             name="notes"
             render={({ field }) => (
                 <FormItem>
-                <FormLabel>Keterangan / Catatan (Opsional)</FormLabel>
+                <FormLabel>Catatan & Rencana Tindak Lanjut (Opsional)</FormLabel>
                 <FormControl>
                     <Textarea
                     placeholder="Isi jika capaian tidak sesuai target atau ada informasi tambahan."

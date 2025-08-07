@@ -67,6 +67,12 @@ export function IndicatorSubmissionDetailDialog({ indicator, open, onOpenChange 
                         label="Status" 
                         value={<Badge variant={getStatusVariant(indicator.status)}>{indicator.status}</Badge>}
                     />
+                     {indicator.status === 'Ditolak' && indicator.rejectionReason && (
+                        <DetailItem 
+                            label="Alasan Penolakan" 
+                            value={<p className="bg-destructive/10 text-destructive p-3 rounded-md whitespace-pre-wrap">{indicator.rejectionReason}</p>}
+                        />
+                    )}
                 </div>
                 <DialogFooter>
                     <Button variant="outline" onClick={() => onOpenChange(false)}>Tutup</Button>

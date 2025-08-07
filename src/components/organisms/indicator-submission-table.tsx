@@ -51,6 +51,7 @@ import { IndicatorSubmissionDialog } from "./indicator-submission-dialog"
 import { useUserStore } from "@/store/user-store.tsx"
 import { useLogStore } from "@/store/log-store.tsx"
 import { IndicatorSubmissionDetailDialog } from "./indicator-submission-detail-dialog"
+import { RejectionReasonDialog } from "./rejection-reason-dialog"
 
 declare module '@tanstack/react-table' {
     interface FilterFns {
@@ -119,19 +120,24 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
   const [date, setDate] = React.useState<DateRange | undefined>()
   const [selectedIndicator, setSelectedIndicator] = React.useState<SubmittedIndicator | null>(null);
   const [isDetailOpen, setIsDetailOpen] = React.useState(false);
+  const [rejectionDialog, setRejectionDialog] = React.useState<{isOpen: boolean, indicator: SubmittedIndicator | null}>({isOpen: false, indicator: null});
 
   const { updateSubmittedIndicatorStatus } = useIndicatorStore.getState()
   const { currentUser } = useUserStore();
   const { addLog } = useLogStore();
 
-  const handleStatusChange = (indicator: SubmittedIndicator, status: SubmittedIndicator['status']) => {
-      updateSubmittedIndicatorStatus(indicator.id, status)
+  const handleStatusChange = (indicator: SubmittedIndicator, status: SubmittedIndicator['status'], reason?: string) => {
+      updateSubmittedIndicatorStatus(indicator.id, status, reason)
       addLog({
           user: currentUser?.name || 'System',
           action: 'UPDATE_INDICATOR_STATUS',
           details: `Status indikator "${indicator.name}" (${indicator.id}) diubah menjadi ${status}.`,
       });
   }
+  
+  const openRejectionDialog = (indicator: SubmittedIndicator) => {
+    setRejectionDialog({ isOpen: true, indicator });
+  };
 
   const columns: ColumnDef<SubmittedIndicator>[] = [
     {
@@ -223,11 +229,20 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
                               <DropdownMenuSub>
                                   <DropdownMenuSubTrigger>Ubah Status</DropdownMenuSubTrigger>
                                   <DropdownMenuSubContent>
-                                      {statusOptions.map((status) => (
-                                          <DropdownMenuItem key={status} onSelect={() => handleStatusChange(indicator, status)}>
-                                              {status}
-                                          </DropdownMenuItem>
-                                      ))}
+                                    {statusOptions.map((status) => (
+                                      <DropdownMenuItem 
+                                        key={status} 
+                                        onSelect={() => {
+                                          if (status === 'Ditolak') {
+                                            openRejectionDialog(indicator);
+                                          } else {
+                                            handleStatusChange(indicator, status);
+                                          }
+                                        }}
+                                      >
+                                        {status}
+                                      </DropdownMenuItem>
+                                    ))}
                                   </DropdownMenuSubContent>
                               </DropdownMenuSub>
                           </>
@@ -451,6 +466,15 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
         indicator={selectedIndicator}
         open={isDetailOpen}
         onOpenChange={setIsDetailOpen}
+      />
+      <RejectionReasonDialog
+        open={rejectionDialog.isOpen}
+        onOpenChange={(isOpen) => setRejectionDialog({ isOpen, indicator: null })}
+        onSubmit={(reason) => {
+          if (rejectionDialog.indicator) {
+            handleStatusChange(rejectionDialog.indicator, 'Ditolak', reason);
+          }
+        }}
       />
     </div>
   )

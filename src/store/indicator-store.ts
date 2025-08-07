@@ -14,6 +14,7 @@ export type SubmittedIndicator = {
   submissionDate: string;
   standard: number;
   standardUnit: '%' | 'menit';
+  rejectionReason?: string;
 }
 
 export type Indicator = {
@@ -37,7 +38,7 @@ type IndicatorState = {
   addIndicator: (indicator: Omit<Indicator, 'id' |'ratio' | 'status'>) => string
   updateIndicator: (id: string, data: Omit<Indicator, 'id' |'ratio' | 'status'>) => void
   submitIndicator: (indicator: Omit<SubmittedIndicator, 'id' | 'status' | 'submissionDate'>) => string
-  updateSubmittedIndicatorStatus: (id: string, status: SubmittedIndicator['status']) => void
+  updateSubmittedIndicatorStatus: (id: string, status: SubmittedIndicator['status'], reason?: string) => void
   updateSubmittedIndicator: (id: string, data: Partial<Omit<SubmittedIndicator, 'id' | 'status' | 'submissionDate'>>) => void
 }
 
@@ -120,11 +121,20 @@ export const useIndicatorStore = create<IndicatorState>((set, get) => ({
     }));
     return newId;
   },
-  updateSubmittedIndicatorStatus: (id, status) =>
+  updateSubmittedIndicatorStatus: (id, status, reason) =>
     set((state) => ({
-      submittedIndicators: state.submittedIndicators.map((indicator) =>
-        indicator.id === id ? { ...indicator, status } : indicator
-      ),
+      submittedIndicators: state.submittedIndicators.map((indicator) => {
+        if (indicator.id === id) {
+          const updatedIndicator = { ...indicator, status };
+          if (status === 'Ditolak' && reason) {
+            updatedIndicator.rejectionReason = reason;
+          } else if (status !== 'Ditolak') {
+            delete updatedIndicator.rejectionReason;
+          }
+          return updatedIndicator;
+        }
+        return indicator;
+      }),
     })),
   updateSubmittedIndicator: (id, data) =>
     set((state) => ({

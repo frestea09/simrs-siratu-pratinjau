@@ -4,7 +4,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { PlusCircle } from "lucide-react"
-import { useIndicatorStore } from "@/store/indicator-store"
+import { IndicatorCategory, useIndicatorStore } from "@/store/indicator-store"
 import { IndicatorReportTable } from "./indicator-report-table"
 import React from "react"
 import { IndicatorInputDialog } from "./indicator-input-dialog"
@@ -21,7 +21,13 @@ const centralRoles = [
   'Sub. Komite Manajemen Risiko'
 ];
 
-export function IndicatorReport() {
+type IndicatorReportProps = {
+    category: IndicatorCategory;
+    title?: string;
+    description?: string;
+}
+
+export function IndicatorReport({ category, title, description }: IndicatorReportProps) {
     const { indicators, submittedIndicators } = useIndicatorStore()
     const { currentUser } = useUserStore();
     const [reportData, setReportData] = React.useState<any[] | null>(null)
@@ -30,19 +36,21 @@ export function IndicatorReport() {
     const userCanSeeAll = currentUser && centralRoles.includes(currentUser.role);
     
     const filteredIndicators = React.useMemo(() => {
+        const categoryIndicators = indicators.filter(i => i.category === category);
         if (userCanSeeAll || !currentUser?.unit) {
-            return indicators;
+            return categoryIndicators;
         }
-        return indicators.filter(indicator => indicator.unit === currentUser.unit);
-    }, [indicators, currentUser, userCanSeeAll]);
+        return categoryIndicators.filter(indicator => indicator.unit === currentUser.unit);
+    }, [indicators, currentUser, userCanSeeAll, category]);
 
     const hasVerifiedIndicators = React.useMemo(() => {
+        const relevantSubmitted = submittedIndicators.filter(i => i.category === category);
         const relevantIndicators = userCanSeeAll || !currentUser?.unit
-            ? submittedIndicators
-            : submittedIndicators.filter(i => i.unit === currentUser.unit);
+            ? relevantSubmitted
+            : relevantSubmitted.filter(i => i.unit === currentUser.unit);
         
         return relevantIndicators.some(indicator => indicator.status === 'Diverifikasi');
-    }, [submittedIndicators, currentUser, userCanSeeAll]);
+    }, [submittedIndicators, currentUser, userCanSeeAll, category]);
     
     const handleExport = (data: any[], columns: ColumnDef<any>[]) => {
         setReportData(data);
@@ -59,9 +67,9 @@ export function IndicatorReport() {
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div>
-                            <CardTitle>Laporan Indikator Mutu</CardTitle>
+                            <CardTitle>{title || `Laporan Indikator ${category}`}</CardTitle>
                             <CardDescription>
-                                Riwayat data indikator mutu yang telah diinput. 
+                                {description || `Riwayat data indikator ${category} yang telah diinput.`}
                                 {currentUser?.unit && !userCanSeeAll && ` (Unit: ${currentUser.unit})`}
                             </CardDescription>
                         </div>
@@ -79,7 +87,7 @@ export function IndicatorReport() {
                                         </span>
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                        <p>Tidak ada indikator yang diverifikasi untuk unit Anda.</p>
+                                        <p>Tidak ada indikator {category} yang diverifikasi untuk unit Anda.</p>
                                     </TooltipContent>
                                 </Tooltip>
                             )}
@@ -96,7 +104,7 @@ export function IndicatorReport() {
                     onOpenChange={(open) => !open && setReportData(null)}
                     data={reportData}
                     columns={reportColumns}
-                    title="Laporan Capaian Indikator Mutu"
+                    title={`Laporan Capaian ${title || `Indikator ${category}`}`}
                 />
             )}
         </div>

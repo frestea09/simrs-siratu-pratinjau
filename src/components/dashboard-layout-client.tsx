@@ -27,6 +27,9 @@ import {
   Bell,
   ListChecks,
   History,
+  Target,
+  Building,
+  Network,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from 'next/navigation'
@@ -48,9 +51,11 @@ const navItems = [
     label: "Layanan",
     icon: HeartPulse,
     subItems: [
-      { href: "/dashboard/indicators", icon: HeartPulse, label: "Indikator Mutu" },
-      { href: "/dashboard/incidents", icon: ShieldAlert, label: "Insiden Keselamatan" },
       { href: "/dashboard/spm", icon: ListChecks, label: "Standar Pelayanan Minimal" },
+      { href: "/dashboard/inm", icon: Target, label: "Indikator Nasional Mutu" },
+      { href: "/dashboard/imp-rs", icon: Building, label: "Indikator Mutu Prioritas RS" },
+      { href: "/dashboard/indicators", icon: Network, label: "Indikator Prioritas Unit" },
+      { href: "/dashboard/incidents", icon: ShieldAlert, label: "Insiden Keselamatan" },
     ]
   },
   {

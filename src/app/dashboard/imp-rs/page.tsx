@@ -18,24 +18,25 @@ const centralRoles = [
   'Sub. Komite Manajemen Risiko'
 ];
 
-export default function IndicatorsPage() {
+export default function ImpRsPage() {
   const { submittedIndicators } = useIndicatorStore();
   const { currentUser } = useUserStore();
 
   const userCanSeeAll = currentUser && centralRoles.includes(currentUser.role);
 
   const filteredSubmittedIndicators = React.useMemo(() => {
-    const ipuIndicators = submittedIndicators.filter(i => i.category === 'IPU');
+    const impRsIndicators = submittedIndicators.filter(i => i.category === 'IMP-RS');
     if (userCanSeeAll || !currentUser?.unit) {
-      return ipuIndicators;
+      return impRsIndicators;
     }
-    return ipuIndicators.filter(indicator => indicator.unit === currentUser.unit);
+     // IMP-RS is hospital-wide, but if a unit-specific one is made, it can be filtered.
+    return impRsIndicators.filter(indicator => indicator.unit === currentUser.unit);
   }, [submittedIndicators, currentUser, userCanSeeAll]);
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Indikator Prioritas Unit (IPU)</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Indikator Mutu Prioritas RS (IMP-RS)</h2>
       </div>
       <Tabs defaultValue="report" className="space-y-4">
         <TabsList>
@@ -47,10 +48,9 @@ export default function IndicatorsPage() {
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div>
-                            <CardTitle>Status Pengajuan IPU</CardTitle>
+                            <CardTitle>Status Pengajuan IMP-RS</CardTitle>
                             <CardDescription>
-                                Daftar indikator prioritas unit yang telah diajukan beserta status verifikasinya.
-                                {currentUser?.unit && !userCanSeeAll && ` (Unit: ${currentUser.unit})`}
+                                Daftar Indikator Mutu Prioritas Rumah Sakit yang telah diajukan.
                             </CardDescription>
                         </div>
                         <IndicatorSubmissionDialog />
@@ -62,7 +62,11 @@ export default function IndicatorsPage() {
             </Card>
         </TabsContent>
         <TabsContent value="report" className="space-y-4">
-          <IndicatorReport category="IPU"/>
+          <IndicatorReport 
+            category="IMP-RS" 
+            title="Laporan Indikator Mutu Prioritas RS"
+            description="Riwayat data Indikator Mutu Prioritas Rumah Sakit (IMP-RS) yang telah diinput."
+          />
         </TabsContent>
       </Tabs>
     </div>

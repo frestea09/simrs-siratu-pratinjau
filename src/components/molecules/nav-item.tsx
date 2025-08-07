@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/sidebar';
 import { ChevronDown } from 'lucide-react';
 import { NavItem as NavItemType } from '@/types/nav';
+import { cn } from '@/lib/utils';
 
 type NavItemProps = {
   item: NavItemType;

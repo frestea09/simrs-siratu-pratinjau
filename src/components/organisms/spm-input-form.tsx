@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils"
 import { HOSPITAL_UNITS } from "@/lib/constants"
 import { useUserStore } from "@/store/user-store"
 import { useLogStore } from "@/store/log-store"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
+import { Combobox } from "../ui/combobox"
 
 const formSchema = z.object({
   serviceType: z.string({required_error: "Jenis pelayanan harus diisi"}).min(1, "Jenis pelayanan harus diisi"),
@@ -107,20 +107,15 @@ export function SpmInputForm({ setOpen, spmIndicator }: SpmInputFormProps) {
                     control={form.control}
                     name="serviceType"
                     render={({ field }) => (
-                         <FormItem>
+                         <FormItem className="flex flex-col">
                             <FormLabel>Jenis Pelayanan / Unit</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Pilih unit" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    {unitOptions.map((unit) => (
-                                        <SelectItem key={unit.value} value={unit.value}>{unit.label}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                             <Combobox
+                                options={unitOptions}
+                                placeholder="Pilih unit..."
+                                searchPlaceholder="Cari unit..."
+                                value={field.value}
+                                onSelect={(value) => form.setValue('serviceType', value)}
+                            />
                             <FormMessage />
                         </FormItem>
                     )}

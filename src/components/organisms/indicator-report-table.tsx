@@ -67,15 +67,17 @@ const categoryOptions: {value: IndicatorCategory, label: string}[] = [
     { value: 'INM', label: 'INM'},
     { value: 'IMP-RS', label: 'IMP-RS'},
     { value: 'IPU', label: 'IPU'},
+    { value: 'SPM', label: 'SPM'},
 ]
 
 
 type IndicatorReportTableProps = {
   indicators: Indicator[]
   onExport: (data: Indicator[], columns: ColumnDef<Indicator>[]) => void;
+  showCategoryFilter?: boolean;
 }
 
-export function IndicatorReportTable({ indicators, onExport }: IndicatorReportTableProps) {
+export function IndicatorReportTable({ indicators, onExport, showCategoryFilter = false }: IndicatorReportTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [date, setDate] = React.useState<DateRange | undefined>()
@@ -151,6 +153,11 @@ export function IndicatorReportTable({ indicators, onExport }: IndicatorReportTa
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     state: { sorting, columnFilters },
+    initialState: {
+        columnVisibility: {
+            category: showCategoryFilter
+        }
+    }
   })
   
   React.useEffect(() => {
@@ -179,6 +186,7 @@ export function IndicatorReportTable({ indicators, onExport }: IndicatorReportTa
             <Calendar initialFocus mode="range" defaultMonth={date?.from} selected={date} onSelect={setDate} numberOfMonths={2} captionLayout="dropdown-buttons" fromYear={2020} toYear={new Date().getFullYear()} />
           </PopoverContent>
         </Popover>
+        {showCategoryFilter && (
          <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="flex-shrink-0">
@@ -207,6 +215,7 @@ export function IndicatorReportTable({ indicators, onExport }: IndicatorReportTa
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
+        )}
          <Button variant="outline" className="ml-auto" onClick={() => onExport(table.getFilteredRowModel().rows.map(row => row.original), columns.filter(c => c.id !== 'actions'))}>
             <Download className="mr-2 h-4 w-4" />
             Unduh Laporan

@@ -37,7 +37,7 @@ const formSchema = z.object({
   name: z.string().min(5, {
     message: "Nama indikator harus memiliki setidaknya 5 karakter.",
   }),
-  category: z.enum(['INM', 'IMP-RS', 'IPU'], {
+  category: z.enum(['INM', 'IMP-RS', 'IPU', 'SPM'], {
     required_error: "Anda harus memilih kategori indikator.",
   }),
   unit: z.string({ required_error: "Anda harus memilih unit." }),
@@ -63,6 +63,7 @@ const categoryOptions: {value: IndicatorCategory, label: string}[] = [
     { value: 'INM', label: 'Indikator Nasional Mutu (INM)'},
     { value: 'IMP-RS', label: 'Indikator Mutu Prioritas RS (IMP-RS)'},
     { value: 'IPU', label: 'Indikator Prioritas Unit (IPU)'},
+    { value: 'SPM', label: 'Standar Pelayanan Minimal (SPM)'},
 ]
 
 const centralRoles = [
@@ -336,5 +337,3 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
     </Form>
   )
 }
-
-    

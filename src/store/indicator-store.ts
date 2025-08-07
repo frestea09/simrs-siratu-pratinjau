@@ -1,7 +1,7 @@
 
 import { create } from 'zustand'
 
-export type IndicatorCategory = 'INM' | 'IMP-RS' | 'IPU';
+export type IndicatorCategory = 'INM' | 'IMP-RS' | 'IPU' | 'SPM';
 
 export type SubmittedIndicator = {
   id: string;
@@ -111,10 +111,10 @@ export const useIndicatorStore = create<IndicatorState>((set, get) => ({
   submitIndicator: (indicator) => {
     const newId = `IND-${String(get().submittedIndicators.length + 1).padStart(3, '0')}`;
     
-    // Auto-verify INM and IMP-RS, but put IPU for approval
-    const status = (indicator.category === 'INM' || indicator.category === 'IMP-RS') 
-        ? 'Diverifikasi' 
-        : 'Menunggu Persetujuan';
+    // Auto-verify INM, IMP-RS and SPM. Only IPU needs approval.
+    const status = (indicator.category === 'IPU') 
+        ? 'Menunggu Persetujuan'
+        : 'Diverifikasi';
 
     const newSubmittedIndicator = {
         ...indicator,
@@ -126,9 +126,6 @@ export const useIndicatorStore = create<IndicatorState>((set, get) => ({
       submittedIndicators: [newSubmittedIndicator, ...state.submittedIndicators]
     }));
 
-    // If it's an auto-verified type, we can immediately add it to the list of indicators that can be reported on
-    // This is a simplification; in a real app this might be handled differently.
-    // For now, this just creates the "definition". The user still needs to input monthly data.
     return newId;
   },
   updateSubmittedIndicatorStatus: (id, status, reason) =>

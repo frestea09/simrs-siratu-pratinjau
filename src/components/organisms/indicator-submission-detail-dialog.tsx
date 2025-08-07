@@ -33,7 +33,8 @@ const getStatusVariant = (status?: SubmittedIndicator['status']) => {
 const categoryLabels: Record<IndicatorCategory, string> = {
     INM: "Indikator Nasional Mutu",
     'IMP-RS': "Indikator Mutu Prioritas RS",
-    IPU: "Indikator Prioritas Unit"
+    IPU: "Indikator Prioritas Unit",
+    SPM: "Standar Pelayanan Minimal"
 }
 
 export function IndicatorSubmissionDetailDialog({ indicator, open, onOpenChange }: IndicatorSubmissionDetailDialogProps) {

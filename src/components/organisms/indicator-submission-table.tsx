@@ -78,6 +78,7 @@ const categoryOptions: {value: IndicatorCategory, label: string}[] = [
     { value: 'INM', label: 'INM'},
     { value: 'IMP-RS', label: 'IMP-RS'},
     { value: 'IPU', label: 'IPU'},
+    { value: 'SPM', label: 'SPM'},
 ]
 
 const dateRangeFilter: FilterFn<SubmittedIndicator> = (row, columnId, value, addMeta) => {

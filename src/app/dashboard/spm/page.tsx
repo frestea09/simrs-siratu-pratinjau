@@ -1,52 +1,78 @@
 
 "use client"
 
-import * as React from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { SpmTable } from "@/components/organisms/spm-table"
-import { useSpmStore } from "@/store/spm-store"
-import { SpmInputDialog } from "@/components/organisms/spm-input-dialog"
-import { ColumnDef } from "@tanstack/react-table"
-import { ReportPreviewDialog } from "@/components/organisms/report-preview-dialog"
+import { IndicatorReport } from "@/components/organisms/indicator-report"
+import { useIndicatorStore } from "@/store/indicator-store"
+import { useUserStore } from "@/store/user-store.tsx"
+import React from "react"
+import { IndicatorInputDialog } from "@/components/organisms/indicator-input-dialog"
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
+import { Button } from "@/components/ui/button"
+import { PlusCircle } from "lucide-react"
+
+
+const centralRoles = [
+  'Admin Sistem',
+  'Direktur',
+  'Sub. Komite Peningkatan Mutu',
+  'Sub. Komite Keselamatan Pasien',
+  'Sub. Komite Manajemen Risiko'
+];
 
 export default function SpmPage() {
-  const spmIndicators = useSpmStore((state) => state.spmIndicators)
-  const [reportData, setReportData] = React.useState<any[] | null>(null)
-  const [reportColumns, setReportColumns] = React.useState<ColumnDef<any>[] | null>(null)
+  const { submittedIndicators } = useIndicatorStore();
+  const { currentUser } = useUserStore();
 
-  const handleExport = (data: any[], columns: ColumnDef<any>[]) => {
-    setReportData(data);
-    setReportColumns(columns);
-  };
+  const userCanSeeAll = currentUser && centralRoles.includes(currentUser.role);
+
+  // For SPM, input is possible as long as there is any indicator of this type.
+  // The verification step is skipped.
+  const hasIndicatorsToInput = React.useMemo(() => {
+    const relevantSubmitted = submittedIndicators.filter(i => i.category === 'SPM');
+    const relevantIndicators = userCanSeeAll || !currentUser?.unit
+        ? relevantSubmitted
+        : relevantSubmitted.filter(i => i.unit === currentUser.unit);
+    
+    // Any indicator exists is enough to enable the button.
+    return relevantIndicators.length > 0;
+  }, [submittedIndicators, currentUser, userCanSeeAll]);
+
+  const inputDialogButton = (
+    <IndicatorInputDialog />
+  );
+
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">Standar Pelayanan Minimal (SPM)</h2>
+         <div className="flex items-center gap-2">
+             {hasIndicatorsToInput ? (
+                inputDialogButton
+            ) : (
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <span tabIndex={0}>
+                            <Button disabled>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Input Data Capaian
+                            </Button>
+                        </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Tidak ada indikator SPM yang siap untuk diinput.</p>
+                         <p className="text-xs text-muted-foreground">Ajukan indikator di halaman IPU terlebih dahulu.</p>
+                    </TooltipContent>
+                </Tooltip>
+            )}
+        </div>
       </div>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Laporan Capaian SPM</CardTitle>
-              <CardDescription>Daftar capaian indikator Standar Pelayanan Minimal.</CardDescription>
-            </div>
-            <SpmInputDialog />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <SpmTable indicators={spmIndicators} onExport={handleExport} />
-        </CardContent>
-      </Card>
-      {reportData && reportColumns && (
-          <ReportPreviewDialog
-              open={!!reportData}
-              onOpenChange={(open) => !open && setReportData(null)}
-              data={reportData}
-              columns={reportColumns}
-              title="Laporan Standar Pelayanan Minimal (SPM)"
-          />
-      )}
+      <IndicatorReport 
+        category="SPM"
+        title="Laporan Standar Pelayanan Minimal"
+        description="Riwayat data Standar Pelayanan Minimal (SPM) yang telah diinput."
+        showInputButton={false}
+      />
     </div>
   )
 }

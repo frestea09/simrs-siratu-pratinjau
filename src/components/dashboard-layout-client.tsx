@@ -72,7 +72,6 @@ const navItems = [
     subItems: [
       { href: "/dashboard/surveys", icon: ClipboardCheck, label: "Survei Budaya" },
       { href: "/dashboard/risks", icon: BarChart3, label: "Manajemen Risiko" },
-      { href: "/dashboard/reports", icon: FileText, label: "Laporan" },
     ]
   },
 ]

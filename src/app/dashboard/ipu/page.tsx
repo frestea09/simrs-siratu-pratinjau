@@ -71,8 +71,8 @@ export default function IpuPage() {
           </Card>
       </div>
 
-       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
+      <div className="space-y-4">
+        <Card>
           <CardHeader>
             <CardTitle>Capaian Indikator Terkini</CardTitle>
             <CardDescription>Menampilkan tren 6 bulan terakhir untuk: {ipuIndicators.length > 0 ? ipuIndicators[0].indicator : 'Belum ada data'}</CardDescription>
@@ -98,14 +98,13 @@ export default function IpuPage() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-        <div className="col-span-4 lg:col-span-3">
-             <IndicatorReport 
-                category="IPU"
-                title="Laporan Indikator Prioritas Unit"
-                description="Riwayat data Indikator Prioritas Unit (IPU) yang telah diinput."
-                showInputButton={true}
-            />
-        </div>
+        
+        <IndicatorReport 
+            category="IPU"
+            title="Laporan Indikator Prioritas Unit"
+            description="Riwayat data Indikator Prioritas Unit (IPU) yang telah diinput."
+            showInputButton={true}
+        />
       </div>
     </div>
   )

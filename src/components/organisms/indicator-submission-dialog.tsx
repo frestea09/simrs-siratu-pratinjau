@@ -25,8 +25,8 @@ export function IndicatorSubmissionDialog({ indicator, trigger }: IndicatorSubmi
   const isEditMode = !!indicator;
 
   const defaultTrigger = (
-      <Button>
-          <PlusCircle className="mr-2 h-4 w-4" />
+      <Button size="lg">
+          <PlusCircle className="mr-2 h-5 w-5" />
           Ajukan Indikator Baru
       </Button>
   )

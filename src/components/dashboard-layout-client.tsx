@@ -140,19 +140,19 @@ export default function DashboardClientLayout({
         collapsible="icon"
         className="bg-sidebar text-sidebar-foreground border-r border-sidebar-border"
       >
-        <SidebarHeader className="h-16 flex items-center justify-center p-4">
+        <SidebarHeader className="h-20 flex items-center justify-center p-4">
           <div className="flex items-center gap-2 group-data-[state=expanded]:w-full">
             <Button
               variant="ghost"
               size="icon"
-              className="size-9 shrink-0 bg-primary/20 text-primary hover:bg-primary/30 group-data-[state=collapsed]:bg-transparent"
+              className="size-11 shrink-0 bg-primary/20 text-primary hover:bg-primary/30 group-data-[state=collapsed]:bg-transparent"
               asChild
             >
               <Link href="/dashboard/overview">
-                <Hospital className="size-5" />
+                <Hospital className="size-6" />
               </Link>
             </Button>
-            <h1 className="text-lg font-semibold tracking-tight truncate group-data-[state=collapsed]:hidden">
+            <h1 className="text-xl font-semibold tracking-tight truncate group-data-[state=collapsed]:hidden">
               Si Ratu Web
             </h1>
           </div>
@@ -166,8 +166,10 @@ export default function DashboardClientLayout({
           </SidebarMenu>
           
           {currentUser?.role === 'Admin Sistem' && (
-            <SidebarMenu className="mt-4">
-              <p className="text-xs font-semibold text-muted-foreground px-2 group-data-[state=expanded]:block hidden mb-2">Administrasi</p>
+            <SidebarMenu className="mt-4 pt-2 border-t border-sidebar-border/50">
+              <p className="text-sm font-semibold text-muted-foreground/80 px-4 group-data-[state=expanded]:block hidden mb-2">
+                Administrasi
+              </p>
               {adminNavItems.map((item) => (
                 <NavItem key={item.href} item={item} pathname={pathname} openMenus={openMenus} setOpenMenus={setOpenMenus} />
               ))}
@@ -175,7 +177,7 @@ export default function DashboardClientLayout({
           )}
         </SidebarContent>
 
-        <SidebarFooter className="p-2">
+        <SidebarFooter className="p-2 mt-auto">
           <SidebarMenu>
             <SidebarMenuItem>
               <NavItem item={{ label: 'Logout', icon: LogOut, onClick: handleLogout }} pathname={pathname} openMenus={openMenus} setOpenMenus={setOpenMenus} />
@@ -184,21 +186,21 @@ export default function DashboardClientLayout({
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-auto min-h-16 flex-col border-b bg-background px-4 md:px-6">
-            <div className="flex items-center w-full py-2">
+        <header className="sticky top-0 z-10 flex h-auto min-h-20 flex-col border-b bg-background px-4 md:px-6">
+            <div className="flex items-center w-full py-3">
                 <SidebarTrigger className="md:hidden" />
-                <h1 className="text-2xl font-bold flex-1">
+                <h1 className="text-3xl font-bold flex-1">
                     {currentPage?.label || 'Dashboard'}
                 </h1>
                 <div className="ml-auto flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="rounded-full">
-                        <Bell className="h-5 w-5" />
+                    <Button variant="ghost" size="icon" className="rounded-full w-10 h-10">
+                        <Bell className="h-6 w-6" />
                         <span className="sr-only">Notifikasi</span>
                     </Button>
                     <UserNav />
                 </div>
             </div>
-            <div className="pb-2">
+            <div className="pb-3">
                 <Breadcrumb navItems={navItems.concat(adminNavItems)} />
             </div>
         </header>

@@ -25,8 +25,8 @@ export function UserDialog({ user, trigger }: UserDialogProps) {
   const isEditMode = !!user;
 
   const defaultTrigger = (
-      <Button>
-          <PlusCircle className="mr-2 h-4 w-4" />
+      <Button size="lg">
+          <PlusCircle className="mr-2 h-5 w-5" />
           Tambah Pengguna Baru
       </Button>
   )

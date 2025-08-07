@@ -31,8 +31,8 @@ export function IncidentReportDialog({ incident }: IncidentReportDialogProps) {
                 <Pencil className="h-4 w-4" /> Edit
             </Button>
         ) : (
-             <Button>
-                <PlusCircle className="mr-2 h-4 w-4" />
+             <Button size="lg">
+                <PlusCircle className="mr-2 h-5 w-5" />
                 Laporkan Insiden Baru
             </Button>
         )}

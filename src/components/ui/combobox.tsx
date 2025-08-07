@@ -25,11 +25,11 @@ type ComboboxProps = {
     placeholder: string;
     searchPlaceholder: string;
     onSelect: (value: string) => void;
+    value?: string;
 }
 
-export function Combobox({ options, placeholder, searchPlaceholder, onSelect }: ComboboxProps) {
+export function Combobox({ options, placeholder, searchPlaceholder, onSelect, value }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
-  const [value, setValue] = React.useState("")
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -57,9 +57,8 @@ export function Combobox({ options, placeholder, searchPlaceholder, onSelect }: 
                   key={option.value}
                   value={option.value}
                   onSelect={(currentValue) => {
-                    setValue(currentValue === value ? "" : currentValue)
+                    onSelect(currentValue === value ? "" : currentValue)
                     setOpen(false)
-                    onSelect(currentValue)
                   }}
                 >
                   <Check
@@ -78,5 +77,3 @@ export function Combobox({ options, placeholder, searchPlaceholder, onSelect }: 
     </Popover>
   )
 }
-
-    

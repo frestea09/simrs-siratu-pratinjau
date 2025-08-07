@@ -16,18 +16,12 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { DialogFooter } from "../ui/dialog"
 import { User, useUserStore, UserRole } from "@/store/user-store.tsx"
 import { useToast } from "@/hooks/use-toast"
 import { useLogStore } from "@/store/log-store.tsx"
 import { HOSPITAL_UNITS } from "@/lib/constants"
+import { Combobox } from "../ui/combobox"
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -181,21 +175,16 @@ export function UserForm({ setOpen, userToEdit }: UserFormProps) {
                     control={form.control}
                     name="role"
                     render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Peran</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Pilih peran untuk pengguna" />
-                            </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                {roleOptions.map(role => (
-                                    <SelectItem key={role.value} value={role.value}>{role.label}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
+                        <FormItem className="flex flex-col">
+                            <FormLabel>Peran</FormLabel>
+                             <Combobox
+                                options={roleOptions}
+                                placeholder="Pilih peran..."
+                                searchPlaceholder="Cari peran..."
+                                onSelect={(value) => form.setValue('role', value as UserRole)}
+                                value={field.value}
+                            />
+                            <FormMessage />
                         </FormItem>
                     )}
                 />
@@ -204,21 +193,16 @@ export function UserForm({ setOpen, userToEdit }: UserFormProps) {
                         control={form.control}
                         name="unit"
                         render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Unit</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Pilih unit" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                     {unitOptions.map(unit => (
-                                        <SelectItem key={unit.value} value={unit.value}>{unit.label}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
+                            <FormItem className="flex flex-col">
+                                <FormLabel>Unit</FormLabel>
+                                <Combobox
+                                    options={unitOptions}
+                                    placeholder="Pilih unit..."
+                                    searchPlaceholder="Cari unit..."
+                                    onSelect={(value) => form.setValue('unit', value)}
+                                    value={field.value}
+                                />
+                                <FormMessage />
                             </FormItem>
                         )}
                     />

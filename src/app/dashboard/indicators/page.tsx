@@ -67,6 +67,7 @@ export default function IndicatorsPage() {
             category="IPU"
             title="Laporan Indikator Prioritas Unit"
             description="Riwayat data Indikator Prioritas Unit (IPU) yang telah diinput."
+            showInputButton={true}
           />
         </TabsContent>
       </Tabs>

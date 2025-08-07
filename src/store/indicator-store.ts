@@ -125,6 +125,10 @@ export const useIndicatorStore = create<IndicatorState>((set, get) => ({
     set((state) => ({
       submittedIndicators: [newSubmittedIndicator, ...state.submittedIndicators]
     }));
+
+    // If it's an auto-verified type, we can immediately add it to the list of indicators that can be reported on
+    // This is a simplification; in a real app this might be handled differently.
+    // For now, this just creates the "definition". The user still needs to input monthly data.
     return newId;
   },
   updateSubmittedIndicatorStatus: (id, status, reason) =>

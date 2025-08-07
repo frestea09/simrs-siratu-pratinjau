@@ -25,9 +25,10 @@ type IndicatorReportProps = {
     category: IndicatorCategory;
     title?: string;
     description?: string;
+    showInputButton?: boolean;
 }
 
-export function IndicatorReport({ category, title, description }: IndicatorReportProps) {
+export function IndicatorReport({ category, title, description, showInputButton = true }: IndicatorReportProps) {
     const { indicators, submittedIndicators } = useIndicatorStore()
     const { currentUser } = useUserStore();
     const [reportData, setReportData] = React.useState<any[] | null>(null)
@@ -43,7 +44,10 @@ export function IndicatorReport({ category, title, description }: IndicatorRepor
         return categoryIndicators.filter(indicator => indicator.unit === currentUser.unit);
     }, [indicators, currentUser, userCanSeeAll, category]);
 
+    // This check is now specific for categories that need verification (like IPU)
     const hasVerifiedIndicators = React.useMemo(() => {
+        if (category !== 'IPU') return true; // Assume other types are always ready
+
         const relevantSubmitted = submittedIndicators.filter(i => i.category === category);
         const relevantIndicators = userCanSeeAll || !currentUser?.unit
             ? relevantSubmitted
@@ -73,25 +77,27 @@ export function IndicatorReport({ category, title, description }: IndicatorRepor
                                 {currentUser?.unit && !userCanSeeAll && ` (Unit: ${currentUser.unit})`}
                             </CardDescription>
                         </div>
-                        <div className="flex items-center gap-2">
-                             {hasVerifiedIndicators ? (
-                                inputDialogButton
-                            ) : (
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <span tabIndex={0}>
-                                            <Button disabled>
-                                                <PlusCircle className="mr-2 h-4 w-4" />
-                                                Input Data Capaian
-                                            </Button>
-                                        </span>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>Tidak ada indikator {category} yang diverifikasi untuk unit Anda.</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            )}
-                        </div>
+                        {showInputButton && (
+                             <div className="flex items-center gap-2">
+                                {hasVerifiedIndicators ? (
+                                    inputDialogButton
+                                ) : (
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <span tabIndex={0}>
+                                                <Button disabled>
+                                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                                    Input Data Capaian
+                                                </Button>
+                                            </span>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Tidak ada indikator {category} yang diverifikasi untuk unit Anda.</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </CardHeader>
                 <CardContent>

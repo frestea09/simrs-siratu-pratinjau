@@ -77,7 +77,7 @@ const centralRoles = [
 
 export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmissionFormProps) {
   const { toast } = useToast()
-  const { submitIndicator, updateSubmittedIndicator, submittedIndicators } = useIndicatorStore()
+  const { submitIndicator, updateSubmittedIndicator } = useIndicatorStore()
   const { currentUser } = useUserStore();
   const { addLog } = useLogStore();
   const { addNotification } = useNotificationStore();
@@ -104,32 +104,14 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
     },
   })
 
+  const selectedRole = form.watch("role");
   const selectedCategory = form.watch("category");
 
-  const availableIndicators = React.useMemo(() => {
-    return submittedIndicators
-        .filter(i => 
-            i.status === 'Diverifikasi' && 
-            (i.category === 'INM' || i.category === 'IMP-RS' || i.category === 'SPM')
-        )
-        .map(i => ({ 
-            value: `ind-${i.id}`, 
-            label: `[${i.category}] ${i.name}`,
-            source: 'indicator',
-            data: i
-        }));
-  }, [submittedIndicators]);
-
-  const handleAdoptIndicator = (value: string) => {
-    const selected = availableIndicators.find(i => i.value === value);
-    if (!selected) return;
-    
-    const indicatorData = selected.data as SubmittedIndicator;
-    form.setValue('name', indicatorData.name);
-    form.setValue('description', indicatorData.description);
-    form.setValue('standard', indicatorData.standard);
-    form.setValue('standardUnit', indicatorData.standardUnit);
-  }
+  React.useEffect(() => {
+    if (!centralRoles.includes(selectedRole as any) && selectedCategory !== 'IPU') {
+        form.setValue('unit', currentUser?.unit || '');
+    }
+  }, [selectedCategory, selectedRole, currentUser?.unit, form]);
 
 
   function onSubmit(values: z.infer<typeof formSchema>) {
@@ -178,41 +160,29 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
   return (
     <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                    control={form.control}
-                    name="category"
-                    render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Kategori Indikator</FormLabel>
-                           <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Pilih kategori" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    {categoryOptions.map((cat) => (
-                                        <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                          <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                 {selectedCategory === 'IPU' && (
+            
+            <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Ambil dari Indikator yang Ada (Opsional)</FormLabel>
-                        <Combobox
-                            options={availableIndicators}
-                            placeholder="Pilih dari INM/IMP-RS/SPM..."
-                            searchPlaceholder="Cari indikator..."
-                            onSelect={handleAdoptIndicator}
-                        />
+                      <FormLabel>Kategori Indikator</FormLabel>
+                       <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Pilih kategori" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                {categoryOptions.map((cat) => (
+                                    <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                      <FormMessage />
                     </FormItem>
                 )}
-            </div>
+            />
 
              <FormField
                 control={form.control}
@@ -241,7 +211,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                                 searchPlaceholder="Cari unit..."
                                 value={field.value}
                                 onSelect={(value) => form.setValue('unit', value)}
-                                disabled={!userCanSelectUnit && !!currentUser?.unit}
+                                disabled={!userCanSelectUnit && !!currentUser?.unit && selectedCategory !== 'IPU'}
                             />
                           <FormMessage />
                         </FormItem>

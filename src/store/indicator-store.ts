@@ -112,9 +112,9 @@ export const useIndicatorStore = create<IndicatorState>((set, get) => ({
     const newId = `IND-${String(get().submittedIndicators.length + 1).padStart(3, '0')}`;
     
     // Auto-verify INM, IMP-RS and SPM. Only IPU needs approval.
-    const status = (indicator.category === 'IPU') 
-        ? 'Menunggu Persetujuan'
-        : 'Diverifikasi';
+    const status = ['INM', 'IMP-RS', 'SPM'].includes(indicator.category)
+        ? 'Diverifikasi'
+        : 'Menunggu Persetujuan';
 
     const newSubmittedIndicator = {
         ...indicator,

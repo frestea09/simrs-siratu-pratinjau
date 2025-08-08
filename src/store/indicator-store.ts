@@ -1,7 +1,7 @@
 
 import { create } from 'zustand'
 
-export type IndicatorCategory = 'INM' | 'IMP-RS' | 'IPU' | 'SPM';
+export type IndicatorCategory = 'INM' | 'IMP-RS' | 'IMPU' | 'SPM';
 
 export type SubmittedIndicator = {
   id: string;
@@ -111,7 +111,6 @@ export const useIndicatorStore = create<IndicatorState>((set, get) => ({
   submitIndicator: (indicator) => {
     const newId = `IND-${String(get().submittedIndicators.length + 1).padStart(3, '0')}`;
     
-    // Auto-verify INM, IMP-RS and SPM. Only IPU needs approval.
     const status = ['INM', 'IMP-RS', 'SPM'].includes(indicator.category)
         ? 'Diverifikasi'
         : 'Menunggu Persetujuan';
@@ -125,6 +124,21 @@ export const useIndicatorStore = create<IndicatorState>((set, get) => ({
     set((state) => ({
       submittedIndicators: [newSubmittedIndicator, ...state.submittedIndicators]
     }));
+
+    if(indicator.category === 'IMPU') {
+         const notificationPayload = {
+            title: 'Pengajuan Indikator Baru (IMPU)',
+            description: `Indikator "${indicator.name}" dari unit ${indicator.unit} menunggu persetujuan.`,
+            link: '/dashboard/indicators',
+        };
+        // Notify PJ Ruangan in the same unit
+        addNotification({ ...notificationPayload, recipientUnit: indicator.unit, recipientRole: 'PJ Ruangan' });
+        // Notify Kepala Unit/Instalasi in the same unit
+        addNotification({ ...notificationPayload, recipientUnit: indicator.unit, recipientRole: 'Kepala Unit/Instalasi' });
+        // Notify the central committee
+        addNotification({ ...notificationPayload, recipientRole: 'Sub. Komite Peningkatan Mutu' });
+    }
+
 
     return newId;
   },
@@ -150,3 +164,6 @@ export const useIndicatorStore = create<IndicatorState>((set, get) => ({
       )
     }))
 }))
+
+// Dummy function to avoid error, will be replaced by actual notification store logic
+const addNotification = (payload: any) => {};

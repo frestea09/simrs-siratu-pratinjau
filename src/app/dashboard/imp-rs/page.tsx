@@ -200,7 +200,6 @@ export default function ImpRsPage() {
             category="IMP-RS" 
             title="Laporan Indikator Mutu Prioritas RS"
             description="Riwayat data Indikator Mutu Prioritas Rumah Sakit (IMP-RS) yang telah diinput."
-            showInputButton={true}
           />
       </div>
     </div>

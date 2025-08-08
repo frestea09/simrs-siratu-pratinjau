@@ -79,7 +79,7 @@ const statusOptions: SubmittedIndicator['status'][] = ['Menunggu Persetujuan', '
 const categoryOptions: {value: IndicatorCategory, label: string}[] = [
     { value: 'INM', label: 'INM'},
     { value: 'IMP-RS', label: 'IMP-RS'},
-    { value: 'IPU', label: 'IPU'},
+    { value: 'IMPU', label: 'IMPU'},
     { value: 'SPM', label: 'SPM'},
 ]
 

@@ -37,7 +37,7 @@ const formSchema = z.object({
   name: z.string().min(5, {
     message: "Nama indikator harus memiliki setidaknya 5 karakter.",
   }),
-  category: z.enum(['INM', 'IMP-RS', 'IPU', 'SPM'], {
+  category: z.enum(['INM', 'IMP-RS', 'IMPU', 'SPM'], {
     required_error: "Anda harus memilih kategori indikator.",
   }),
   unit: z.string({ required_error: "Anda harus memilih unit." }),
@@ -61,7 +61,7 @@ type IndicatorSubmissionFormProps = {
 const categoryOptions: {value: IndicatorCategory, label: string}[] = [
     { value: 'INM', label: 'Indikator Nasional Mutu (INM)'},
     { value: 'IMP-RS', label: 'Indikator Mutu Prioritas RS (IMP-RS)'},
-    { value: 'IPU', label: 'Indikator Mutu Prioritas Unit (IPU)'},
+    { value: 'IMPU', label: 'Indikator Mutu Prioritas Unit (IMPU)'},
     { value: 'SPM', label: 'Standar Pelayanan Minimal (SPM)'},
 ]
 
@@ -108,7 +108,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
   const selectedCategory = form.watch("category");
 
   React.useEffect(() => {
-    if (!centralRoles.includes(selectedRole as any) && selectedCategory !== 'IPU') {
+    if (!centralRoles.includes(selectedRole as any) && selectedCategory !== 'IMPU') {
         form.setValue('unit', currentUser?.unit || '');
     }
   }, [selectedCategory, selectedRole, currentUser?.unit, form]);
@@ -134,9 +134,9 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
             details: `Indikator baru "${values.name}" (${newId}) diajukan.`
         })
 
-        if(values.category === 'IPU') {
+        if(values.category === 'IMPU') {
              const notificationPayload = {
-                title: 'Pengajuan Indikator Baru (IPU)',
+                title: 'Pengajuan Indikator Baru (IMPU)',
                 description: `Indikator "${values.name}" dari unit ${values.unit} menunggu persetujuan.`,
                 link: '/dashboard/indicators',
             };
@@ -211,7 +211,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                                 searchPlaceholder="Cari unit..."
                                 value={field.value}
                                 onSelect={(value) => form.setValue('unit', value)}
-                                disabled={!userCanSelectUnit && !!currentUser?.unit && selectedCategory !== 'IPU'}
+                                disabled={!userCanSelectUnit && !!currentUser?.unit && selectedCategory !== 'IMPU'}
                             />
                           <FormMessage />
                         </FormItem>

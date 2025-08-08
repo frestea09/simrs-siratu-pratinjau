@@ -73,7 +73,7 @@ const navItems: NavItemType[] = [
           { href: "/dashboard/spm", icon: ListChecks, label: "SPM" },
           { href: "/dashboard/inm", icon: Target, label: "INM" },
           { href: "/dashboard/imp-rs", icon: Building, label: "IMP-RS" },
-          { href: "/dashboard/ipu", icon: Network, label: "IPU" },
+          { href: "/dashboard/impu", icon: Network, label: "IMPU" },
         ]
       },
       { href: "/dashboard/incidents", icon: ShieldAlert, label: "Insiden Keselamatan" },
@@ -151,7 +151,7 @@ export default function DashboardClientLayout({
   const allNavItems = React.useMemo(() => {
     const fullNav = JSON.parse(JSON.stringify(navItems)) as NavItemType[];
      if(fullNav[1]?.subItems?.[1]?.subItems?.[3]){
-        fullNav[1].subItems[1].subItems[3].label = 'Indikator Mutu Prioritas Unit (IPU)';
+        fullNav[1].subItems[1].subItems[3].label = 'Indikator Mutu Prioritas Unit (IMPU)';
     }
     return fullNav.concat(adminNavItems);
   }, []);

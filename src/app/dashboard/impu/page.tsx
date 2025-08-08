@@ -9,14 +9,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Target, ThumbsUp, ThumbsDown } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-export default function IpuPage() {
+export default function ImpuPage() {
   const { indicators } = useIndicatorStore()
 
-  const ipuIndicators = React.useMemo(() => indicators.filter(i => i.category === 'IPU'), [indicators])
+  const impuIndicators = React.useMemo(() => indicators.filter(i => i.category === 'IMPU'), [indicators])
   
   const uniqueIndicatorNames = React.useMemo(() => {
-    return ["Semua Indikator", ...new Set(ipuIndicators.map(i => i.indicator))]
-  }, [ipuIndicators])
+    return ["Semua Indikator", ...new Set(impuIndicators.map(i => i.indicator))]
+  }, [impuIndicators])
 
   const [selectedIndicator, setSelectedIndicator] = React.useState<string>("Semua Indikator");
 
@@ -26,17 +26,17 @@ export default function IpuPage() {
     }
   }, [uniqueIndicatorNames, selectedIndicator]);
 
-  const totalIndicators = ipuIndicators.length
-  const meetingStandard = ipuIndicators.filter(i => i.status === 'Memenuhi Standar').length
+  const totalIndicators = impuIndicators.length
+  const meetingStandard = impuIndicators.filter(i => i.status === 'Memenuhi Standar').length
   const notMeetingStandard = totalIndicators - meetingStandard
 
   const chartData = React.useMemo(() => {
-    if (ipuIndicators.length === 0) return []
+    if (impuIndicators.length === 0) return []
 
     if (selectedIndicator === "Semua Indikator") {
       const monthlyAverages: { [key: string]: { total: number, count: number } } = {};
       
-      ipuIndicators.forEach(i => {
+      impuIndicators.forEach(i => {
         // Only average percentage-based indicators for simplicity
         if (i.standardUnit === '%') {
           const month = new Date(i.period).toLocaleString('default', { month: 'short' });
@@ -54,7 +54,7 @@ export default function IpuPage() {
       })).slice(-6); // show last 6 months
 
     } else {
-      return ipuIndicators
+      return impuIndicators
         .filter(i => i.indicator === selectedIndicator)
         .sort((a, b) => new Date(a.period).getTime() - new Date(b.period).getTime())
         .slice(-6)
@@ -64,11 +64,11 @@ export default function IpuPage() {
           Standar: i.standard
         }));
     }
-  }, [ipuIndicators, selectedIndicator])
+  }, [impuIndicators, selectedIndicator])
   
   const getChartDescription = () => {
     if (selectedIndicator === 'Semua Indikator') {
-        return 'Menampilkan rata-rata capaian semua indikator IPU (hanya unit %)'
+        return 'Menampilkan rata-rata capaian semua indikator IMPU (hanya unit %)'
     }
     return `Menampilkan tren 6 bulan terakhir untuk: ${selectedIndicator}`
   }
@@ -121,13 +121,13 @@ export default function IpuPage() {
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Indikator Mutu Prioritas Unit (IPU)</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Indikator Mutu Prioritas Unit (IMPU)</h2>
       </div>
 
        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Indikator IPU</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Indikator IMPU</CardTitle>
               <Target className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -187,9 +187,9 @@ export default function IpuPage() {
         </Card>
         
         <IndicatorReport 
-            category="IPU"
+            category="IMPU"
             title="Laporan Indikator Mutu Prioritas Unit"
-            description="Riwayat data Indikator Mutu Prioritas Unit (IPU) yang telah diinput."
+            description="Riwayat data Indikator Mutu Prioritas Unit (IMPU) yang telah diinput."
             showInputButton={true}
         />
       </div>

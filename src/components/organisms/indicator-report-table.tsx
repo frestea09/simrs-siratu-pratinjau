@@ -65,7 +65,7 @@ const categoryFilter: FilterFn<Indicator> = (row, id, value) => {
 const categoryOptions: {value: IndicatorCategory, label: string}[] = [
     { value: 'INM', label: 'INM'},
     { value: 'IMP-RS', label: 'IMP-RS'},
-    { value: 'IPU', label: 'IPU'},
+    { value: 'IMPU', label: 'IMPU'},
     { value: 'SPM', label: 'SPM'},
 ]
 

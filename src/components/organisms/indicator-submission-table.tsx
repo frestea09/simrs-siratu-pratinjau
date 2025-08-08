@@ -52,6 +52,7 @@ import { useUserStore } from "@/store/user-store.tsx"
 import { useLogStore } from "@/store/log-store.tsx"
 import { IndicatorSubmissionDetailDialog } from "./indicator-submission-detail-dialog"
 import { RejectionReasonDialog } from "./rejection-reason-dialog"
+import { useNotificationStore } from "@/store/notification-store"
 
 declare module '@tanstack/react-table' {
     interface FilterFns {
@@ -126,6 +127,7 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
   const { updateSubmittedIndicatorStatus } = useIndicatorStore.getState()
   const { currentUser } = useUserStore();
   const { addLog } = useLogStore();
+  const { addNotification } = useNotificationStore();
 
   const handleStatusChange = (indicator: SubmittedIndicator, status: SubmittedIndicator['status'], reason?: string) => {
       updateSubmittedIndicatorStatus(indicator.id, status, reason)
@@ -133,6 +135,12 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
           user: currentUser?.name || 'System',
           action: 'UPDATE_INDICATOR_STATUS',
           details: `Status indikator "${indicator.name}" (${indicator.id}) diubah menjadi ${status}.`,
+      });
+      addNotification({
+          title: `Pengajuan Indikator ${status}`,
+          description: `Pengajuan Anda untuk indikator "${indicator.name}" telah ${status}.`,
+          link: '/dashboard/indicators',
+          recipientUnit: indicator.unit
       });
   }
   
@@ -190,9 +198,7 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
           const indicator = row.original as SubmittedIndicator
           const canVerify = currentUser?.role === 'Admin Sistem' || 
                             currentUser?.role === 'Direktur' ||
-                            currentUser?.role === 'Sub. Komite Peningkatan Mutu' ||
-                            currentUser?.role === 'Sub. Komite Keselamatan Pasien' ||
-                            currentUser?.role === 'Kepala Unit/Instalasi';
+                            currentUser?.role === 'Sub. Komite Peningkatan Mutu';
       
           return (
               <DropdownMenu>

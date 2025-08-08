@@ -2,7 +2,8 @@
 "use client"
 
 import { create } from 'zustand';
-import React, { createContext, useContext, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useRef } from 'react';
+import { useNotificationStore } from './notification-store';
 
 export type UserRole = 
   | 'Admin Sistem' 
@@ -86,6 +87,15 @@ export const useUserStore = (): UserState => {
   if (!store) {
     throw new Error('useUserStore must be used within a UserStoreProvider');
   }
-  // This ensures that the component using the store re-renders when the state changes.
-  return store(state => state);
+
+  const userState = store(state => state);
+  const { setNotificationsForUser } = useNotificationStore.getState();
+
+  useEffect(() => {
+    // When the current user changes, re-filter the notifications
+    setNotificationsForUser(userState.currentUser, userState.users);
+  }, [userState.currentUser, userState.users, setNotificationsForUser]);
+
+
+  return userState;
 };

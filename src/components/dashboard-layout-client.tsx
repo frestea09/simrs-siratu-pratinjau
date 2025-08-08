@@ -7,7 +7,6 @@ import {
   SidebarHeader,
   SidebarContent,
   SidebarMenu,
-  SidebarMenuItem,
   SidebarFooter,
   SidebarTrigger,
   SidebarInset,
@@ -24,7 +23,6 @@ import {
   LogOut,
   FolderKanban,
   FileText,
-  Bell,
   ListChecks,
   History,
   Target,
@@ -36,7 +34,6 @@ import {
 import Link from "next/link"
 import { usePathname, useRouter } from 'next/navigation'
 import { UserNav } from "@/components/user-nav"
-import { Button } from "@/components/ui/button"
 import React from "react"
 import { Breadcrumb } from "@/components/molecules/breadcrumb"
 import { useUserStore } from "@/store/user-store.tsx"
@@ -44,6 +41,7 @@ import { useLogStore } from "@/store/log-store.tsx"
 import { NavItem as NavItemType } from "@/types/nav"
 import { NavItem } from "./molecules/nav-item"
 import { cn } from "@/lib/utils"
+import { NotificationPopover } from "./organisms/notification-popover"
 
 const LoadingOverlay = ({ isLoading }: { isLoading: boolean }) => (
     <div className={cn(
@@ -103,7 +101,6 @@ export default function DashboardClientLayout({
 }) {
   const pathname = usePathname()
   const router = useRouter();
-  const [openMenus, setOpenMenus] = React.useState<{ [key: string]: boolean }>({});
   const { currentUser, clearCurrentUser } = useUserStore();
   const { addLog } = useLogStore();
   const [isLoading, setIsLoading] = React.useState(false);
@@ -151,15 +148,8 @@ export default function DashboardClientLayout({
 
   const allNavItems = React.useMemo(() => {
     const fullNav = JSON.parse(JSON.stringify(navItems)) as NavItemType[];
-    const indicatorMutu = fullNav.find(item => item.label === 'Layanan')?.subItems?.find(sub => sub.label === 'Indikator Mutu');
-    if (indicatorMutu && indicatorMutu.subItems) {
-        indicatorMutu.subItems[0].label = "Standar Pelayanan Minimal";
-        indicatorMutu.subItems[1].label = "Indikator Nasional Mutu";
-        indicatorMutu.subItems[2].label = "Indikator Mutu Prioritas RS";
-        indicatorMutu.subItems[3].label = "Indikator Prioritas Unit";
-    }
     return fullNav.concat(adminNavItems);
-  }, [adminNavItems]);
+  }, []);
 
   const breadcrumbPath = findPath(allNavItems, pathname);
   const currentPage = breadcrumbPath[breadcrumbPath.length - 1];
@@ -193,7 +183,7 @@ export default function DashboardClientLayout({
           <SidebarContent className="p-2">
             <SidebarMenu>
               {navItems.map((item, index) => (
-                <NavItem key={index} item={item} openMenus={openMenus} setOpenMenus={setOpenMenus} />
+                <NavItem key={index} item={item} />
               ))}
             </SidebarMenu>
             
@@ -203,7 +193,7 @@ export default function DashboardClientLayout({
                   Administrasi
                 </p>
                 {adminNavItems.map((item) => (
-                  <NavItem key={item.href} item={item} openMenus={openMenus} setOpenMenus={setOpenMenus} />
+                  <NavItem key={item.href} item={item} />
                 ))}
               </SidebarMenu>
             )}
@@ -212,7 +202,7 @@ export default function DashboardClientLayout({
           <SidebarFooter className="p-2 mt-auto">
             <SidebarMenu>
               <SidebarMenuItem>
-                <NavItem item={{ label: 'Logout', icon: LogOut, onClick: handleLogout }} openMenus={openMenus} setOpenMenus={setOpenMenus} />
+                <NavItem item={{ label: 'Logout', icon: LogOut, onClick: handleLogout }} />
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarFooter>
@@ -225,10 +215,7 @@ export default function DashboardClientLayout({
                       {currentPage?.label || 'Dashboard'}
                   </h1>
                   <div className="ml-auto flex items-center gap-2">
-                      <Button variant="ghost" size="icon" className="rounded-full w-10 h-10">
-                          <Bell className="h-6 w-6" />
-                          <span className="sr-only">Notifikasi</span>
-                      </Button>
+                      <NotificationPopover />
                       <UserNav />
                   </div>
               </div>

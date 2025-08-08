@@ -11,6 +11,7 @@ import { useLogStore } from "@/store/log-store.tsx"
 import { Step1PatientData } from "./incident-report-form/step1-patient-data"
 import { Step2IncidentDetails } from "./incident-report-form/step2-incident-details"
 import { Step3FollowUp } from "./incident-report-form/step3-follow-up"
+import { useNotificationStore } from "@/store/notification-store"
 
 const steps = [
     { id: '01', name: 'Data Pasien' },
@@ -41,6 +42,7 @@ export function IncidentReportForm({ setOpen, incident }: IncidentReportFormProp
     const { toast } = useToast()
     const { currentUser } = useUserStore();
     const { addLog } = useLogStore();
+    const { addNotification } = useNotificationStore();
     
     const [formData, setFormData] = React.useState<Partial<Incident>>(
         incident ? {
@@ -66,7 +68,13 @@ export function IncidentReportForm({ setOpen, incident }: IncidentReportFormProp
             toast({ title: "Laporan Berhasil Diperbarui", description: `Laporan insiden ${incident.id} telah diperbarui.` });
         } else {
             const newId = addIncident(finalData);
-            addLog({ user: currentUser?.name || 'System', action: 'ADD_INCIDENT', details: `Laporan insiden baru ${newId} ditambahkan.` })
+            addLog({ user: currentUser?.name || 'Anonymous', action: 'ADD_INCIDENT', details: `Laporan insiden baru ${newId} ditambahkan.` })
+            addNotification({
+                title: 'Laporan Insiden Baru',
+                description: `Insiden baru (${finalData.type}) telah dilaporkan. Segera lakukan investigasi.`,
+                link: '/dashboard/incidents',
+                recipientRole: 'Sub. Komite Keselamatan Pasien',
+            })
             toast({ title: "Laporan Berhasil Disimpan", description: "Laporan insiden baru telah ditambahkan ke daftar." });
         }
         setOpen(false);

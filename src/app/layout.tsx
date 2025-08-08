@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { UserStoreProvider } from '@/store/user-store.tsx';
 import { LogStoreProvider } from '@/store/log-store.tsx';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { NotificationStoreProvider } from '@/store/notification-store.tsx';
 
 export const metadata: Metadata = {
   title: 'Si Ratu Web',
@@ -25,10 +26,12 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <UserStoreProvider>
           <LogStoreProvider>
-            <TooltipProvider>
-              {children}
-              <Toaster />
-            </TooltipProvider>
+            <NotificationStoreProvider>
+              <TooltipProvider>
+                {children}
+                <Toaster />
+              </TooltipProvider>
+            </NotificationStoreProvider>
           </LogStoreProvider>
         </UserStoreProvider>
       </body>

@@ -31,6 +31,7 @@ import { HOSPITAL_UNITS } from "@/lib/constants"
 import { useUserStore } from "@/store/user-store"
 import { useLogStore } from "@/store/log-store"
 import { Combobox } from "../ui/combobox"
+import { useNotificationStore } from "@/store/notification-store"
 
 const formSchema = z.object({
   name: z.string().min(5, {
@@ -78,6 +79,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
   const { submitIndicator, updateSubmittedIndicator, submittedIndicators } = useIndicatorStore()
   const { currentUser } = useUserStore();
   const { addLog } = useLogStore();
+  const { addNotification } = useNotificationStore();
   const isEditMode = !!indicator;
   
   const userCanSelectUnit = currentUser && centralRoles.includes(currentUser.role);
@@ -94,7 +96,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
         standardUnit: indicator.standardUnit,
     } : {
       name: "",
-      unit: userCanSelectUnit ? "" : currentUser?.unit,
+      unit: userCanSelectUnit ? undefined : currentUser?.unit,
       description: "",
       standard: 100,
       standardUnit: '%',
@@ -148,6 +150,16 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
             action: 'ADD_SUBMITTED_INDICATOR',
             details: `Indikator baru "${values.name}" (${newId}) diajukan.`
         })
+
+        if(values.category === 'IPU') {
+             addNotification({
+                title: 'Pengajuan Indikator Baru',
+                description: `Indikator "${values.name}" dari unit ${values.unit} menunggu persetujuan Anda.`,
+                link: '/dashboard/indicators',
+                recipientRole: 'Sub. Komite Peningkatan Mutu',
+            })
+        }
+
         toast({
           title: "Pengajuan Berhasil",
           description: `Indikator "${values.name}" telah berhasil diajukan.`,
@@ -223,7 +235,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                                 searchPlaceholder="Cari unit..."
                                 value={field.value}
                                 onSelect={(value) => form.setValue('unit', value)}
-                                disabled={!userCanSelectUnit}
+                                disabled={!userCanSelectUnit && !!currentUser?.unit}
                             />
                           <FormMessage />
                         </FormItem>
@@ -315,5 +327,3 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
     </Form>
   )
 }
-
-    

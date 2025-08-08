@@ -1,16 +1,16 @@
+
 "use client"
 
+import React from "react"
 import {
   Activity,
   AlertTriangle,
-  BarChart,
-  ClipboardCheck,
-  Download,
-  FileText,
-  ShieldCheck,
+  Users,
   TrendingUp,
+  FileClock,
+  ThumbsUp,
 } from "lucide-react"
-import { Bar, BarChart as BarChartRecharts, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { Bar, BarChart as BarChartRecharts, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -29,24 +29,75 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { useIndicatorStore } from "@/store/indicator-store"
+import { useIncidentStore } from "@/store/incident-store"
+import { useUserStore } from "@/store/user-store"
+import { useLogStore } from "@/store/log-store"
+import { format } from "date-fns"
+import { id as IndonesianLocale } from "date-fns/locale"
 
-const chartData = [
-  { month: "Jan", value: 86 },
-  { month: "Feb", value: 92 },
-  { month: "Mar", value: 95 },
-  { month: "Apr", value: 91 },
-  { month: "Mei", value: 89 },
-  { month: "Jun", value: 98 },
-]
-
-const recentReports = [
-  { id: "LAP-001", title: "Laporan Mutu Bulanan", date: "2023-06-01", status: "Selesai" },
-  { id: "IKP-012", title: "Insiden Keselamatan Pasien", date: "2023-06-05", status: "Investigasi" },
-  { id: "RM-005", title: "Analisis Risiko Baru", date: "2023-06-10", status: "Mitigasi" },
-  { id: "SC-003", title: "Survei Budaya Keselamatan", date: "2023-06-15", status: "Analisis" },
-]
+const centralRoles = [
+  'Admin Sistem',
+  'Sub. Komite Keselamatan Pasien'
+];
 
 export default function OverviewPage() {
+  const { indicators, submittedIndicators } = useIndicatorStore()
+  const { incidents } = useIncidentStore()
+  const { users, currentUser } = useUserStore()
+  const { logs } = useLogStore()
+
+  const canViewIncidentData = currentUser && centralRoles.includes(currentUser.role)
+
+  // -- Card Metrics --
+  const totalIndicators = indicators.length
+  const meetingStandard = indicators.filter(i => i.status === 'Memenuhi Standar').length
+  const qualityAchievement = totalIndicators > 0 ? ((meetingStandard / totalIndicators) * 100).toFixed(1) : "0.0"
+
+  const pendingSubmissions = submittedIndicators.filter(s => s.status === 'Menunggu Persetujuan').length
+  const totalIncidents = incidents.length
+  const totalUsers = users.length
+
+  // -- Chart Data --
+  const chartData = React.useMemo(() => {
+    const monthlyAverages: { [key: string]: { total: number; count: number } } = {}
+    
+    // Get last 6 months
+    const last6Months: string[] = [];
+    const today = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      last6Months.push(format(d, "yyyy-MM"));
+      const monthName = format(d, 'MMM', { locale: IndonesianLocale });
+      monthlyAverages[monthName] = { total: 0, count: 0 };
+    }
+
+    const recentIndicators = indicators.filter(i => {
+      const indicatorMonth = format(new Date(i.period), "yyyy-MM");
+      return last6Months.includes(indicatorMonth) && i.standardUnit === '%';
+    });
+    
+    recentIndicators.forEach(i => {
+      const month = format(new Date(i.period), 'MMM', { locale: IndonesianLocale });
+      monthlyAverages[month].total += parseFloat(i.ratio);
+      monthlyAverages[month].count += 1;
+    });
+
+    return Object.entries(monthlyAverages).map(([month, data]) => ({
+      month,
+      "Capaian": data.count > 0 ? parseFloat((data.total / data.count).toFixed(1)) : 0,
+    }));
+  }, [indicators]);
+
+  // -- Recent Activity --
+  const recentActivity = logs.slice(0, 5)
+  const getActionVariant = (action: string) => {
+    if (action.includes("SUCCESS") || action.includes("ADD") || action.includes("UPDATE")) return "default"
+    if (action.includes("FAIL")) return "destructive"
+    return "secondary"
+  }
+
+
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
@@ -55,53 +106,60 @@ export default function OverviewPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Capaian Indikator Mutu
-            </CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Capaian Mutu</CardTitle>
+            <ThumbsUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">98%</div>
+            <div className="text-2xl font-bold">{qualityAchievement}%</div>
             <p className="text-xs text-muted-foreground">
-              +3% dari bulan lalu
+              {meetingStandard} dari {totalIndicators} indikator memenuhi standar
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Insiden Keselamatan
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Insiden Keselamatan</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">3</div>
+            {canViewIncidentData ? (
+              <>
+                <div className="text-2xl font-bold">{totalIncidents}</div>
+                <p className="text-xs text-muted-foreground">
+                  Total insiden yang dilaporkan
+                </p>
+              </>
+            ) : (
+               <>
+                <div className="text-2xl font-bold">-</div>
+                <p className="text-xs text-muted-foreground">
+                  Data hanya bisa dilihat komite
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pengajuan Indikator</CardTitle>
+            <FileClock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{pendingSubmissions}</div>
             <p className="text-xs text-muted-foreground">
-              Insiden bulan ini
+              Menunggu persetujuan
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Budaya Keselamatan</CardTitle>
-            <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Pengguna Aktif</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">Positif</div>
+            <div className="text-2xl font-bold">{totalUsers}</div>
             <p className="text-xs text-muted-foreground">
-              Hasil survei terakhir
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Risiko Aktif</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">8</div>
-            <p className="text-xs text-muted-foreground">
-              Memerlukan mitigasi
+              Total pengguna terdaftar
             </p>
           </CardContent>
         </Card>
@@ -109,8 +167,8 @@ export default function OverviewPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4">
           <CardHeader>
-            <CardTitle>Capaian Indikator Mutu Utama</CardTitle>
-            <CardDescription>Tingkat Kepatuhan Kebersihan Tangan</CardDescription>
+            <CardTitle>Tren Capaian Mutu (6 Bulan Terakhir)</CardTitle>
+            <CardDescription>Rata-rata capaian semua indikator (dalam %).</CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
             <ResponsiveContainer width="100%" height={350}>
@@ -128,48 +186,45 @@ export default function OverviewPage() {
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={(value) => `${value}%`}
+                  unit="%"
                 />
                 <Tooltip
                   cursor={{ fill: 'hsl(var(--muted))' }}
                   contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
                 />
-                <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Capaian" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
+                    <LabelList dataKey="Capaian" position="top" formatter={(value: number) => `${value}%`} />
+                </Bar>
               </BarChartRecharts>
             </ResponsiveContainer>
           </CardContent>
         </Card>
         <Card className="col-span-4 lg:col-span-3">
           <CardHeader>
-            <CardTitle>Laporan Terbaru</CardTitle>
+            <CardTitle>Aktivitas Sistem Terbaru</CardTitle>
             <CardDescription>
-              Laporan mutu dan insiden yang baru dibuat.
+              5 aktivitas terakhir yang terekam dalam sistem.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Judul Laporan</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Waktu</TableHead>
+                  <TableHead>Pengguna</TableHead>
+                  <TableHead>Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {recentReports.map((report) => (
-                  <TableRow key={report.id}>
-                    <TableCell className="font-medium">{report.id}</TableCell>
+                {recentActivity.map((log) => (
+                  <TableRow key={log.id}>
                     <TableCell>
-                      <div className="font-medium">{report.title}</div>
-                      <div className="text-sm text-muted-foreground">{report.date}</div>
+                      <div className="font-medium">{format(new Date(log.timestamp), "HH:mm")}</div>
+                      <div className="text-xs text-muted-foreground">{format(new Date(log.timestamp), "dd MMM", { locale: IndonesianLocale })}</div>
                     </TableCell>
+                    <TableCell>{log.user}</TableCell>
                     <TableCell>
-                      <Badge variant={report.status === 'Selesai' ? 'default' : 'secondary'}
-                        className={
-                          report.status === 'Investigasi' ? 'bg-yellow-500/20 text-yellow-700' :
-                          report.status === 'Mitigasi' ? 'bg-red-500/20 text-red-700' : ''
-                        }
-                      >{report.status}</Badge>
+                       <Badge variant={getActionVariant(log.action)}>{log.action}</Badge>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -181,3 +236,5 @@ export default function OverviewPage() {
     </div>
   )
 }
+
+    

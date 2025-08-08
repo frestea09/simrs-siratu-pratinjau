@@ -22,9 +22,9 @@ export function Breadcrumb({ navItems }: BreadcrumbProps) {
           return [{ href: item.href, label: item.label }];
         }
         if (item.subItems) {
-          const subPath = findPath(item.subItems, currentPath);
-          if (subPath.length > 0) {
-            return [{ href: '#', label: item.label }, ...subPath];
+          const path = findPath(item.subItems, currentPath);
+          if (path.length > 0) {
+            return [{ href: '#', label: item.label }, ...path];
           }
         }
       }
@@ -35,7 +35,7 @@ export function Breadcrumb({ navItems }: BreadcrumbProps) {
     setBreadcrumbs(path);
   }, [pathname, navItems]);
 
-  if (breadcrumbs.length === 0) {
+  if (breadcrumbs.length === 0 || pathname === '/dashboard/overview') {
     return null;
   }
 

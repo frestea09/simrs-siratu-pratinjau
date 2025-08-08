@@ -61,7 +61,7 @@ type IndicatorSubmissionFormProps = {
 const categoryOptions: {value: IndicatorCategory, label: string}[] = [
     { value: 'INM', label: 'Indikator Nasional Mutu (INM)'},
     { value: 'IMP-RS', label: 'Indikator Mutu Prioritas RS (IMP-RS)'},
-    { value: 'IPU', label: 'Indikator Prioritas Unit (IPU)'},
+    { value: 'IPU', label: 'Indikator Mutu Prioritas Unit (IPU)'},
     { value: 'SPM', label: 'Standar Pelayanan Minimal (SPM)'},
 ]
 

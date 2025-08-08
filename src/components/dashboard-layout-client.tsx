@@ -150,6 +150,9 @@ export default function DashboardClientLayout({
 
   const allNavItems = React.useMemo(() => {
     const fullNav = JSON.parse(JSON.stringify(navItems)) as NavItemType[];
+     if(fullNav[1]?.subItems?.[1]?.subItems?.[3]){
+        fullNav[1].subItems[1].subItems[3].label = 'Indikator Mutu Prioritas Unit (IPU)';
+    }
     return fullNav.concat(adminNavItems);
   }, []);
 

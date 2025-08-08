@@ -10,6 +10,7 @@ import {
   SidebarFooter,
   SidebarTrigger,
   SidebarInset,
+  SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import {
   LayoutDashboard,
@@ -42,6 +43,7 @@ import { NavItem as NavItemType } from "@/types/nav"
 import { NavItem } from "./molecules/nav-item"
 import { cn } from "@/lib/utils"
 import { NotificationPopover } from "./organisms/notification-popover"
+import { Button } from "@/components/ui/button"
 
 const LoadingOverlay = ({ isLoading }: { isLoading: boolean }) => (
     <div className={cn(
@@ -153,6 +155,8 @@ export default function DashboardClientLayout({
 
   const breadcrumbPath = findPath(allNavItems, pathname);
   const currentPage = breadcrumbPath[breadcrumbPath.length - 1];
+  const [openMenus, setOpenMenus] = React.useState<{ [key: string]: boolean }>({});
+
 
   return (
     <>
@@ -183,7 +187,7 @@ export default function DashboardClientLayout({
           <SidebarContent className="p-2">
             <SidebarMenu>
               {navItems.map((item, index) => (
-                <NavItem key={index} item={item} />
+                <NavItem key={index} item={item} openMenus={openMenus} setOpenMenus={setOpenMenus}/>
               ))}
             </SidebarMenu>
             
@@ -193,7 +197,7 @@ export default function DashboardClientLayout({
                   Administrasi
                 </p>
                 {adminNavItems.map((item) => (
-                  <NavItem key={item.href} item={item} />
+                  <NavItem key={item.href} item={item} openMenus={openMenus} setOpenMenus={setOpenMenus}/>
                 ))}
               </SidebarMenu>
             )}
@@ -202,7 +206,7 @@ export default function DashboardClientLayout({
           <SidebarFooter className="p-2 mt-auto">
             <SidebarMenu>
               <SidebarMenuItem>
-                <NavItem item={{ label: 'Logout', icon: LogOut, onClick: handleLogout }} />
+                <NavItem item={{ label: 'Logout', icon: LogOut, onClick: handleLogout }} openMenus={openMenus} setOpenMenus={setOpenMenus} />
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarFooter>

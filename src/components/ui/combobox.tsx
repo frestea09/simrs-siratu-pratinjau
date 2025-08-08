@@ -26,9 +26,10 @@ type ComboboxProps = {
     searchPlaceholder: string;
     onSelect: (value: string) => void;
     value?: string;
+    disabled?: boolean;
 }
 
-export function Combobox({ options, placeholder, searchPlaceholder, onSelect, value }: ComboboxProps) {
+export function Combobox({ options, placeholder, searchPlaceholder, onSelect, value, disabled = false }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
 
   return (
@@ -39,6 +40,7 @@ export function Combobox({ options, placeholder, searchPlaceholder, onSelect, va
           role="combobox"
           aria-expanded={open}
           className="w-full justify-between"
+          disabled={disabled}
         >
           {value
             ? options.find((option) => option.value === value)?.label
@@ -57,7 +59,8 @@ export function Combobox({ options, placeholder, searchPlaceholder, onSelect, va
                   key={option.value}
                   value={option.value}
                   onSelect={(currentValue) => {
-                    onSelect(currentValue === value ? "" : currentValue)
+                    const selectedValue = options.find(opt => opt.label.toLowerCase() === currentValue)?.value || currentValue;
+                    onSelect(selectedValue === value ? "" : selectedValue)
                     setOpen(false)
                   }}
                 >

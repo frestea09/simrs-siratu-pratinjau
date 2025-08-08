@@ -107,6 +107,115 @@ const categoryFilter: FilterFn<SubmittedIndicator> = (row, columnId, value) => {
 }
 
 
+const ActionsCell = ({ row }: { row: any }) => {
+    const indicator = row.original as SubmittedIndicator
+    const [isDetailOpen, setIsDetailOpen] = React.useState(false);
+    const [isEditOpen, setIsEditOpen] = React.useState(false);
+    const [rejectionDialog, setRejectionDialog] = React.useState<{isOpen: boolean, indicator: SubmittedIndicator | null}>({isOpen: false, indicator: null});
+    
+    const { updateSubmittedIndicatorStatus } = useIndicatorStore.getState()
+    const { currentUser } = useUserStore();
+    const { addLog } = useLogStore();
+    const { addNotification } = useNotificationStore();
+
+    const handleStatusChange = (indicator: SubmittedIndicator, status: SubmittedIndicator['status'], reason?: string) => {
+        updateSubmittedIndicatorStatus(indicator.id, status, reason)
+        addLog({
+            user: currentUser?.name || 'System',
+            action: 'UPDATE_INDICATOR_STATUS',
+            details: `Status indikator "${indicator.name}" (${indicator.id}) diubah menjadi ${status}.`,
+        });
+        addNotification({
+            title: `Pengajuan Indikator ${status}`,
+            description: `Pengajuan Anda untuk indikator "${indicator.name}" telah ${status}.`,
+            link: '/dashboard/indicators',
+            recipientUnit: indicator.unit
+        });
+    }
+    
+    const openRejectionDialog = (indicator: SubmittedIndicator) => {
+        setRejectionDialog({ isOpen: true, indicator });
+    };
+
+    const canVerify = currentUser?.role === 'Admin Sistem' || 
+                      currentUser?.role === 'Direktur' ||
+                      currentUser?.role === 'Sub. Komite Peningkatan Mutu';
+
+    return (
+        <>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => setIsDetailOpen(true)}>
+                        <Eye className="mr-2 h-4 w-4" />
+                        Lihat Detail
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setIsEditOpen(true)}>
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        onClick={() => navigator.clipboard.writeText(indicator.id)}
+                    >
+                        Salin ID Indikator
+                    </DropdownMenuItem>
+                    {canVerify && (
+                        <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuSub>
+                                <DropdownMenuSubTrigger>Ubah Status</DropdownMenuSubTrigger>
+                                <DropdownMenuSubContent>
+                                    {statusOptions.map((status) => (
+                                    <DropdownMenuItem 
+                                        key={status} 
+                                        onSelect={() => {
+                                        if (status === 'Ditolak') {
+                                            openRejectionDialog(indicator);
+                                        } else {
+                                            handleStatusChange(indicator, status);
+                                        }
+                                        }}
+                                    >
+                                        {status}
+                                    </DropdownMenuItem>
+                                    ))}
+                                </DropdownMenuSubContent>
+                            </DropdownMenuSub>
+                        </>
+                    )}
+                </DropdownMenuContent>
+            </DropdownMenu>
+
+            <IndicatorSubmissionDetailDialog 
+                indicator={indicator}
+                open={isDetailOpen}
+                onOpenChange={setIsDetailOpen}
+            />
+            <IndicatorSubmissionDialog 
+                indicator={indicator}
+                open={isEditOpen}
+                setOpen={setIsEditOpen}
+            />
+            <RejectionReasonDialog
+                open={rejectionDialog.isOpen}
+                onOpenChange={(isOpen) => setRejectionDialog({ isOpen, indicator: null })}
+                onSubmit={(reason) => {
+                if (rejectionDialog.indicator) {
+                    handleStatusChange(rejectionDialog.indicator, 'Ditolak', reason);
+                }
+                }}
+            />
+        </>
+    )
+}
+
+
 type IndicatorSubmissionTableProps = {
   indicators: SubmittedIndicator[]
 }
@@ -120,33 +229,6 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
     React.useState<VisibilityState>({ id: false })
   const [rowSelection, setRowSelection] = React.useState({})
   const [date, setDate] = React.useState<DateRange | undefined>()
-  const [selectedIndicator, setSelectedIndicator] = React.useState<SubmittedIndicator | null>(null);
-  const [isDetailOpen, setIsDetailOpen] = React.useState(false);
-  const [rejectionDialog, setRejectionDialog] = React.useState<{isOpen: boolean, indicator: SubmittedIndicator | null}>({isOpen: false, indicator: null});
-
-  const { updateSubmittedIndicatorStatus } = useIndicatorStore.getState()
-  const { currentUser } = useUserStore();
-  const { addLog } = useLogStore();
-  const { addNotification } = useNotificationStore();
-
-  const handleStatusChange = (indicator: SubmittedIndicator, status: SubmittedIndicator['status'], reason?: string) => {
-      updateSubmittedIndicatorStatus(indicator.id, status, reason)
-      addLog({
-          user: currentUser?.name || 'System',
-          action: 'UPDATE_INDICATOR_STATUS',
-          details: `Status indikator "${indicator.name}" (${indicator.id}) diubah menjadi ${status}.`,
-      });
-      addNotification({
-          title: `Pengajuan Indikator ${status}`,
-          description: `Pengajuan Anda untuk indikator "${indicator.name}" telah ${status}.`,
-          link: '/dashboard/indicators',
-          recipientUnit: indicator.unit
-      });
-  }
-  
-  const openRejectionDialog = (indicator: SubmittedIndicator) => {
-    setRejectionDialog({ isOpen: true, indicator });
-  };
 
   const columns: ColumnDef<SubmittedIndicator>[] = [
     {
@@ -194,70 +276,7 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
     {
       id: "actions",
       enableHiding: false,
-      cell: ({ row }) => {
-          const indicator = row.original as SubmittedIndicator
-          const canVerify = currentUser?.role === 'Admin Sistem' || 
-                            currentUser?.role === 'Direktur' ||
-                            currentUser?.role === 'Sub. Komite Peningkatan Mutu';
-      
-          return (
-              <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Open menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                      <DropdownMenuItem onClick={() => {
-                        setSelectedIndicator(indicator)
-                        setIsDetailOpen(true)
-                      }}>
-                          <Eye className="mr-2 h-4 w-4" />
-                          Lihat Detail
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                          <IndicatorSubmissionDialog indicator={indicator} trigger={
-                              <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full">
-                                  <Pencil className="mr-2 h-4 w-4" />
-                                  <span>Edit</span>
-                              </button>
-                          } />
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                          onClick={() => navigator.clipboard.writeText(indicator.id)}
-                      >
-                          Salin ID Indikator
-                      </DropdownMenuItem>
-                      {canVerify && (
-                          <>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuSub>
-                                  <DropdownMenuSubTrigger>Ubah Status</DropdownMenuSubTrigger>
-                                  <DropdownMenuSubContent>
-                                    {statusOptions.map((status) => (
-                                      <DropdownMenuItem 
-                                        key={status} 
-                                        onSelect={() => {
-                                          if (status === 'Ditolak') {
-                                            openRejectionDialog(indicator);
-                                          } else {
-                                            handleStatusChange(indicator, status);
-                                          }
-                                        }}
-                                      >
-                                        {status}
-                                      </DropdownMenuItem>
-                                    ))}
-                                  </DropdownMenuSubContent>
-                              </DropdownMenuSub>
-                          </>
-                      )}
-                  </DropdownMenuContent>
-              </DropdownMenu>
-          )
-      }
+      cell: ActionsCell,
     },
   ]
 
@@ -469,20 +488,6 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
           </Button>
         </div>
       </div>
-      <IndicatorSubmissionDetailDialog 
-        indicator={selectedIndicator}
-        open={isDetailOpen}
-        onOpenChange={setIsDetailOpen}
-      />
-      <RejectionReasonDialog
-        open={rejectionDialog.isOpen}
-        onOpenChange={(isOpen) => setRejectionDialog({ isOpen, indicator: null })}
-        onSubmit={(reason) => {
-          if (rejectionDialog.indicator) {
-            handleStatusChange(rejectionDialog.indicator, 'Ditolak', reason);
-          }
-        }}
-      />
     </div>
   )
 }

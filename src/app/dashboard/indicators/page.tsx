@@ -7,6 +7,8 @@ import { IndicatorSubmissionTable } from "@/components/organisms/indicator-submi
 import { useIndicatorStore } from "@/store/indicator-store"
 import { useUserStore } from "@/store/user-store.tsx"
 import React from "react"
+import { Button } from "@/components/ui/button"
+import { PlusCircle } from "lucide-react"
 
 const centralRoles = [
   'Admin Sistem',
@@ -19,6 +21,8 @@ const centralRoles = [
 export default function IndicatorsPage() {
   const { submittedIndicators } = useIndicatorStore();
   const { currentUser } = useUserStore();
+  const [isNewDialogOpen, setIsNewDialogOpen] = React.useState(false);
+
 
   const userCanSeeAll = currentUser && centralRoles.includes(currentUser.role);
 
@@ -44,13 +48,17 @@ export default function IndicatorsPage() {
                           {currentUser?.unit && !userCanSeeAll && ` (Hanya menampilkan untuk Unit: ${currentUser.unit})`}
                       </CardDescription>
                   </div>
-                  <IndicatorSubmissionDialog />
+                   <Button size="lg" onClick={() => setIsNewDialogOpen(true)}>
+                      <PlusCircle className="mr-2 h-5 w-5" />
+                      Ajukan Indikator Baru
+                  </Button>
               </div>
           </CardHeader>
           <CardContent>
               <IndicatorSubmissionTable indicators={filteredSubmittedIndicators} />
           </CardContent>
       </Card>
+      <IndicatorSubmissionDialog open={isNewDialogOpen} setOpen={setIsNewDialogOpen} />
     </div>
   )
 }

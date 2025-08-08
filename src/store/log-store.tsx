@@ -18,8 +18,7 @@ type LogAction =
  | 'UPDATE_INDICATOR_STATUS'
  | 'ADD_INCIDENT'
  | 'UPDATE_INCIDENT'
- | 'ADD_SPM'
- | 'UPDATE_SPM'
+
 
 export type SystemLog = {
   id: string;

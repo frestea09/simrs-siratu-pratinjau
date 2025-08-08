@@ -70,10 +70,10 @@ const navItems: NavItemType[] = [
         label: "Indikator Mutu",
         icon: Activity,
         subItems: [
-          { href: "/dashboard/spm", icon: ListChecks, label: "Standar Pelayanan Minimal" },
-          { href: "/dashboard/inm", icon: Target, label: "Indikator Nasional Mutu" },
-          { href: "/dashboard/imp-rs", icon: Building, label: "Indikator Mutu Prioritas RS" },
-          { href: "/dashboard/ipu", icon: Network, label: "Indikator Prioritas Unit" },
+          { href: "/dashboard/spm", icon: ListChecks, label: "SPM" },
+          { href: "/dashboard/inm", icon: Target, label: "INM" },
+          { href: "/dashboard/imp-rs", icon: Building, label: "IMP-RS" },
+          { href: "/dashboard/ipu", icon: Network, label: "IPU" },
         ]
       },
       { href: "/dashboard/incidents", icon: ShieldAlert, label: "Insiden Keselamatan" },
@@ -149,7 +149,18 @@ export default function DashboardClientLayout({
       return [];
     };
 
-  const allNavItems = navItems.concat(adminNavItems);
+  const allNavItems = React.useMemo(() => {
+    const fullNav = JSON.parse(JSON.stringify(navItems)) as NavItemType[];
+    const indicatorMutu = fullNav.find(item => item.label === 'Layanan')?.subItems?.find(sub => sub.label === 'Indikator Mutu');
+    if (indicatorMutu && indicatorMutu.subItems) {
+        indicatorMutu.subItems[0].label = "Standar Pelayanan Minimal";
+        indicatorMutu.subItems[1].label = "Indikator Nasional Mutu";
+        indicatorMutu.subItems[2].label = "Indikator Mutu Prioritas RS";
+        indicatorMutu.subItems[3].label = "Indikator Prioritas Unit";
+    }
+    return fullNav.concat(adminNavItems);
+  }, [adminNavItems]);
+
   const breadcrumbPath = findPath(allNavItems, pathname);
   const currentPage = breadcrumbPath[breadcrumbPath.length - 1];
 

@@ -89,8 +89,9 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
     const dataToSave = {
         indicator: selectedSubmittedIndicator.name,
         category: selectedSubmittedIndicator.category,
-        unit: selectedSubmittedIndicator.unit, // Add unit to saved data
-        period: format(date, "yyyy-MM"),
+        unit: selectedSubmittedIndicator.unit,
+        period: format(date, "yyyy-MM-dd"), // Use full date for daily/weekly compatibility
+        frequency: selectedSubmittedIndicator.frequency,
         numerator: Number(numerator),
         denominator: Number(denominator),
         standard: selectedSubmittedIndicator.standard,
@@ -107,7 +108,7 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
         });
         toast({
             title: "Data Berhasil Diperbarui",
-            description: `Capaian untuk ${dataToSave.indicator} periode ${format(date, "MMMM yyyy")} telah diperbarui.`,
+            description: `Capaian untuk ${dataToSave.indicator} periode ${format(date, "d MMMM yyyy")} telah diperbarui.`,
         })
     } else {
          const newId = addIndicator(dataToSave)
@@ -118,7 +119,7 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
         });
         toast({
             title: "Data Berhasil Disimpan",
-            description: `Capaian untuk ${dataToSave.indicator} periode ${format(date, "MMMM yyyy")} telah ditambahkan.`,
+            description: `Capaian untuk ${dataToSave.indicator} periode ${format(date, "d MMMM yyyy")} telah ditambahkan.`,
         })
     }
 
@@ -152,7 +153,7 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="period" className="text-base">Periode Laporan</Label>
+          <Label htmlFor="period" className="text-base">Tanggal Laporan</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -208,7 +209,7 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
     
       {selectedSubmittedIndicator && (
         <div className="bg-muted p-3 rounded-lg text-sm">
-            <p className="font-semibold">Standar Target: <span className="font-bold text-primary">{selectedSubmittedIndicator.standard}{selectedSubmittedIndicator.standardUnit}</span></p>
+            <p className="font-semibold">Standar Target: <span className="font-bold text-primary">{selectedSubmittedIndicator.standard}{selectedSubmittedIndicator.standardUnit}</span> ({selectedSubmittedIndicator.frequency})</p>
             <p className="text-muted-foreground">{selectedSubmittedIndicator.description}</p>
         </div>
       )}

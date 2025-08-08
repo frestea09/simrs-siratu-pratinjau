@@ -41,7 +41,7 @@ const formSchema = z.object({
     required_error: "Anda harus memilih kategori indikator.",
   }),
   unit: z.string({ required_error: "Anda harus memilih unit." }),
-  frequency: z.enum(['Harian', 'Mingguan', 'Bulanan', '6 Bulanan'], {
+  frequency: z.enum(['Harian', 'Mingguan', 'Bulanan', 'Tahunan'], {
     required_error: "Anda harus memilih frekuensi pelaporan.",
   }),
   description: z.string().min(10, {
@@ -83,7 +83,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
   const { addNotification } = useNotificationStore();
   const isEditMode = !!indicator;
   
-  const userCanSelectUnit = currentUser && centralRoles.includes(currentUser.role);
+  const userIsAdmin = currentUser && centralRoles.includes(currentUser.role);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -97,21 +97,25 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
         standardUnit: indicator.standardUnit,
     } : {
       name: "",
-      unit: userCanSelectUnit ? undefined : currentUser?.unit,
+      unit: userIsAdmin ? undefined : currentUser?.unit,
       description: "",
       standard: 100,
       standardUnit: '%',
+      frequency: 'Bulanan',
     },
   })
 
-  const selectedRole = form.watch("role");
   const selectedCategory = form.watch("category");
+  
+  const userCanSelectUnit = userIsAdmin || selectedCategory === 'IMPU';
+
 
   React.useEffect(() => {
-    if (!centralRoles.includes(selectedRole as any) && selectedCategory !== 'IMPU') {
+    // If user is not an admin and category is not IMPU, force their unit
+    if (!userIsAdmin && selectedCategory !== 'IMPU') {
         form.setValue('unit', currentUser?.unit || '');
     }
-  }, [selectedCategory, selectedRole, currentUser?.unit, form]);
+  }, [selectedCategory, userIsAdmin, currentUser?.unit, form]);
 
 
   function onSubmit(values: z.infer<typeof formSchema>) {
@@ -140,11 +144,8 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                 description: `Indikator "${values.name}" dari unit ${values.unit} menunggu persetujuan.`,
                 link: '/dashboard/indicators',
             };
-            // Notify PJ Ruangan in the same unit
             addNotification({ ...notificationPayload, recipientUnit: values.unit, recipientRole: 'PJ Ruangan' });
-            // Notify Kepala Unit/Instalasi in the same unit
             addNotification({ ...notificationPayload, recipientUnit: values.unit, recipientRole: 'Kepala Unit/Instalasi' });
-            // Notify the central committee
             addNotification({ ...notificationPayload, recipientRole: 'Sub. Komite Peningkatan Mutu' });
         }
 
@@ -211,7 +212,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                                 searchPlaceholder="Cari unit..."
                                 value={field.value}
                                 onSelect={(value) => form.setValue('unit', value)}
-                                disabled={!userCanSelectUnit && !!currentUser?.unit && selectedCategory !== 'IMPU'}
+                                disabled={!userCanSelectUnit}
                             />
                           <FormMessage />
                         </FormItem>
@@ -233,7 +234,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                             <SelectItem value="Harian">Harian</SelectItem>
                             <SelectItem value="Mingguan">Mingguan</SelectItem>
                             <SelectItem value="Bulanan">Bulanan</SelectItem>
-                            <SelectItem value="6 Bulanan">6 Bulanan</SelectItem>
+                            <SelectItem value="Tahunan">Tahunan</SelectItem>
                         </SelectContent>
                     </Select>
                     <FormMessage />

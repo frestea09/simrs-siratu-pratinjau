@@ -1,7 +1,7 @@
 
 "use client"
 
-import { format } from "date-fns"
+import { format, parseISO } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -23,7 +23,7 @@ export function ReportDetailDialog({ indicator, open, onOpenChange }: ReportDeta
                 <DialogHeader>
                     <DialogTitle>Detail Laporan Indikator</DialogTitle>
                     <DialogDescription>
-                        {indicator.indicator} - Periode {format(new Date(indicator.period), "MMMM yyyy", { locale: IndonesianLocale })}
+                        {indicator.indicator} - {format(parseISO(indicator.period), "d MMMM yyyy", { locale: IndonesianLocale })}
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">

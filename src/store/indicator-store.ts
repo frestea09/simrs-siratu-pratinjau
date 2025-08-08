@@ -2,6 +2,8 @@
 import { create } from 'zustand'
 
 export type IndicatorCategory = 'INM' | 'IMP-RS' | 'IMPU' | 'SPM';
+export type IndicatorFrequency = 'Harian' | 'Mingguan' | 'Bulanan' | 'Tahunan';
+
 
 export type SubmittedIndicator = {
   id: string;
@@ -9,7 +11,7 @@ export type SubmittedIndicator = {
   category: IndicatorCategory;
   description: string;
   unit: string;
-  frequency: 'Harian' | 'Mingguan' | 'Bulanan' | '6 Bulanan';
+  frequency: IndicatorFrequency;
   status: 'Menunggu Persetujuan' | 'Diverifikasi' | 'Ditolak';
   submissionDate: string;
   standard: number;
@@ -22,7 +24,8 @@ export type Indicator = {
   indicator: string;
   category: IndicatorCategory;
   unit: string;
-  period: string;
+  period: string; // YYYY-MM-DD for Harian/Mingguan, YYYY-MM for Bulanan
+  frequency: IndicatorFrequency;
   numerator: number;
   denominator: number;
   standard: number;
@@ -116,7 +119,7 @@ export const useIndicatorStore = create<IndicatorState>((set, get) => ({
         : 'Menunggu Persetujuan';
 
     const newSubmittedIndicator = {
-        ...indicator,
+        ...(indicator as SubmittedIndicator),
         id: newId,
         status: status,
         submissionDate: new Date().toISOString().split('T')[0],

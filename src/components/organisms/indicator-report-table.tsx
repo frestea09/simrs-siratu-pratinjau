@@ -17,7 +17,7 @@ import {
 } from "@tanstack/react-table"
 import { ArrowUpDown, Calendar as CalendarIcon, Download, Filter } from "lucide-react"
 import { DateRange } from "react-day-picker"
-import { format } from "date-fns"
+import { format, parseISO } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
 
 import { Button } from "@/components/ui/button"
@@ -46,7 +46,7 @@ declare module '@tanstack/react-table' {
 }
 
 const dateRangeFilter: FilterFn<Indicator> = (row, columnId, value) => {
-    const rowDate = new Date(row.original.period);
+    const rowDate = parseISO(row.original.period);
     const [start, end] = value as [Date, Date];
 
     const normalizedStart = start ? new Date(start.getFullYear(), start.getMonth(), 1) : null;
@@ -102,7 +102,7 @@ export function IndicatorReportTable({ indicators, onExport, onEdit, showCategor
     {
       accessorKey: "period",
       header: "Periode",
-      cell: ({ row }) => <div>{format(new Date(row.getValue("period")), "MMMM yyyy", { locale: IndonesianLocale })}</div>,
+      cell: ({ row }) => <div>{format(parseISO(row.getValue("period")), "d MMMM yyyy", { locale: IndonesianLocale })}</div>,
       filterFn: 'dateRangeFilter',
     },
     {
@@ -178,11 +178,11 @@ export function IndicatorReportTable({ indicators, onExport, onEdit, showCategor
           <PopoverTrigger asChild>
             <Button id="date" variant={"outline"} className={cn("flex-1 min-w-[200px] justify-start text-left font-normal", !date && "text-muted-foreground")}>
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {date?.from ? (date.to ? (<>{format(date.from, "LLL y")} - {format(date.to, "LLL y")}</>) : (format(date.from, "LLL y"))) : (<span>Pilih rentang periode</span>)}
+              {date?.from ? (date.to ? (<>{format(date.from, "LLL dd, y")} - {format(date.to, "LLL dd, y")}</>) : (format(date.from, "LLL dd, y"))) : (<span>Pilih rentang periode</span>)}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
-            <Calendar initialFocus mode="range" defaultMonth={date?.from} selected={date} onSelect={setDate} numberOfMonths={2} captionLayout="dropdown-buttons" fromYear={2020} toYear={new Date().getFullYear()} />
+            <Calendar initialFocus mode="range" defaultMonth={date?.from} selected={date} onSelect={setDate} numberOfMonths={2} />
           </PopoverContent>
         </Popover>
         {showCategoryFilter && (

@@ -2,7 +2,6 @@
 "use client"
 
 import * as React from "react"
-import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -10,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { PlusCircle } from "lucide-react"
 import { SpmInputForm } from "./spm-input-form"
 import { SpmIndicator } from "@/store/spm-store"
 

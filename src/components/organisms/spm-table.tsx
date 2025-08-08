@@ -33,7 +33,6 @@ import { SpmIndicator } from "@/store/spm-store"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Calendar } from "../ui/calendar"
 import { cn } from "@/lib/utils"
-import { SpmDetailDialog } from "./spm-detail-dialog"
 import { ActionsCell } from "./spm-table/actions-cell"
 
 const dateRangeFilter: FilterFn<SpmIndicator> = (row, columnId, value, addMeta) => {
@@ -69,8 +68,6 @@ export function SpmTable({ indicators, onExport }: SpmTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [date, setDate] = React.useState<DateRange | undefined>()
-  const [selectedSpm, setSelectedSpm] = React.useState<SpmIndicator | null>(null);
-  const [isDetailOpen, setIsDetailOpen] = React.useState(false);
 
   const columns: ColumnDef<SpmIndicator>[] = [
     {
@@ -106,7 +103,7 @@ export function SpmTable({ indicators, onExport }: SpmTableProps) {
     {
         id: "actions",
         header: () => <div className="text-center">Aksi</div>,
-        cell: ({ row }) => <ActionsCell row={row} onDetailClick={() => { setSelectedSpm(row.original); setIsDetailOpen(true); }} />,
+        cell: ({ row }) => <ActionsCell row={row} />,
     }
 ]
 
@@ -180,7 +177,6 @@ export function SpmTable({ indicators, onExport }: SpmTableProps) {
         <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>Sebelumnya</Button>
         <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>Berikutnya</Button>
       </div>
-      <SpmDetailDialog indicator={selectedSpm} open={isDetailOpen} onOpenChange={setIsDetailOpen} />
     </div>
   )
 }

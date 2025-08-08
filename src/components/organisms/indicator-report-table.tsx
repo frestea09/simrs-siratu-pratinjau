@@ -82,9 +82,7 @@ export function IndicatorReportTable({ indicators, onExport, showCategoryFilter 
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [date, setDate] = React.useState<DateRange | undefined>()
-  const [selectedIndicator, setSelectedIndicator] = React.useState<Indicator | null>(null);
-  const [isDetailOpen, setIsDetailOpen] = React.useState(false);
-
+  
   const columns: ColumnDef<Indicator>[] = [
     {
       accessorKey: "indicator",
@@ -136,7 +134,7 @@ export function IndicatorReportTable({ indicators, onExport, showCategoryFilter 
     {
         id: "actions",
         header: () => <div className="text-center">Aksi</div>,
-        cell: ({ row }) => <ActionsCell row={row} onDetailClick={() => { setSelectedIndicator(row.original); setIsDetailOpen(true); }} />,
+        cell: ({ row }) => <ActionsCell row={row} />,
     },
   ]
 
@@ -251,7 +249,6 @@ export function IndicatorReportTable({ indicators, onExport, showCategoryFilter 
         <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>Sebelumnya</Button>
         <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>Berikutnya</Button>
       </div>
-      <ReportDetailDialog indicator={selectedIndicator} open={isDetailOpen} onOpenChange={setIsDetailOpen} />
     </div>
   )
 }

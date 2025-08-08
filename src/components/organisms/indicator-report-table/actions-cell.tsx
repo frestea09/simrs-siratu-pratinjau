@@ -8,14 +8,15 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { IndicatorInputDialog } from "../indicator-input-dialog"
 import { Indicator } from "@/store/indicator-store"
+import { ReportDetailDialog } from "../report-detail-dialog"
 
 type ActionsCellProps = {
     row: Row<Indicator>,
-    onDetailClick: () => void,
 }
 
-export function ActionsCell({ row, onDetailClick }: ActionsCellProps) {
+export function ActionsCell({ row }: ActionsCellProps) {
     const indicator = row.original
+    const [isDetailOpen, setIsDetailOpen] = React.useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
 
     return (
@@ -29,25 +30,30 @@ export function ActionsCell({ row, onDetailClick }: ActionsCellProps) {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={onDetailClick}>
+                        <DropdownMenuItem onClick={() => setIsDetailOpen(true)}>
                             <Eye className="mr-2 h-4 w-4" />
                             Lihat Detail
                         </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => setIsEditDialogOpen(true)}>
+                        <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>
                             <Pencil className="mr-2 h-4 w-4" />
                             <span>Edit</span>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
-            {isEditDialogOpen && (
-                <IndicatorInputDialog 
-                    open={isEditDialogOpen}
-                    onOpenChange={setIsEditDialogOpen}
-                    indicatorToEdit={indicator} 
-                    category={indicator.category}
-                />
-            )}
+            
+            <ReportDetailDialog 
+                indicator={indicator}
+                open={isDetailOpen}
+                onOpenChange={setIsDetailOpen}
+            />
+
+            <IndicatorInputDialog 
+                open={isEditDialogOpen}
+                onOpenChange={setIsEditDialogOpen}
+                indicatorToEdit={indicator} 
+                category={indicator.category}
+            />
         </>
     )
 }

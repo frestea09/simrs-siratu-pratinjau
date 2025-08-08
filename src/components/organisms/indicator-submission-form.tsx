@@ -65,6 +65,8 @@ const categoryOptions: {value: IndicatorCategory, label: string}[] = [
     { value: 'SPM', label: 'Standar Pelayanan Minimal (SPM)'},
 ]
 
+const unitOptions = HOSPITAL_UNITS.map(unit => ({ value: unit, label: unit }));
+
 const centralRoles = [
   'Admin Sistem',
   'Direktur',
@@ -331,5 +333,3 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
     </Form>
   )
 }
-
-    

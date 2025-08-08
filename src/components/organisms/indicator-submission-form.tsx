@@ -58,7 +58,6 @@ type IndicatorSubmissionFormProps = {
     indicator?: SubmittedIndicator;
 }
 
-const unitOptions = HOSPITAL_UNITS.map(unit => ({ value: unit, label: unit }));
 const categoryOptions: {value: IndicatorCategory, label: string}[] = [
     { value: 'INM', label: 'Indikator Nasional Mutu (INM)'},
     { value: 'IMP-RS', label: 'Indikator Mutu Prioritas RS (IMP-RS)'},
@@ -152,12 +151,17 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
         })
 
         if(values.category === 'IPU') {
-             addNotification({
-                title: 'Pengajuan Indikator Baru',
-                description: `Indikator "${values.name}" dari unit ${values.unit} menunggu persetujuan Anda.`,
+             const notificationPayload = {
+                title: 'Pengajuan Indikator Baru (IPU)',
+                description: `Indikator "${values.name}" dari unit ${values.unit} menunggu persetujuan.`,
                 link: '/dashboard/indicators',
-                recipientRole: 'Sub. Komite Peningkatan Mutu',
-            })
+            };
+            // Notify PJ Ruangan in the same unit
+            addNotification({ ...notificationPayload, recipientUnit: values.unit, recipientRole: 'PJ Ruangan' });
+            // Notify Kepala Unit/Instalasi in the same unit
+            addNotification({ ...notificationPayload, recipientUnit: values.unit, recipientRole: 'Kepala Unit/Instalasi' });
+            // Notify the central committee
+            addNotification({ ...notificationPayload, recipientRole: 'Sub. Komite Peningkatan Mutu' });
         }
 
         toast({
@@ -327,3 +331,5 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
     </Form>
   )
 }
+
+    

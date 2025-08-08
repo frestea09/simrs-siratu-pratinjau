@@ -10,13 +10,15 @@ import { ColumnDef } from "@tanstack/react-table"
 import { ReportPreviewDialog } from "@/components/organisms/report-preview-dialog"
 import { useUserStore } from "@/store/user-store.tsx"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { ShieldAlert } from "lucide-react"
+import { PlusCircle, ShieldAlert } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export default function IncidentsPage() {
   const { currentUser } = useUserStore()
   const incidents = useIncidentStore((state) => state.incidents)
   const [reportData, setReportData] = React.useState<any[] | null>(null)
   const [reportColumns, setReportColumns] = React.useState<ColumnDef<any>[] | null>(null)
+  const [isNewDialogOpen, setIsNewDialogOpen] = React.useState(false);
 
   const handleExport = (data: any[], columns: ColumnDef<any>[]) => {
     setReportData(data);
@@ -25,11 +27,18 @@ export default function IncidentsPage() {
   
   const canViewIncidents = currentUser?.role === 'Sub. Komite Keselamatan Pasien' || currentUser?.role === 'Admin Sistem';
 
+  const AddNewButton = () => (
+    <Button size="lg" onClick={() => setIsNewDialogOpen(true)}>
+        <PlusCircle className="mr-2 h-5 w-5" />
+        Laporkan Insiden Baru
+    </Button>
+  );
+
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">Manajemen Insiden Keselamatan</h2>
-        {!canViewIncidents && <IncidentReportDialog />}
+        {!canViewIncidents && <AddNewButton />}
       </div>
       
       {canViewIncidents ? (
@@ -41,7 +50,7 @@ export default function IncidentsPage() {
                     <CardTitle>Laporan Insiden</CardTitle>
                     <CardDescription>Daftar insiden keselamatan yang dilaporkan.</CardDescription>
                     </div>
-                    <IncidentReportDialog />
+                    <AddNewButton />
                 </div>
                 </CardHeader>
                 <CardContent>
@@ -75,6 +84,7 @@ export default function IncidentsPage() {
             </CardContent>
         </Card>
       )}
+       <IncidentReportDialog open={isNewDialogOpen} onOpenChange={setIsNewDialogOpen} />
     </div>
   )
 }

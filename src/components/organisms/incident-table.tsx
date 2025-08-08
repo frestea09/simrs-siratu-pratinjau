@@ -13,16 +13,9 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import { MoreHorizontal, Eye, ArrowUpDown, Download } from "lucide-react"
+import { ArrowUpDown, Download } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import {
   Table,
@@ -34,8 +27,8 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Incident } from "@/store/incident-store"
-import { IncidentReportDialog } from "./incident-report-dialog"
 import { IncidentDetailDialog } from "./incident-detail-dialog"
+import { ActionsCell } from "./incident-table/actions-cell"
 
 type IncidentTableProps = {
   incidents: Incident[];
@@ -48,16 +41,12 @@ export function IncidentTable({ incidents, onExport }: IncidentTableProps) {
   const [selectedIncident, setSelectedIncident] = React.useState<Incident | null>(null);
   const [isDetailOpen, setIsDetailOpen] = React.useState(false);
 
-  const getSeverityVariant = (severity: string) => {
-    switch (severity) {
-      case "Tinggi": case "Sangat Tinggi": return "destructive"
-      case "Sedang": return "outline"
-      case "Rendah": return "secondary"
-      default: return "default"
-    }
+  const handleViewDetails = (incident: Incident) => {
+    setSelectedIncident(incident);
+    setIsDetailOpen(true);
   }
 
-  const columns: ColumnDef<Incident>[] = [
+  const columns: ColumnDef<Incident>[] = React.useMemo(() => [
     {
       accessorKey: "id",
       header: "ID Insiden",
@@ -79,7 +68,22 @@ export function IncidentTable({ incidents, onExport }: IncidentTableProps) {
     {
       accessorKey: "severity",
       header: "Tingkat Risiko",
-      cell: ({ row }) => <Badge variant={getSeverityVariant(row.getValue("severity"))}>{row.getValue("severity")}</Badge>,
+       cell: ({ row }) => {
+        const severity = row.getValue("severity") as Incident['severity']
+        const severityMap: Record<Incident['severity'], string> = {
+            biru: "BIRU (Rendah)",
+            hijau: "HIJAU (Sedang)",
+            kuning: "KUNING (Tinggi)",
+            merah: "MERAH (Sangat Tinggi)",
+        }
+        const variantMap: Record<Incident['severity'], "default" | "secondary" | "destructive" | "outline"> = {
+            biru: "secondary",
+            hijau: "default",
+            kuning: "outline",
+            merah: "destructive"
+        }
+        return <Badge variant={variantMap[severity]}>{severityMap[severity]}</Badge>
+      },
     },
     {
       accessorKey: "status",
@@ -92,37 +96,9 @@ export function IncidentTable({ incidents, onExport }: IncidentTableProps) {
     },
     {
       id: "actions",
-      cell: ({ row }) => {
-        const incident = row.original
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Buka menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => {
-                setSelectedIncident(incident);
-                setIsDetailOpen(true);
-              }}>
-                <Eye className="mr-2 h-4 w-4" />
-                Lihat Detail
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <IncidentReportDialog incident={incident} />
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigator.clipboard.writeText(incident.id)}>
-                Salin ID
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )
-      },
+      cell: ({ row }) => <ActionsCell row={row} onViewDetails={handleViewDetails} />,
     },
-  ]
+  ], []);
 
   const table = useReactTable({
     data: incidents,
@@ -133,6 +109,10 @@ export function IncidentTable({ incidents, onExport }: IncidentTableProps) {
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    state: {
+      sorting,
+      columnFilters
+    }
   })
 
   return (

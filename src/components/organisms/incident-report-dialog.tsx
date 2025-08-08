@@ -8,40 +8,27 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
-import { PlusCircle, Pencil } from "lucide-react"
+import { PlusCircle } from "lucide-react"
 import { IncidentReportForm } from "./incident-report-form"
 import { Incident } from "@/store/incident-store"
 
 type IncidentReportDialogProps = {
   incident?: Incident
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export function IncidentReportDialog({ incident }: IncidentReportDialogProps) {
-  const [open, setOpen] = React.useState(false)
-
+export function IncidentReportDialog({ incident, open, onOpenChange }: IncidentReportDialogProps) {
   const isEditMode = !!incident;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {isEditMode ? (
-            <Button variant="ghost" size="sm" className="flex gap-2 w-full justify-start p-2 h-auto">
-                <Pencil className="h-4 w-4" /> Edit
-            </Button>
-        ) : (
-             <Button size="lg">
-                <PlusCircle className="mr-2 h-5 w-5" />
-                Laporkan Insiden Baru
-            </Button>
-        )}
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>{isEditMode ? 'Edit Laporan Insiden' : 'Laporan Insiden Keselamatan Pasien'}</DialogTitle>
         </DialogHeader>
-        <IncidentReportForm setOpen={setOpen} incident={incident} />
+        <IncidentReportForm setOpen={onOpenChange} incident={incident} />
       </DialogContent>
     </Dialog>
   )

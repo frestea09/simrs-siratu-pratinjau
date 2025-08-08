@@ -17,18 +17,26 @@ import { usePathname } from 'next/navigation';
 
 type NavItemProps = {
   item: NavItemType;
-  pathname: string;
   openMenus: { [key: string]: boolean };
   setOpenMenus: (menus: { [key: string]: boolean } | ((prev: { [key: string]: boolean }) => { [key: string]: boolean })) => void;
   isSubItem?: boolean;
 };
 
-export function NavItem({ item, pathname: currentPathname, openMenus, setOpenMenus, isSubItem = false }: NavItemProps) {
+export function NavItem({ item, openMenus, setOpenMenus, isSubItem = false }: NavItemProps) {
   const pathname = usePathname();
-  const isParentActive = item.subItems?.some((subItem: any) => 
-    (subItem.href && pathname.startsWith(subItem.href)) || 
-    subItem.subItems?.some((subSub: any) => subSub.href && pathname.startsWith(subSub.href))
-  );
+
+  const isParentActive = React.useMemo(() => {
+    if (!item.subItems) return false;
+    const checkActive = (items: NavItemType[]): boolean => {
+        return items.some(sub => {
+            if (sub.href && pathname.startsWith(sub.href)) return true;
+            if (sub.subItems) return checkActive(sub.subItems);
+            return false;
+        });
+    }
+    return checkActive(item.subItems);
+  }, [item.subItems, pathname]);
+
   const isOpen = openMenus[item.label] || false;
 
   const handleClick = (e: React.MouseEvent) => {
@@ -39,6 +47,13 @@ export function NavItem({ item, pathname: currentPathname, openMenus, setOpenMen
       item.onClick();
     }
   };
+
+  React.useEffect(() => {
+    if (isParentActive && !isOpen) {
+        setOpenMenus(prev => ({...prev, [item.label]: true}));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isParentActive, item.label, setOpenMenus]);
   
   const renderLink = (children: React.ReactNode, href?: string) => {
     if (href) {
@@ -46,7 +61,6 @@ export function NavItem({ item, pathname: currentPathname, openMenus, setOpenMen
     }
     return <>{children}</>;
   }
-
 
   if (item.subItems) {
     const ButtonComponent = isSubItem ? SidebarMenuSubButton : SidebarMenuButton;
@@ -72,7 +86,7 @@ export function NavItem({ item, pathname: currentPathname, openMenus, setOpenMen
         </ButtonComponent>
         <SidebarMenuSub className={cn("mt-1 pr-0", isSubItem ? 'pl-4' : '')}>
           {isOpen && item.subItems.map((subItem, index) => (
-             <NavItem key={index} item={subItem} pathname={currentPathname} openMenus={openMenus} setOpenMenus={setOpenMenus} isSubItem={true} />
+             <NavItem key={index} item={subItem} openMenus={openMenus} setOpenMenus={setOpenMenus} isSubItem={true} />
           ))}
         </SidebarMenuSub>
       </SidebarMenuItem>

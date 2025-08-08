@@ -77,13 +77,13 @@ const navItems: NavItemType[] = [
         ]
       },
       { href: "/dashboard/incidents", icon: ShieldAlert, label: "Insiden Keselamatan" },
+      { href: "/dashboard/reports", icon: FileText, label: "Laporan" },
     ]
   },
   {
     label: "Manajemen",
     icon: ClipboardCheck,
     subItems: [
-      { href: "/dashboard/reports", icon: FileText, label: "Laporan" },
       { href: "/dashboard/surveys", icon: ClipboardCheck, label: "Survei Budaya" },
       { href: "/dashboard/risks", icon: BarChart3, label: "Manajemen Risiko" },
     ]
@@ -153,15 +153,6 @@ export default function DashboardClientLayout({
   const breadcrumbPath = findPath(allNavItems, pathname);
   const currentPage = breadcrumbPath[breadcrumbPath.length - 1];
 
-  React.useEffect(() => {
-    const newOpenMenus: { [key: string]: boolean } = {};
-    const activeParents = findPath(allNavItems, pathname);
-    activeParents.forEach(item => {
-        if(item.subItems) newOpenMenus[item.label] = true;
-    });
-    setOpenMenus(newOpenMenus);
-  }, [pathname, allNavItems]);
-
   return (
     <>
       <LoadingOverlay isLoading={isLoading} />
@@ -191,7 +182,7 @@ export default function DashboardClientLayout({
           <SidebarContent className="p-2">
             <SidebarMenu>
               {navItems.map((item, index) => (
-                <NavItem key={index} item={item} pathname={pathname} openMenus={openMenus} setOpenMenus={setOpenMenus} />
+                <NavItem key={index} item={item} openMenus={openMenus} setOpenMenus={setOpenMenus} />
               ))}
             </SidebarMenu>
             
@@ -201,7 +192,7 @@ export default function DashboardClientLayout({
                   Administrasi
                 </p>
                 {adminNavItems.map((item) => (
-                  <NavItem key={item.href} item={item} pathname={pathname} openMenus={openMenus} setOpenMenus={setOpenMenus} />
+                  <NavItem key={item.href} item={item} openMenus={openMenus} setOpenMenus={setOpenMenus} />
                 ))}
               </SidebarMenu>
             )}
@@ -210,7 +201,7 @@ export default function DashboardClientLayout({
           <SidebarFooter className="p-2 mt-auto">
             <SidebarMenu>
               <SidebarMenuItem>
-                <NavItem item={{ label: 'Logout', icon: LogOut, onClick: handleLogout }} pathname={pathname} openMenus={openMenus} setOpenMenus={setOpenMenus} />
+                <NavItem item={{ label: 'Logout', icon: LogOut, onClick: handleLogout }} openMenus={openMenus} setOpenMenus={setOpenMenus} />
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarFooter>

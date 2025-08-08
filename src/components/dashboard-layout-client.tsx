@@ -77,13 +77,13 @@ const navItems: NavItemType[] = [
         ]
       },
       { href: "/dashboard/incidents", icon: ShieldAlert, label: "Insiden Keselamatan" },
-      { href: "/dashboard/reports", icon: FileText, label: "Laporan" },
     ]
   },
   {
     label: "Manajemen",
     icon: ClipboardCheck,
     subItems: [
+      { href: "/dashboard/reports", icon: FileText, label: "Laporan" },
       { href: "/dashboard/surveys", icon: ClipboardCheck, label: "Survei Budaya" },
       { href: "/dashboard/risks", icon: BarChart3, label: "Manajemen Risiko" },
     ]

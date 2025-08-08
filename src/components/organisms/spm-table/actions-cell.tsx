@@ -1,6 +1,7 @@
 
 "use client"
 
+import * as React from "react"
 import { Row } from "@tanstack/react-table"
 import { MoreHorizontal, Eye, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -15,31 +16,37 @@ type ActionsCellProps = {
 
 export function ActionsCell({ row, onDetailClick }: ActionsCellProps) {
     const indicator = row.original
+    const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
 
     return (
-        <div className="text-center">
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Buka menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={onDetailClick}>
-                        <Eye className="mr-2 h-4 w-4" />
-                        Lihat Detail
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                        <SpmInputDialog spmIndicator={indicator} trigger={
-                            <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full">
-                                <Pencil className="mr-2 h-4 w-4" />
-                                <span>Edit</span>
-                            </button>
-                        } />
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-        </div>
+        <>
+            <div className="text-center">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Buka menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={onDetailClick}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            Lihat Detail
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => setIsEditDialogOpen(true)}>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            <span>Edit</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+            {isEditDialogOpen && (
+                <SpmInputDialog 
+                    open={isEditDialogOpen}
+                    onOpenChange={setIsEditDialogOpen}
+                    spmIndicator={indicator} 
+                />
+            )}
+        </>
     )
 }

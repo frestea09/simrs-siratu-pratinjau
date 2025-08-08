@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
-import { Hospital, Users, Eye, EyeOff } from 'lucide-react'
+import { Hospital, Users, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useUserStore } from "@/store/user-store"
 import { useLogStore } from "@/store/log-store"
@@ -24,40 +24,47 @@ export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const { users, setCurrentUser } = useUserStore()
   const { addLog } = useLogStore()
 
   const handleLogin = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setIsLoading(true);
+
     const formData = new FormData(event.currentTarget);
     const username = formData.get("username") as string;
     const password = formData.get("password") as string;
     
-    // Trim any whitespace from the input
-    const trimmedUsername = username.trim();
+    // Simulate network delay
+    setTimeout(() => {
+      // Trim any whitespace from the input
+      const trimmedUsername = username.trim();
 
-    const user = users.find(u => u.email === trimmedUsername);
-    
-    if (user && user.password === password) {
-      setCurrentUser(user);
-      addLog({
-        user: user.name,
-        action: "LOGIN_SUCCESS",
-        details: `Pengguna ${user.name} berhasil login.`,
-      })
-      router.push("/dashboard/overview")
-    } else {
-      addLog({
-        user: trimmedUsername,
-        action: "LOGIN_FAIL",
-        details: `Percobaan login gagal untuk username: ${trimmedUsername}.`,
-      })
-      toast({
-        variant: "destructive",
-        title: "Login Gagal",
-        description: "Username atau password salah. Silakan coba lagi.",
-      })
-    }
+      const user = users.find(u => u.email === trimmedUsername);
+      
+      if (user && user.password === password) {
+        setCurrentUser(user);
+        addLog({
+          user: user.name,
+          action: "LOGIN_SUCCESS",
+          details: `Pengguna ${user.name} berhasil login.`,
+        })
+        router.push("/dashboard/overview")
+      } else {
+        addLog({
+          user: trimmedUsername,
+          action: "LOGIN_FAIL",
+          details: `Percobaan login gagal untuk username: ${trimmedUsername}.`,
+        })
+        toast({
+          variant: "destructive",
+          title: "Login Gagal",
+          description: "Username atau password salah. Silakan coba lagi.",
+        })
+        setIsLoading(false);
+      }
+    }, 500) // 0.5 second delay
   }
 
   return (
@@ -82,6 +89,7 @@ export default function LoginPage() {
                 type="text"
                 placeholder="email@sim.rs"
                 required
+                disabled={isLoading}
               />
             </div>
             <div className="grid gap-2">
@@ -101,19 +109,22 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   required
                   className="pr-10"
+                  disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
+                   disabled={isLoading}
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   <span className="sr-only">{showPassword ? 'Sembunyikan password' : 'Tampilkan password'}</span>
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full">
-              Login
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isLoading ? 'Memproses...' : 'Login'}
             </Button>
           </form>
           <Alert className="mt-4">

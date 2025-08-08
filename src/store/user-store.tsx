@@ -3,7 +3,7 @@
 
 import { create } from 'zustand';
 import React, { createContext, useContext, useEffect, useRef } from 'react';
-import { useNotificationStore } from './notification-store';
+import { useNotificationStore } from './notification-store.tsx';
 
 export type UserRole = 
   | 'Admin Sistem' 
@@ -89,7 +89,7 @@ export const useUserStore = (): UserState => {
   }
 
   const userState = store(state => state);
-  const { setNotificationsForUser } = useNotificationStore.getState();
+  const { setNotificationsForUser } = useNotificationStore();
 
   useEffect(() => {
     // When the current user changes, re-filter the notifications

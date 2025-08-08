@@ -17,25 +17,15 @@ import { User } from "@/store/user-store"
 
 type UserDialogProps = {
   user?: User;
-  trigger?: React.ReactNode;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export function UserDialog({ user, trigger }: UserDialogProps) {
-  const [open, setOpen] = React.useState(false)
+export function UserDialog({ user, open, onOpenChange }: UserDialogProps) {
   const isEditMode = !!user;
 
-  const defaultTrigger = (
-      <Button size="lg">
-          <PlusCircle className="mr-2 h-5 w-5" />
-          Tambah Pengguna Baru
-      </Button>
-  )
-
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger || defaultTrigger}
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>{isEditMode ? 'Edit Pengguna' : 'Tambah Pengguna Baru'}</DialogTitle>
@@ -43,7 +33,7 @@ export function UserDialog({ user, trigger }: UserDialogProps) {
             {isEditMode ? 'Ubah detail pengguna di bawah ini.' : 'Isi detail pengguna baru. Klik simpan jika sudah selesai.'}
           </DialogDescription>
         </DialogHeader>
-        <UserForm setOpen={setOpen} userToEdit={user} />
+        <UserForm setOpen={onOpenChange} userToEdit={user} />
       </DialogContent>
     </Dialog>
   )

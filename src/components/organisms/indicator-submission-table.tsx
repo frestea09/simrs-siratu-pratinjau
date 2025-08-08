@@ -14,6 +14,7 @@ import {
   getSortedRowModel,
   useReactTable,
   FilterFn,
+  Row,
   RowData,
 } from "@tanstack/react-table"
 import { ArrowUpDown, ChevronDown, MoreHorizontal, Calendar as CalendarIcon, Pencil, Eye, Filter } from "lucide-react"
@@ -107,8 +108,8 @@ const categoryFilter: FilterFn<SubmittedIndicator> = (row, columnId, value) => {
 }
 
 
-const ActionsCell = ({ row }: { row: any }) => {
-    const indicator = row.original as SubmittedIndicator
+const ActionsCell = ({ row }: { row: Row<SubmittedIndicator> }) => {
+    const indicator = row.original;
     const [isDetailOpen, setIsDetailOpen] = React.useState(false);
     const [isEditOpen, setIsEditOpen] = React.useState(false);
     const [rejectionDialog, setRejectionDialog] = React.useState<{isOpen: boolean, indicator: SubmittedIndicator | null}>({isOpen: false, indicator: null});
@@ -152,16 +153,16 @@ const ActionsCell = ({ row }: { row: any }) => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => setIsDetailOpen(true)}>
+                    <DropdownMenuItem onSelect={() => setIsDetailOpen(true)}>
                         <Eye className="mr-2 h-4 w-4" />
                         Lihat Detail
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setIsEditOpen(true)}>
+                    <DropdownMenuItem onSelect={() => setIsEditOpen(true)}>
                         <Pencil className="mr-2 h-4 w-4" />
                         Edit
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                        onClick={() => navigator.clipboard.writeText(indicator.id)}
+                        onSelect={() => navigator.clipboard.writeText(indicator.id)}
                     >
                         Salin ID Indikator
                     </DropdownMenuItem>
@@ -230,7 +231,7 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
   const [rowSelection, setRowSelection] = React.useState({})
   const [date, setDate] = React.useState<DateRange | undefined>()
 
-  const columns: ColumnDef<SubmittedIndicator>[] = [
+  const columns: ColumnDef<SubmittedIndicator>[] = React.useMemo(() => [
     {
       accessorKey: "name",
       header: ({ column }) => {
@@ -276,9 +277,9 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
     {
       id: "actions",
       enableHiding: false,
-      cell: ActionsCell,
+      cell: ({row}) => <ActionsCell row={row} />,
     },
-  ]
+  ], []);
 
 
   const table = useReactTable({

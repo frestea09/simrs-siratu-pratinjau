@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -5,9 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { UserDialog } from "@/components/organisms/user-dialog"
 import { UserTable } from "@/components/organisms/user-table"
 import { useUserStore } from "@/store/user-store.tsx"
+import { Button } from "@/components/ui/button"
+import { PlusCircle } from "lucide-react"
 
 export default function UsersPage() {
   const users = useUserStore((state) => state.users)
+  const [isNewUserDialogOpen, setIsNewUserDialogOpen] = React.useState(false);
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -23,13 +27,17 @@ export default function UsersPage() {
                 Kelola akun pengguna dan hak akses sistem.
               </CardDescription>
             </div>
-            <UserDialog />
+             <Button size="lg" onClick={() => setIsNewUserDialogOpen(true)}>
+                <PlusCircle className="mr-2 h-5 w-5" />
+                Tambah Pengguna Baru
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
           <UserTable users={users} />
         </CardContent>
       </Card>
+      <UserDialog open={isNewUserDialogOpen} onOpenChange={setIsNewUserDialogOpen} />
     </div>
   )
 }

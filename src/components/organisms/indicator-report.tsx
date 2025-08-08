@@ -100,7 +100,7 @@ export function IndicatorReport({ category, title, description, showInputButton 
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <IndicatorReportTable indicators={filteredIndicators} onExport={handleExport}/>
+                    <IndicatorReportTable indicators={filteredIndicators} onExport={handleExport} category={category}/>
                 </CardContent>
             </Card>
              {reportData && reportColumns && (

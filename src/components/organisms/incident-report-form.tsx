@@ -19,18 +19,6 @@ const steps = [
     { id: '03', name: 'Tindak Lanjut & Pelaporan' },
 ]
 
-const incidentTypeMap: { [key: string]: string } = {
-    'KPC': 'Kondisi Potensial Cedera (KPC)', 'KNC': 'Kejadian Nyaris Cedera (KNC)',
-    'KTC': 'Kejadian Tidak Cedera (KTC)', 'KTD': 'Kejadian Tidak Diharapkan (KTD)',
-    'Sentinel': 'Kejadian Sentinel',
-};
-const severityMap: { [key: string]: string } = {
-    biru: 'Rendah', hijau: 'Sedang', kuning: 'Tinggi', merah: 'Sangat Tinggi',
-};
-
-const findKeyByValue = (obj: { [key: string]: string }, value: string) =>
-    Object.keys(obj).find(key => obj[key] === value);
-
 type IncidentReportFormProps = {
     setOpen: (open: boolean) => void;
     incident?: Incident;
@@ -45,11 +33,7 @@ export function IncidentReportForm({ setOpen, incident }: IncidentReportFormProp
     const { addNotification } = useNotificationStore();
     
     const [formData, setFormData] = React.useState<Partial<Incident>>(
-        incident ? {
-            ...incident,
-            type: findKeyByValue(incidentTypeMap, incident.type) || incident.type,
-            severity: findKeyByValue(severityMap, incident.severity) || incident.severity,
-        } : {}
+        incident ? incident : {}
     );
 
     const isEditMode = !!incident;
@@ -59,8 +43,6 @@ export function IncidentReportForm({ setOpen, incident }: IncidentReportFormProp
 
     const handleSave = () => {
         const finalData = { ...formData } as Omit<Incident, 'id' | 'date' | 'status'>;
-        finalData.type = incidentTypeMap[finalData.type] || 'N/A';
-        finalData.severity = severityMap[finalData.severity] || 'N/A';
 
         if (isEditMode && incident.id) {
             updateIncident(incident.id, finalData)

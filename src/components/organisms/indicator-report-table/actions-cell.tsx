@@ -31,12 +31,16 @@ export function ActionsCell({ row, onDetailClick }: ActionsCellProps) {
                         Lihat Detail
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                        <IndicatorInputDialog indicatorToEdit={indicator} trigger={
-                            <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full">
-                                <Pencil className="mr-2 h-4 w-4" />
-                                <span>Edit</span>
-                            </button>
-                        } />
+                        <IndicatorInputDialog 
+                            indicatorToEdit={indicator} 
+                            category={indicator.category}
+                            trigger={
+                                <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full">
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    <span>Edit</span>
+                                </button>
+                            } 
+                        />
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>

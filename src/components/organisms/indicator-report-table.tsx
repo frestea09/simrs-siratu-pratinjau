@@ -75,9 +75,10 @@ type IndicatorReportTableProps = {
   indicators: Indicator[]
   onExport: (data: Indicator[], columns: ColumnDef<Indicator>[]) => void;
   showCategoryFilter?: boolean;
+  category: IndicatorCategory;
 }
 
-export function IndicatorReportTable({ indicators, onExport, showCategoryFilter = false }: IndicatorReportTableProps) {
+export function IndicatorReportTable({ indicators, onExport, showCategoryFilter = false, category }: IndicatorReportTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [date, setDate] = React.useState<DateRange | undefined>()

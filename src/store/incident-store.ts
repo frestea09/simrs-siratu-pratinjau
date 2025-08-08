@@ -21,7 +21,7 @@ export type Incident = {
   incidentDate?: string
   incidentTime?: string
   chronology?: string
-  type: string
+  type: 'KPC' | 'KNC' | 'KTC' | 'KTD' | 'Sentinel'
   incidentSubject?: string
   incidentLocation?: string
   relatedUnit?: string
@@ -30,16 +30,24 @@ export type Incident = {
   firstAction?: string
   firstActionBy?: string
   hasHappenedBefore?: string
-  severity: string
-  patientImpact?: string // New field
-  // Reporter info is now omitted for anonymity
+  severity: 'biru' | 'hijau' | 'kuning' | 'merah'
+  patientImpact?: string
 }
+
+const incidentTypeMap: { [key: string]: string } = {
+    'KPC': 'Kondisi Potensial Cedera (KPC)', 'KNC': 'Kejadian Nyaris Cedera (KNC)',
+    'KTC': 'Kejadian Tidak Cedera (KTC)', 'KTD': 'Kejadian Tidak Diharapkan (KTD)',
+    'Sentinel': 'Kejadian Sentinel',
+};
+const severityMap: { [key: string]: string } = {
+    biru: 'BIRU (Rendah)', hijau: 'HIJAU (Sedang)', kuning: 'KUNING (Tinggi)', merah: 'MERAH (Sangat Tinggi)',
+};
 
 
 type IncidentState = {
   incidents: Incident[]
   addIncident: (incident: Omit<Incident, 'id' | 'date' | 'status'>) => string
-  updateIncident: (id: string, incident: Omit<Incident, 'id' | 'date' | 'status'>) => void
+  updateIncident: (id: string, incident: Partial<Omit<Incident, 'id' | 'date' | 'status'>>) => void
 }
 
 const initialIncidents: Incident[] = [];

@@ -35,7 +35,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { Badge } from "../ui/badge"
-import { ReportDetailDialog } from "./report-detail-dialog"
 import { ActionsCell } from "./indicator-report-table/actions-cell"
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu"
 
@@ -74,11 +73,12 @@ const categoryOptions: {value: IndicatorCategory, label: string}[] = [
 type IndicatorReportTableProps = {
   indicators: Indicator[]
   onExport: (data: Indicator[], columns: ColumnDef<Indicator>[]) => void;
+  onEdit: (indicator: Indicator) => void;
   showCategoryFilter?: boolean;
   category: IndicatorCategory;
 }
 
-export function IndicatorReportTable({ indicators, onExport, showCategoryFilter = false, category }: IndicatorReportTableProps) {
+export function IndicatorReportTable({ indicators, onExport, onEdit, showCategoryFilter = false, category }: IndicatorReportTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [date, setDate] = React.useState<DateRange | undefined>()
@@ -134,7 +134,7 @@ export function IndicatorReportTable({ indicators, onExport, showCategoryFilter 
     {
         id: "actions",
         header: () => <div className="text-center">Aksi</div>,
-        cell: ({ row }) => <ActionsCell row={row} />,
+        cell: ({ row }) => <ActionsCell row={row} onEdit={onEdit} />,
     },
   ]
 

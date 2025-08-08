@@ -35,6 +35,7 @@ export function IndicatorReport({ category, title, description, showInputButton 
     const [reportColumns, setReportColumns] = React.useState<ColumnDef<any>[] | null>(null)
     const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
     const [isInputOpen, setIsInputOpen] = React.useState(false);
+    const [editingIndicator, setEditingIndicator] = React.useState<Indicator | null>(null);
 
     const userCanSeeAll = currentUser && centralRoles.includes(currentUser.role);
     
@@ -61,12 +62,23 @@ export function IndicatorReport({ category, title, description, showInputButton 
         setIsPreviewOpen(true);
     };
 
+    const handleEdit = (indicator: Indicator) => {
+        setEditingIndicator(indicator);
+    };
+    
+    const handleCloseDialog = () => {
+        setIsInputOpen(false);
+        setEditingIndicator(null);
+    }
+
     const inputDialogButton = (
         <Button onClick={() => setIsInputOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Input Data Capaian
         </Button>
     );
+
+    const isDialogOpen = isInputOpen || !!editingIndicator;
 
     return (
         <div className="space-y-4">
@@ -104,7 +116,7 @@ export function IndicatorReport({ category, title, description, showInputButton 
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <IndicatorReportTable indicators={filteredIndicators} onExport={handleExport} category={category}/>
+                    <IndicatorReportTable indicators={filteredIndicators} onExport={handleExport} category={category} onEdit={handleEdit}/>
                 </CardContent>
             </Card>
              {reportData && reportColumns && (
@@ -117,9 +129,10 @@ export function IndicatorReport({ category, title, description, showInputButton 
                 />
             )}
              <IndicatorInputDialog 
-                open={isInputOpen} 
-                onOpenChange={setIsInputOpen} 
-                category={category} 
+                open={isDialogOpen} 
+                onOpenChange={handleCloseDialog} 
+                category={category}
+                indicatorToEdit={editingIndicator || undefined} 
             />
         </div>
     )

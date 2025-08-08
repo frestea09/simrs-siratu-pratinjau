@@ -6,18 +6,17 @@ import { Row } from "@tanstack/react-table"
 import { MoreHorizontal, Eye, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { IndicatorInputDialog } from "../indicator-input-dialog"
 import { Indicator } from "@/store/indicator-store"
 import { ReportDetailDialog } from "../report-detail-dialog"
 
 type ActionsCellProps = {
     row: Row<Indicator>,
+    onEdit: (indicator: Indicator) => void;
 }
 
-export function ActionsCell({ row }: ActionsCellProps) {
+export function ActionsCell({ row, onEdit }: ActionsCellProps) {
     const indicator = row.original
     const [isDetailOpen, setIsDetailOpen] = React.useState(false);
-    const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
 
     return (
         <>
@@ -34,7 +33,7 @@ export function ActionsCell({ row }: ActionsCellProps) {
                             <Eye className="mr-2 h-4 w-4" />
                             Lihat Detail
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>
+                        <DropdownMenuItem onClick={() => onEdit(indicator)}>
                             <Pencil className="mr-2 h-4 w-4" />
                             <span>Edit</span>
                         </DropdownMenuItem>
@@ -46,13 +45,6 @@ export function ActionsCell({ row }: ActionsCellProps) {
                 indicator={indicator}
                 open={isDetailOpen}
                 onOpenChange={setIsDetailOpen}
-            />
-
-            <IndicatorInputDialog 
-                open={isEditDialogOpen}
-                onOpenChange={setIsEditDialogOpen}
-                indicatorToEdit={indicator} 
-                category={indicator.category}
             />
         </>
     )

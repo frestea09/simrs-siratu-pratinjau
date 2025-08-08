@@ -62,9 +62,10 @@ const getStatusBadge = (notes?: string) => {
 type SpmTableProps = {
   indicators: SpmIndicator[];
   onExport: (data: SpmIndicator[], columns: ColumnDef<SpmIndicator>[]) => void;
+  onEdit: (indicator: SpmIndicator) => void;
 }
 
-export function SpmTable({ indicators, onExport }: SpmTableProps) {
+export function SpmTable({ indicators, onExport, onEdit }: SpmTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [date, setDate] = React.useState<DateRange | undefined>()
@@ -103,7 +104,7 @@ export function SpmTable({ indicators, onExport }: SpmTableProps) {
     {
         id: "actions",
         header: () => <div className="text-center">Aksi</div>,
-        cell: ({ row }) => <ActionsCell row={row} />,
+        cell: ({ row }) => <ActionsCell row={row} onEdit={onEdit} />,
     }
 ]
 

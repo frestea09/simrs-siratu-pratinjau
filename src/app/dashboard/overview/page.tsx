@@ -38,7 +38,10 @@ import { id as IndonesianLocale } from "date-fns/locale"
 
 const centralRoles = [
   'Admin Sistem',
-  'Sub. Komite Keselamatan Pasien'
+  'Direktur',
+  'Sub. Komite Peningkatan Mutu',
+  'Sub. Komite Keselamatan Pasien',
+  'Sub. Komite Manajemen Risiko'
 ];
 
 export default function OverviewPage() {
@@ -47,14 +50,27 @@ export default function OverviewPage() {
   const { users, currentUser } = useUserStore()
   const { logs } = useLogStore()
 
-  const canViewIncidentData = currentUser && centralRoles.includes(currentUser.role)
+  const userIsCentral = currentUser && centralRoles.includes(currentUser.role);
+  const canViewIncidentData = currentUser && (currentUser.role === 'Admin Sistem' || currentUser.role === 'Sub. Komite Keselamatan Pasien');
+
+  // Filter data based on role
+  const relevantIndicators = React.useMemo(() => {
+    if (userIsCentral || !currentUser?.unit) return indicators;
+    return indicators.filter(i => i.unit === currentUser.unit);
+  }, [indicators, currentUser, userIsCentral]);
+
+  const relevantSubmissions = React.useMemo(() => {
+    if (userIsCentral || !currentUser?.unit) return submittedIndicators;
+    return submittedIndicators.filter(s => s.unit === currentUser.unit);
+  }, [submittedIndicators, currentUser, userIsCentral]);
+
 
   // -- Card Metrics --
-  const totalIndicators = indicators.length
-  const meetingStandard = indicators.filter(i => i.status === 'Memenuhi Standar').length
+  const totalIndicators = relevantIndicators.length
+  const meetingStandard = relevantIndicators.filter(i => i.status === 'Memenuhi Standar').length
   const qualityAchievement = totalIndicators > 0 ? ((meetingStandard / totalIndicators) * 100).toFixed(1) : "0.0"
 
-  const pendingSubmissions = submittedIndicators.filter(s => s.status === 'Menunggu Persetujuan').length
+  const pendingSubmissions = relevantSubmissions.filter(s => s.status === 'Menunggu Persetujuan').length
   const totalIncidents = incidents.length
   const totalUsers = users.length
 
@@ -62,7 +78,6 @@ export default function OverviewPage() {
   const chartData = React.useMemo(() => {
     const monthlyAverages: { [key: string]: { total: number; count: number } } = {}
     
-    // Get last 6 months
     const last6Months: string[] = [];
     const today = new Date();
     for (let i = 5; i >= 0; i--) {
@@ -72,12 +87,12 @@ export default function OverviewPage() {
       monthlyAverages[monthName] = { total: 0, count: 0 };
     }
 
-    const recentIndicators = indicators.filter(i => {
+    const indicatorsForChart = relevantIndicators.filter(i => {
       const indicatorMonth = format(new Date(i.period), "yyyy-MM");
       return last6Months.includes(indicatorMonth) && i.standardUnit === '%';
     });
     
-    recentIndicators.forEach(i => {
+    indicatorsForChart.forEach(i => {
       const month = format(new Date(i.period), 'MMM', { locale: IndonesianLocale });
       monthlyAverages[month].total += parseFloat(i.ratio);
       monthlyAverages[month].count += 1;
@@ -87,7 +102,7 @@ export default function OverviewPage() {
       month,
       "Capaian": data.count > 0 ? parseFloat((data.total / data.count).toFixed(1)) : 0,
     }));
-  }, [indicators]);
+  }, [relevantIndicators]);
 
   // -- Recent Activity --
   const recentActivity = logs.slice(0, 5)
@@ -102,6 +117,9 @@ export default function OverviewPage() {
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+         {currentUser && !userIsCentral && (
+          <Badge variant="outline" className="text-base">Unit: {currentUser.unit}</Badge>
+        )}
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -151,24 +169,28 @@ export default function OverviewPage() {
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pengguna Aktif</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalUsers}</div>
-            <p className="text-xs text-muted-foreground">
-              Total pengguna terdaftar
-            </p>
-          </CardContent>
-        </Card>
+        {currentUser?.role === 'Admin Sistem' && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pengguna Aktif</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalUsers}</div>
+              <p className="text-xs text-muted-foreground">
+                Total pengguna terdaftar
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4">
           <CardHeader>
             <CardTitle>Tren Capaian Mutu (6 Bulan Terakhir)</CardTitle>
-            <CardDescription>Rata-rata capaian semua indikator (dalam %).</CardDescription>
+            <CardDescription>
+              {userIsCentral ? "Rata-rata capaian semua indikator (dalam %)." : `Rata-rata capaian indikator untuk unit Anda (dalam %).`}
+            </CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
             <ResponsiveContainer width="100%" height={350}>
@@ -199,42 +221,42 @@ export default function OverviewPage() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-        <Card className="col-span-4 lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Aktivitas Sistem Terbaru</CardTitle>
-            <CardDescription>
-              5 aktivitas terakhir yang terekam dalam sistem.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Waktu</TableHead>
-                  <TableHead>Pengguna</TableHead>
-                  <TableHead>Aksi</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentActivity.map((log) => (
-                  <TableRow key={log.id}>
-                    <TableCell>
-                      <div className="font-medium">{format(new Date(log.timestamp), "HH:mm")}</div>
-                      <div className="text-xs text-muted-foreground">{format(new Date(log.timestamp), "dd MMM", { locale: IndonesianLocale })}</div>
-                    </TableCell>
-                    <TableCell>{log.user}</TableCell>
-                    <TableCell>
-                       <Badge variant={getActionVariant(log.action)}>{log.action}</Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+        {userIsCentral && (
+            <Card className="col-span-4 lg:col-span-3">
+            <CardHeader>
+                <CardTitle>Aktivitas Sistem Terbaru</CardTitle>
+                <CardDescription>
+                5 aktivitas terakhir yang terekam dalam sistem.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                <TableHeader>
+                    <TableRow>
+                    <TableHead>Waktu</TableHead>
+                    <TableHead>Pengguna</TableHead>
+                    <TableHead>Aksi</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {recentActivity.map((log) => (
+                    <TableRow key={log.id}>
+                        <TableCell>
+                        <div className="font-medium">{format(new Date(log.timestamp), "HH:mm")}</div>
+                        <div className="text-xs text-muted-foreground">{format(new Date(log.timestamp), "dd MMM", { locale: IndonesianLocale })}</div>
+                        </TableCell>
+                        <TableCell>{log.user}</TableCell>
+                        <TableCell>
+                        <Badge variant={getActionVariant(log.action)}>{log.action}</Badge>
+                        </TableCell>
+                    </TableRow>
+                    ))}
+                </TableBody>
+                </Table>
+            </CardContent>
+            </Card>
+        )}
       </div>
     </div>
   )
 }
-
-    

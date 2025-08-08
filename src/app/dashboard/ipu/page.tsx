@@ -190,7 +190,7 @@ export default function IpuPage() {
             category="IPU"
             title="Laporan Indikator Prioritas Unit"
             description="Riwayat data Indikator Prioritas Unit (IPU) yang telah diinput."
-            showInputButton={true}
+            showInputButton={false}
         />
       </div>
     </div>

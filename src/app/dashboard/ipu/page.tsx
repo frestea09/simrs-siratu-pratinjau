@@ -21,7 +21,7 @@ export default function IpuPage() {
   const [selectedIndicator, setSelectedIndicator] = React.useState<string>("Semua Indikator");
 
   React.useEffect(() => {
-    if (uniqueIndicatorNames.length > 0 && !selectedIndicator) {
+    if (uniqueIndicatorNames.length > 0 && !uniqueIndicatorNames.includes(selectedIndicator)) {
       setSelectedIndicator(uniqueIndicatorNames[0]);
     }
   }, [uniqueIndicatorNames, selectedIndicator]);
@@ -190,7 +190,7 @@ export default function IpuPage() {
             category="IPU"
             title="Laporan Indikator Prioritas Unit"
             description="Riwayat data Indikator Prioritas Unit (IPU) yang telah diinput."
-            showInputButton={false}
+            showInputButton={true}
         />
       </div>
     </div>

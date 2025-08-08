@@ -34,6 +34,7 @@ export function IndicatorReport({ category, title, description, showInputButton 
     const [reportData, setReportData] = React.useState<any[] | null>(null)
     const [reportColumns, setReportColumns] = React.useState<ColumnDef<any>[] | null>(null)
     const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
+    const [isInputOpen, setIsInputOpen] = React.useState(false);
 
     const userCanSeeAll = currentUser && centralRoles.includes(currentUser.role);
     
@@ -61,7 +62,10 @@ export function IndicatorReport({ category, title, description, showInputButton 
     };
 
     const inputDialogButton = (
-        <IndicatorInputDialog category={category} />
+        <Button onClick={() => setIsInputOpen(true)}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Input Data Capaian
+        </Button>
     );
 
     return (
@@ -112,6 +116,11 @@ export function IndicatorReport({ category, title, description, showInputButton 
                     title={`Laporan Capaian ${title || `Indikator ${category}`}`}
                 />
             )}
+             <IndicatorInputDialog 
+                open={isInputOpen} 
+                onOpenChange={setIsInputOpen} 
+                category={category} 
+            />
         </div>
     )
 }

@@ -1,5 +1,6 @@
 
 import { create } from 'zustand'
+import { useNotificationStore } from './notification-store.tsx';
 
 export type IndicatorCategory = 'INM' | 'IMP-RS' | 'IMPU' | 'SPM';
 export type IndicatorFrequency = 'Harian' | 'Mingguan' | 'Bulanan' | 'Tahunan';
@@ -39,7 +40,7 @@ type IndicatorState = {
   indicators: Indicator[]
   submittedIndicators: SubmittedIndicator[]
   addIndicator: (indicator: Omit<Indicator, 'id' |'ratio' | 'status'>) => string
-  updateIndicator: (id: string, data: Omit<Indicator, 'id' |'ratio' | 'status'>) => void
+  updateIndicator: (id: string, data: Partial<Omit<Indicator, 'id' |'ratio' | 'status'>>) => void
   submitIndicator: (indicator: Omit<SubmittedIndicator, 'id' | 'status' | 'submissionDate'>) => string
   updateSubmittedIndicatorStatus: (id: string, status: SubmittedIndicator['status'], reason?: string) => void
   updateSubmittedIndicator: (id: string, data: Partial<Omit<SubmittedIndicator, 'id' | 'status' | 'submissionDate'>>) => void
@@ -51,13 +52,13 @@ const initialIndicators: Indicator[] = [];
 
 const calculateRatio = (indicator: Omit<Indicator, 'id' | 'ratio' | 'status'>): string => {
     if (indicator.standardUnit === "menit") {
-        if (indicator.denominator === 0) return "0 min";
+        if (indicator.denominator === 0) return "0";
         const average = indicator.numerator / indicator.denominator;
-        return `${average.toFixed(1)} min`
+        return `${average.toFixed(1)}`
     }
-    if (indicator.denominator === 0) return "0.0%"
+    if (indicator.denominator === 0) return "0.0"
     const ratio = (indicator.numerator / indicator.denominator) * 100;
-    return `${ratio.toFixed(1)}%`
+    return `${ratio.toFixed(1)}`
 }
 
 const calculateStatus = (indicator: Omit<Indicator, 'id' |'ratio' | 'status'>): Indicator['status'] => {
@@ -128,19 +129,16 @@ export const useIndicatorStore = create<IndicatorState>((set, get) => ({
       submittedIndicators: [newSubmittedIndicator, ...state.submittedIndicators]
     }));
 
-    if(indicator.category === 'IMPU') {
-         const notificationPayload = {
-            title: 'Pengajuan Indikator Baru (IMPU)',
-            description: `Indikator "${indicator.name}" dari unit ${indicator.unit} menunggu persetujuan.`,
-            link: '/dashboard/indicators',
-        };
-        // Notify PJ Ruangan in the same unit
-        addNotification({ ...notificationPayload, recipientUnit: indicator.unit, recipientRole: 'PJ Ruangan' });
-        // Notify Kepala Unit/Instalasi in the same unit
-        addNotification({ ...notificationPayload, recipientUnit: indicator.unit, recipientRole: 'Kepala Unit/Instalasi' });
-        // Notify the central committee
-        addNotification({ ...notificationPayload, recipientRole: 'Sub. Komite Peningkatan Mutu' });
-    }
+    if(newSubmittedIndicator.category === 'IMPU' && newSubmittedIndicator.status === 'Menunggu Persetujuan') {
+        const { addNotification } = useNotificationStore.getState();
+        const notificationPayload = {
+           title: 'Pengajuan IMPU Baru',
+           description: `Indikator "${newSubmittedIndicator.name}" dari unit ${newSubmittedIndicator.unit} menunggu persetujuan.`,
+           link: '/dashboard/indicators',
+       };
+       // Notify the central committee
+       addNotification({ ...notificationPayload, recipientRole: 'Sub. Komite Peningkatan Mutu' });
+   }
 
 
     return newId;
@@ -167,6 +165,3 @@ export const useIndicatorStore = create<IndicatorState>((set, get) => ({
       )
     }))
 }))
-
-// Dummy function to avoid error, will be replaced by actual notification store logic
-const addNotification = (payload: any) => {};

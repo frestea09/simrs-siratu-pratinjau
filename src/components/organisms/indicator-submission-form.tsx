@@ -32,6 +32,7 @@ import { useUserStore } from "@/store/user-store"
 import { useLogStore } from "@/store/log-store"
 import { Combobox } from "../ui/combobox"
 import { useNotificationStore } from "@/store/notification-store"
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group"
 
 const formSchema = z.object({
   name: z.string().min(5, {
@@ -51,6 +52,9 @@ const formSchema = z.object({
   standardUnit: z.enum(['%', 'menit'], {
     required_error: "Anda harus memilih satuan standar.",
   }),
+  // Fields for adoption logic
+  adoptionType: z.enum(['new', 'adopt']).optional(),
+  adoptedIndicatorId: z.string().optional(),
 })
 
 type IndicatorSubmissionFormProps = {
@@ -77,7 +81,7 @@ const centralRoles = [
 
 export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmissionFormProps) {
   const { toast } = useToast()
-  const { submitIndicator, updateSubmittedIndicator } = useIndicatorStore()
+  const { submitIndicator, updateSubmittedIndicator, submittedIndicators } = useIndicatorStore()
   const { currentUser } = useUserStore();
   const { addLog } = useLogStore();
   const { addNotification } = useNotificationStore();
@@ -88,13 +92,8 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: isEditMode ? {
-        name: indicator.name,
-        category: indicator.category,
-        unit: indicator.unit,
-        frequency: indicator.frequency,
-        description: indicator.description,
-        standard: indicator.standard,
-        standardUnit: indicator.standardUnit,
+        ...indicator,
+        adoptionType: 'new',
     } : {
       name: "",
       unit: userIsAdmin ? undefined : currentUser?.unit,
@@ -102,10 +101,43 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
       standard: 100,
       standardUnit: '%',
       frequency: 'Bulanan',
+      adoptionType: 'new',
     },
   })
 
   const selectedCategory = form.watch("category");
+  const adoptionType = form.watch("adoptionType");
+  const adoptedIndicatorId = form.watch("adoptedIndicatorId");
+
+  const adoptableIndicators = React.useMemo(() => {
+    return submittedIndicators.filter(ind => 
+        ind.status === 'Diverifikasi' && ['INM', 'IMP-RS', 'SPM'].includes(ind.category)
+    ).map(ind => ({ value: ind.id, label: `${ind.category} - ${ind.name}` }));
+  }, [submittedIndicators]);
+
+  React.useEffect(() => {
+    if (adoptionType === 'adopt' && adoptedIndicatorId) {
+        const adopted = submittedIndicators.find(ind => ind.id === adoptedIndicatorId);
+        if (adopted) {
+            form.setValue('name', adopted.name);
+            form.setValue('description', adopted.description);
+            form.setValue('standard', adopted.standard);
+            form.setValue('standardUnit', adopted.standardUnit);
+            form.setValue('frequency', adopted.frequency);
+        }
+    } else if (adoptionType === 'new' && !isEditMode) {
+        form.reset({
+            category: form.getValues('category'),
+            unit: form.getValues('unit'),
+            adoptionType: 'new',
+            name: "",
+            description: "",
+            standard: 100,
+            standardUnit: '%',
+            frequency: 'Bulanan',
+        });
+    }
+  }, [adoptionType, adoptedIndicatorId, submittedIndicators, form, isEditMode]);
   
   const userCanSelectUnit = userIsAdmin || selectedCategory === 'IMPU';
 
@@ -119,44 +151,48 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
 
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    // Exclude adoption-specific fields from the final data
+    const { adoptionType, adoptedIndicatorId, ...submissionData } = values;
+
     if (isEditMode && indicator.id) {
-        updateSubmittedIndicator(indicator.id, values)
+        updateSubmittedIndicator(indicator.id, submissionData)
         addLog({
             user: currentUser?.name || "System",
             action: 'UPDATE_SUBMITTED_INDICATOR',
-            details: `Pengajuan indikator "${values.name}" diperbarui.`
+            details: `Pengajuan indikator "${submissionData.name}" diperbarui.`
         })
         toast({
             title: "Pengajuan Diperbarui",
-            description: `Pengajuan untuk "${values.name}" telah berhasil diperbarui.`,
+            description: `Pengajuan untuk "${submissionData.name}" telah berhasil diperbarui.`,
         })
     } else {
-        const newId = submitIndicator(values as any)
+        const newId = submitIndicator(submissionData as any)
         addLog({
             user: currentUser?.name || "System",
             action: 'ADD_SUBMITTED_INDICATOR',
-            details: `Indikator baru "${values.name}" (${newId}) diajukan.`
+            details: `Indikator baru "${submissionData.name}" (${newId}) diajukan.`
         })
 
-        if(values.category === 'IMPU') {
+        if(submissionData.category === 'IMPU') {
              const notificationPayload = {
                 title: 'Pengajuan Indikator Baru (IMPU)',
-                description: `Indikator "${values.name}" dari unit ${values.unit} menunggu persetujuan.`,
+                description: `Indikator "${submissionData.name}" dari unit ${submissionData.unit} menunggu persetujuan.`,
                 link: '/dashboard/indicators',
             };
-            addNotification({ ...notificationPayload, recipientUnit: values.unit, recipientRole: 'PJ Ruangan' });
-            addNotification({ ...notificationPayload, recipientUnit: values.unit, recipientRole: 'Kepala Unit/Instalasi' });
+            // Central committee always gets notified for IMPU
             addNotification({ ...notificationPayload, recipientRole: 'Sub. Komite Peningkatan Mutu' });
         }
 
         toast({
           title: "Pengajuan Berhasil",
-          description: `Indikator "${values.name}" telah berhasil diajukan.`,
+          description: `Indikator "${submissionData.name}" telah berhasil diajukan.`,
         })
     }
     setOpen(false)
     form.reset()
   }
+
+  const isAdoption = selectedCategory === 'IMPU' && adoptionType === 'adopt';
 
   return (
     <Form {...form}>
@@ -168,7 +204,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                 render={({ field }) => (
                     <FormItem>
                       <FormLabel>Kategori Indikator</FormLabel>
-                       <Select onValueChange={field.onChange} defaultValue={field.value}>
+                       <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isEditMode}>
                             <FormControl>
                             <SelectTrigger>
                                 <SelectValue placeholder="Pilih kategori" />
@@ -184,6 +220,63 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                     </FormItem>
                 )}
             />
+            
+            {selectedCategory === 'IMPU' && !isEditMode && (
+                 <FormField
+                    control={form.control}
+                    name="adoptionType"
+                    render={({ field }) => (
+                        <FormItem className="space-y-3">
+                        <FormLabel>Jenis Pengajuan IMPU</FormLabel>
+                        <FormControl>
+                            <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex space-x-4"
+                            >
+                            <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl>
+                                <RadioGroupItem value="new" />
+                                </FormControl>
+                                <FormLabel className="font-normal">
+                                Buat Baru
+                                </FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl>
+                                <RadioGroupItem value="adopt" />
+                                </FormControl>
+                                <FormLabel className="font-normal">
+                                Adopsi dari Indikator yang Ada
+                                </FormLabel>
+                            </FormItem>
+                            </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            )}
+            
+            {isAdoption && (
+                 <FormField
+                    control={form.control}
+                    name="adoptedIndicatorId"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Pilih Indikator untuk Diadopsi</FormLabel>
+                           <Combobox
+                                options={adoptableIndicators}
+                                placeholder="Pilih indikator..."
+                                searchPlaceholder="Cari indikator..."
+                                value={field.value}
+                                onSelect={(value) => form.setValue('adoptedIndicatorId', value)}
+                            />
+                          <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            )}
 
              <FormField
                 control={form.control}
@@ -192,7 +285,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                     <FormItem>
                     <FormLabel>Nama Indikator</FormLabel>
                     <FormControl>
-                        <Input placeholder="Contoh: Kepatuhan Penggunaan APD" {...field} />
+                        <Input placeholder="Contoh: Kepatuhan Penggunaan APD" {...field} disabled={isAdoption} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -224,7 +317,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Frekuensi Pelaporan</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isAdoption}>
                         <FormControl>
                         <SelectTrigger>
                             <SelectValue placeholder="Pilih frekuensi" />
@@ -253,6 +346,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                     <Textarea
                     placeholder="Jelaskan tujuan dan cara pengukuran indikator ini."
                     {...field}
+                    disabled={isAdoption}
                     />
                 </FormControl>
                 <FormMessage />
@@ -268,7 +362,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                         <FormItem>
                             <FormLabel>Standar Target</FormLabel>
                             <FormControl>
-                                <Input type="number" placeholder="Contoh: 100" {...field} />
+                                <Input type="number" placeholder="Contoh: 100" {...field} disabled={isAdoption} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -280,7 +374,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Satuan Standar</FormLabel>
-                             <Select onValueChange={field.onChange} defaultValue={field.value}>
+                             <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isAdoption}>
                                 <FormControl>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Pilih satuan" />

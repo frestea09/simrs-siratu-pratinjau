@@ -1,5 +1,4 @@
-
-"use client"
+"use client";
 
 import {
   SidebarProvider,
@@ -11,7 +10,7 @@ import {
   SidebarTrigger,
   SidebarInset,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 import {
   LayoutDashboard,
   HeartPulse,
@@ -31,41 +30,48 @@ import {
   Network,
   Activity,
   Loader2,
-} from "lucide-react"
-import Link from "next/link"
-import { usePathname, useRouter } from 'next/navigation'
-import { UserNav } from "@/components/user-nav"
-import React from "react"
-import { Breadcrumb } from "@/components/molecules/breadcrumb"
-import { useUserStore } from "@/store/user-store.tsx"
-import { useLogStore } from "@/store/log-store.tsx"
-import { NavItem as NavItemType } from "@/types/nav"
-import { NavItem } from "./molecules/nav-item"
-import { cn } from "@/lib/utils"
-import { NotificationPopover } from "./organisms/notification-popover"
-import { Button } from "@/components/ui/button"
+} from "lucide-react";
+import Link from "next/link";
+import favicon from "@/app/favicon.ico";
+import { usePathname, useRouter } from "next/navigation";
+import { UserNav } from "@/components/user-nav";
+import React from "react";
+import { Breadcrumb } from "@/components/molecules/breadcrumb";
+import { useUserStore } from "@/store/user-store.tsx";
+import { useLogStore } from "@/store/log-store.tsx";
+import { NavItem as NavItemType } from "@/types/nav";
+import { NavItem } from "./molecules/nav-item";
+import { cn } from "@/lib/utils";
+import { NotificationPopover } from "./organisms/notification-popover";
+import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 const LoadingOverlay = ({ isLoading }: { isLoading: boolean }) => (
-    <div className={cn(
-        "fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm transition-opacity duration-300",
-        isLoading ? "opacity-100" : "opacity-0 pointer-events-none"
-    )}>
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-    </div>
+  <div
+    className={cn(
+      "fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm transition-opacity duration-300",
+      isLoading ? "opacity-100" : "opacity-0 pointer-events-none"
+    )}
+  >
+    <Loader2 className="h-10 w-10 animate-spin text-primary" />
+  </div>
 );
 
-
 const navItems: NavItemType[] = [
-  { 
-    href: "/dashboard/overview", 
-    icon: LayoutDashboard, 
-    label: "Dashboard" 
+  {
+    href: "/dashboard/overview",
+    icon: LayoutDashboard,
+    label: "Dashboard",
   },
   {
     label: "Layanan",
     icon: HeartPulse,
     subItems: [
-      { href: "/dashboard/indicators", icon: FolderKanban, label: "Manajemen Indikator" },
+      {
+        href: "/dashboard/indicators",
+        icon: FolderKanban,
+        label: "Manajemen Indikator",
+      },
       {
         label: "Indikator Mutu",
         icon: Activity,
@@ -74,34 +80,42 @@ const navItems: NavItemType[] = [
           { href: "/dashboard/inm", icon: Target, label: "INM" },
           { href: "/dashboard/imp-rs", icon: Building, label: "IMP-RS" },
           { href: "/dashboard/impu", icon: Network, label: "IMPU" },
-        ]
+        ],
       },
-      { href: "/dashboard/incidents", icon: ShieldAlert, label: "Insiden Keselamatan" },
+      {
+        href: "/dashboard/incidents",
+        icon: ShieldAlert,
+        label: "Insiden Keselamatan",
+      },
       { href: "/dashboard/reports", icon: FileText, label: "Laporan" },
-    ]
+    ],
   },
   {
     label: "Manajemen",
     icon: ClipboardCheck,
     subItems: [
-      { href: "/dashboard/surveys", icon: ClipboardCheck, label: "Survei Budaya" },
+      {
+        href: "/dashboard/surveys",
+        icon: ClipboardCheck,
+        label: "Survei Budaya",
+      },
       { href: "/dashboard/risks", icon: BarChart3, label: "Manajemen Risiko" },
-    ]
+    ],
   },
-]
+];
 
 const adminNavItems: NavItemType[] = [
-    { href: "/dashboard/users", icon: Users, label: "Manajemen Pengguna" },
-    { href: "/dashboard/logs", icon: History, label: "Log Sistem" },
-    { href: "/dashboard/settings", icon: Settings, label: "Pengaturan" },
-]
+  { href: "/dashboard/users", icon: Users, label: "Manajemen Pengguna" },
+  { href: "/dashboard/logs", icon: History, label: "Log Sistem" },
+  { href: "/dashboard/settings", icon: Settings, label: "Pengaturan" },
+];
 
 export default function DashboardClientLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  const pathname = usePathname()
+  const pathname = usePathname();
   const router = useRouter();
   const { currentUser, clearCurrentUser } = useUserStore();
   const { addLog } = useLogStore();
@@ -110,56 +124,57 @@ export default function DashboardClientLayout({
 
   React.useEffect(() => {
     if (pathname !== previousPath) {
-        setIsLoading(true);
-        const timer = setTimeout(() => {
-            setIsLoading(false);
-            setPreviousPath(pathname);
-        }, 300); // Simulate loading time
+      setIsLoading(true);
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+        setPreviousPath(pathname);
+      }, 300); // Simulate loading time
 
-        return () => clearTimeout(timer);
+      return () => clearTimeout(timer);
     }
   }, [pathname, previousPath]);
 
-
   const handleLogout = () => {
-    if(currentUser) {
-       addLog({
+    if (currentUser) {
+      addLog({
         user: currentUser.name,
-        action: 'LOGOUT',
-        details: 'Pengguna berhasil logout.'
-      })
+        action: "LOGOUT",
+        details: "Pengguna berhasil logout.",
+      });
     }
     clearCurrentUser();
-    router.push('/');
-  }
+    router.push("/");
+  };
 
   const findPath = (items: any[], currentPath: string): any[] => {
-      for (const item of items) {
-        if (item.href === currentPath) {
-          return [item];
-        }
-        if (item.subItems) {
-          const subPath = findPath(item.subItems, currentPath);
-          if (subPath.length > 0) {
-            return [item, ...subPath];
-          }
+    for (const item of items) {
+      if (item.href === currentPath) {
+        return [item];
+      }
+      if (item.subItems) {
+        const subPath = findPath(item.subItems, currentPath);
+        if (subPath.length > 0) {
+          return [item, ...subPath];
         }
       }
-      return [];
-    };
+    }
+    return [];
+  };
 
   const allNavItems = React.useMemo(() => {
     const fullNav = JSON.parse(JSON.stringify(navItems)) as NavItemType[];
-     if(fullNav[1]?.subItems?.[1]?.subItems?.[3]){
-        fullNav[1].subItems[1].subItems[3].label = 'Indikator Mutu Prioritas Unit (IMPU)';
+    if (fullNav[1]?.subItems?.[1]?.subItems?.[3]) {
+      fullNav[1].subItems[1].subItems[3].label =
+        "Indikator Mutu Prioritas Unit (IMPU)";
     }
     return fullNav.concat(adminNavItems);
   }, []);
 
   const breadcrumbPath = findPath(allNavItems, pathname);
   const currentPage = breadcrumbPath[breadcrumbPath.length - 1];
-  const [openMenus, setOpenMenus] = React.useState<{ [key: string]: boolean }>({});
-
+  const [openMenus, setOpenMenus] = React.useState<{ [key: string]: boolean }>(
+    {}
+  );
 
   return (
     <>
@@ -178,11 +193,11 @@ export default function DashboardClientLayout({
                 asChild
               >
                 <Link href="/dashboard/overview">
-                  <Hospital className="size-6" />
+                  <Image className="size-8" src={favicon} alt="logorsud" />
                 </Link>
               </Button>
               <h1 className="text-xl font-semibold tracking-tight truncate group-data-[state=collapsed]:hidden">
-                Si Ratu Web
+                SIRATU
               </h1>
             </div>
           </SidebarHeader>
@@ -190,17 +205,27 @@ export default function DashboardClientLayout({
           <SidebarContent className="p-2">
             <SidebarMenu>
               {navItems.map((item, index) => (
-                <NavItem key={index} item={item} openMenus={openMenus} setOpenMenus={setOpenMenus}/>
+                <NavItem
+                  key={index}
+                  item={item}
+                  openMenus={openMenus}
+                  setOpenMenus={setOpenMenus}
+                />
               ))}
             </SidebarMenu>
-            
-            {currentUser?.role === 'Admin Sistem' && (
+
+            {currentUser?.role === "Admin Sistem" && (
               <SidebarMenu className="mt-4 pt-2 border-t border-sidebar-border/50">
                 <p className="text-sm font-semibold text-muted-foreground/80 px-4 group-data-[state=expanded]:block hidden mb-2">
                   Administrasi
                 </p>
                 {adminNavItems.map((item) => (
-                  <NavItem key={item.href} item={item} openMenus={openMenus} setOpenMenus={setOpenMenus}/>
+                  <NavItem
+                    key={item.href}
+                    item={item}
+                    openMenus={openMenus}
+                    setOpenMenus={setOpenMenus}
+                  />
                 ))}
               </SidebarMenu>
             )}
@@ -209,32 +234,38 @@ export default function DashboardClientLayout({
           <SidebarFooter className="p-2 mt-auto">
             <SidebarMenu>
               <SidebarMenuItem>
-                <NavItem item={{ label: 'Logout', icon: LogOut, onClick: handleLogout }} openMenus={openMenus} setOpenMenus={setOpenMenus} />
+                <NavItem
+                  item={{
+                    label: "Logout",
+                    icon: LogOut,
+                    onClick: handleLogout,
+                  }}
+                  openMenus={openMenus}
+                  setOpenMenus={setOpenMenus}
+                />
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarFooter>
         </Sidebar>
         <SidebarInset>
           <header className="sticky top-0 z-10 flex h-auto min-h-20 flex-col border-b bg-background px-4 md:px-6">
-              <div className="flex items-center w-full py-3">
-                  <SidebarTrigger className="md:hidden" />
-                  <h1 className="text-3xl font-bold flex-1">
-                      {currentPage?.label || 'Dashboard'}
-                  </h1>
-                  <div className="ml-auto flex items-center gap-2">
-                      <NotificationPopover />
-                      <UserNav />
-                  </div>
+            <div className="flex items-center w-full py-3">
+              <SidebarTrigger className="md:hidden" />
+              <h1 className="text-3xl font-bold flex-1">
+                {currentPage?.label || "Dashboard"}
+              </h1>
+              <div className="ml-auto flex items-center gap-2">
+                <NotificationPopover />
+                <UserNav />
               </div>
-              <div className="pb-3">
-                  <Breadcrumb navItems={allNavItems} />
-              </div>
+            </div>
+            <div className="pb-3">
+              <Breadcrumb navItems={allNavItems} />
+            </div>
           </header>
-          <main className="flex-1 overflow-auto">
-              {children}
-          </main>
+          <main className="flex-1 overflow-auto">{children}</main>
         </SidebarInset>
       </SidebarProvider>
     </>
-  )
+  );
 }

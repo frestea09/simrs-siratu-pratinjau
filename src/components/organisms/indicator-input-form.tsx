@@ -197,10 +197,10 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
       </div>
       
        <div className="space-y-2">
-            <Label htmlFor="notes" className="text-base">Catatan & Rencana Tindak Lanjut (Opsional)</Label>
+            <Label htmlFor="notes" className="text-base">Catatan Analisis dan Rencana Tindak Lanjut</Label>
             <Textarea
                 id="notes"
-                placeholder="Jika capaian tidak sesuai standar, jelaskan analisis dan rencana tindak lanjutnya."
+                placeholder="Jelaskan analisis dan rencana tindak lanjut jika capaian tidak memenuhi standar."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 className="text-base min-h-[44px]"

@@ -15,8 +15,8 @@ import { useIndicatorStore, Indicator, SubmittedIndicator, IndicatorCategory } f
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "../ui/textarea"
 import { DialogFooter } from "../ui/dialog"
-import { useUserStore } from "@/store/user-store"
-import { useLogStore } from "@/store/log-store"
+import { useUserStore } from "@/store/user-store.tsx"
+import { useLogStore } from "@/store/log-store.tsx"
 
 const centralRoles = [
   'Admin Sistem',
@@ -42,7 +42,7 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
   const isEditMode = !!indicatorToEdit?.id;
   
   const [selectedIndicatorId, setSelectedIndicatorId] = React.useState<string | undefined>(isEditMode ? submittedIndicators.find(si => si.name === indicatorToEdit.indicator)?.id : undefined);
-  const [date, setDate] = React.useState<Date | undefined>(indicatorToEdit ? new Date(indicatorToEdit.period) : new Date())
+  const [date, setDate] = React.useState<Date | undefined>((isEditMode && indicatorToEdit?.period) ? new Date(indicatorToEdit.period) : new Date())
   const [numerator, setNumerator] = React.useState(indicatorToEdit?.numerator?.toString() || "")
   const [denominator, setDenominator] = React.useState(indicatorToEdit?.denominator?.toString() || "")
   const [analysisNotes, setAnalysisNotes] = React.useState(indicatorToEdit?.analysisNotes || "")
@@ -62,6 +62,14 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
         setDenominator(indicatorToEdit.denominator.toString());
         setAnalysisNotes(indicatorToEdit.analysisNotes || "");
         setFollowUpPlan(indicatorToEdit.followUpPlan || "");
+    } else {
+        // Reset form for new entry
+        setSelectedIndicatorId(undefined);
+        setDate(new Date());
+        setNumerator("");
+        setDenominator("");
+        setAnalysisNotes("");
+        setFollowUpPlan("");
     }
   }, [indicatorToEdit, submittedIndicators])
 
@@ -234,3 +242,5 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
     </div>
   )
 }
+
+    

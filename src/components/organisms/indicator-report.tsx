@@ -67,6 +67,12 @@ export function IndicatorReport({ indicators, category, title, description, show
         setEditingIndicator(undefined);
         setIsInputOpen(true);
     }
+    
+    const userIndicators = React.useMemo(() => {
+        if(userCanSeeAll || !currentUser?.unit) return indicators;
+        return indicators.filter(i => i.unit === currentUser.unit);
+    }, [indicators, currentUser, userCanSeeAll]);
+
 
     return (
         <div className="space-y-4">
@@ -107,7 +113,7 @@ export function IndicatorReport({ indicators, category, title, description, show
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <IndicatorReportTable indicators={indicators} onExport={handleExport} onEdit={handleEdit}/>
+                    <IndicatorReportTable indicators={userIndicators} onExport={handleExport} onEdit={handleEdit}/>
                 </CardContent>
             </Card>
             <ReportPreviewDialog
@@ -151,3 +157,5 @@ export function IndicatorReport({ indicators, category, title, description, show
         </div>
     )
 }
+
+    

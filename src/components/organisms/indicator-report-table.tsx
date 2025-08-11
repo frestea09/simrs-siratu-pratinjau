@@ -15,9 +15,10 @@ import {
   FilterFn,
   RowData,
 } from "@tanstack/react-table"
-import { ArrowUpDown, Download, Filter } from "lucide-react"
+import { ArrowUpDown, Download, Filter, Calendar as CalendarIcon, X as XIcon } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
+import { DateRange } from "react-day-picker"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -33,6 +34,9 @@ import { Indicator, IndicatorCategory } from "@/store/indicator-store"
 import { Badge } from "../ui/badge"
 import { ActionsCell } from "./indicator-report-table/actions-cell"
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu"
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
+import { cn } from "@/lib/utils"
+import { Calendar } from "../ui/calendar"
 
 declare module '@tanstack/react-table' {
     interface FilterFns {
@@ -40,6 +44,32 @@ declare module '@tanstack/react-table' {
         categoryFilter: FilterFn<RowData>
     }
 }
+
+const dateRangeFilter: FilterFn<Indicator> = (row, columnId, value) => {
+    const date = new Date(row.original.period);
+    const [start, end] = value as [Date | undefined, Date | undefined];
+
+    // No filter applied
+    if (!start && !end) return true;
+
+    // Set time to 00:00:00 for start date for accurate comparison
+    const startDate = start ? new Date(start.setHours(0, 0, 0, 0)) : null;
+    
+    // Set time to 23:59:59 for end date for accurate comparison
+    const endDate = end ? new Date(end.setHours(23, 59, 59, 999)) : null;
+
+    if (startDate && !endDate) {
+        return date >= startDate;
+    }
+    if (!startDate && endDate) {
+        return date <= endDate;
+    }
+    if (startDate && endDate) {
+        return date >= startDate && date <= endDate;
+    }
+    return true;
+}
+
 
 const categoryFilter: FilterFn<Indicator> = (row, id, value) => {
     return value.includes(row.original.category);
@@ -63,6 +93,7 @@ type IndicatorReportTableProps = {
 export function IndicatorReportTable({ indicators, onExport, onEdit, showCategoryFilter = false }: IndicatorReportTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [date, setDate] = React.useState<DateRange | undefined>()
   
   const columns: ColumnDef<Indicator>[] = [
     {
@@ -84,6 +115,7 @@ export function IndicatorReportTable({ indicators, onExport, onEdit, showCategor
       accessorKey: "period",
       header: "Periode",
       cell: ({ row }) => <div>{format(parseISO(row.getValue("period")), "d MMMM yyyy", { locale: IndonesianLocale })}</div>,
+      filterFn: dateRangeFilter,
     },
     {
       accessorKey: "ratio",
@@ -122,6 +154,7 @@ export function IndicatorReportTable({ indicators, onExport, onEdit, showCategor
     data: indicators,
     columns,
     filterFns: {
+        dateRangeFilter,
         categoryFilter
     },
     onSortingChange: setSorting,
@@ -138,6 +171,10 @@ export function IndicatorReportTable({ indicators, onExport, onEdit, showCategor
     }
   })
 
+  React.useEffect(() => {
+    table.getColumn("period")?.setFilterValue(date ? [date.from, date.to] : undefined);
+  }, [date, table]);
+
   return (
     <div className="w-full">
       <div className="flex items-center py-4 gap-2 flex-wrap">
@@ -145,8 +182,34 @@ export function IndicatorReportTable({ indicators, onExport, onEdit, showCategor
           placeholder="Cari nama indikator..."
           value={(table.getColumn("indicator")?.getFilterValue() as string) ?? ""}
           onChange={(event) => table.getColumn("indicator")?.setFilterValue(event.target.value)}
-          className="max-w-sm"
+          className="max-w-xs"
         />
+         <div className="relative">
+            <Popover>
+                <PopoverTrigger asChild>
+                <Button
+                    id="date"
+                    variant={"outline"}
+                    className={cn("w-[260px] justify-start text-left font-normal", !date && "text-muted-foreground")}
+                >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date?.from ? (
+                        date.to ? (<> {format(date.from, "d MMM yyyy")} - {format(date.to, "d MMM yyyy")} </>) 
+                        : (format(date.from, "d MMM yyyy"))
+                    ) : (<span>Pilih rentang tanggal</span>
+                    )}
+                </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar initialFocus mode="range" defaultMonth={date?.from} selected={date} onSelect={setDate} numberOfMonths={2}/>
+                </PopoverContent>
+            </Popover>
+            {date && (
+                <Button variant="ghost" size="icon" className="h-7 w-7 absolute right-1 top-1/2 -translate-y-1/2" onClick={() => setDate(undefined)}>
+                    <XIcon className="h-4 w-4 text-muted-foreground" />
+                </Button>
+            )}
+        </div>
         {showCategoryFilter && (
          <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -206,7 +269,7 @@ export function IndicatorReportTable({ indicators, onExport, onEdit, showCategor
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} dari {table.getFilteredRowModel().rows.length} baris dipilih.
+          Menampilkan {table.getFilteredRowModel().rows.length} dari {indicators.length} total data.
         </div>
         <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>Sebelumnya</Button>
         <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>Berikutnya</Button>
@@ -214,3 +277,5 @@ export function IndicatorReportTable({ indicators, onExport, onEdit, showCategor
     </div>
   )
 }
+
+    

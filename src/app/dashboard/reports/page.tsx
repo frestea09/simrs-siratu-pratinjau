@@ -88,12 +88,19 @@ export default function ReportsPage() {
             const monthlyData: (string | null)[] = Array(12).fill(null);
 
             for(let i = 0; i < 12; i++) {
-                const monthStr = String(i + 1).padStart(2, '0');
-                const periodStr = `${selectedYear}-${monthStr}`;
-
-                const achievement = yearlyIndicators.find(ind => ind.indicator === si.name && ind.period === periodStr);
-                if(achievement) {
-                    monthlyData[i] = achievement.ratio;
+                // Find achievements for the specific indicator (si.name) for the specific month (i) and year (selectedYear)
+                const achievementsForMonth = yearlyIndicators.filter(ind => {
+                    const indicatorDate = new Date(ind.period);
+                    return ind.indicator === si.name && 
+                           indicatorDate.getFullYear() === parseInt(selectedYear) &&
+                           indicatorDate.getMonth() === i;
+                });
+                
+                if(achievementsForMonth.length > 0) {
+                    // If multiple entries in a month, calculate average
+                    const totalRatio = achievementsForMonth.reduce((acc, curr) => acc + parseFloat(curr.ratio), 0);
+                    const averageRatio = totalRatio / achievementsForMonth.length;
+                    monthlyData[i] = averageRatio.toFixed(1);
                 }
             }
 

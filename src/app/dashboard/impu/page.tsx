@@ -36,11 +36,11 @@ export default function ImpuPage() {
     const now = new Date();
     let startDate: Date;
     switch (timeRange) {
-        case '7d': startDate = subDays(now, 7); break;
-        case '30d': startDate = subDays(now, 30); break;
-        case '6m': startDate = startOfMonth(subDays(now, 30 * 6)); break;
+        case '7d': startDate = subDays(now, 6); break;
+        case '30d': startDate = subDays(now, 29); break;
+        case '6m': startDate = startOfMonth(subDays(now, 30 * 5)); break; 
         case '1y': startDate = startOfYear(now); break;
-        default: startDate = startOfMonth(subDays(now, 30 * 6));
+        default: startDate = startOfMonth(subDays(now, 30 * 5));
     }
 
     const filtered = selectedIndicatorData.filter(d => parseISO(d.period) >= startDate);
@@ -70,7 +70,7 @@ export default function ImpuPage() {
       .map(d => ({
           ...d,
           Capaian: parseFloat((d.Capaian / d.count).toFixed(1)),
-          name: timeRange === '1y' ? format(d.date, 'MMM') : format(d.date, 'dd MMM'),
+          name: timeRange === '6m' || timeRange === '1y' ? format(d.date, 'MMM') : format(d.date, 'dd MMM'),
       }))
       .sort((a, b) => a.date.getTime() - b.date.getTime());
 
@@ -167,7 +167,15 @@ export default function ImpuPage() {
                         <Tooltip
                             cursor={{ fill: 'hsl(var(--muted))' }}
                             contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
-                             labelFormatter={(label) => format(parseISO(chartData.find(d => d.name === label)?.date.toISOString() || new Date().toISOString()), 'd MMMM yyyy')}
+                             labelFormatter={(label, payload) => {
+                                if (payload && payload.length > 0 && payload[0].payload.date) {
+                                  const date = parseISO(payload[0].payload.date);
+                                  const timeGroup = payload[0].payload.timeGroup;
+                                   if(timeRange === '6m' || timeRange === '1y') return format(date, 'MMMM yyyy');
+                                   return format(date, 'd MMMM yyyy');
+                                }
+                                return label;
+                            }}
                         />
                         <Legend />
                         <Line type="monotone" dataKey="Capaian" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} dot={<Dot r={4} />}>

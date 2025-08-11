@@ -42,9 +42,9 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
   const isEditMode = !!indicatorToEdit?.id;
   
   const [selectedIndicatorId, setSelectedIndicatorId] = React.useState<string | undefined>(isEditMode ? submittedIndicators.find(si => si.name === indicatorToEdit.indicator)?.id : undefined);
-  const [date, setDate] = React.useState<Date | undefined>(isEditMode ? new Date(indicatorToEdit.period) : new Date())
-  const [numerator, setNumerator] = React.useState(isEditMode ? indicatorToEdit.numerator.toString() : "")
-  const [denominator, setDenominator] = React.useState(isEditMode ? indicatorToEdit.denominator.toString() : "")
+  const [date, setDate] = React.useState<Date | undefined>(indicatorToEdit ? new Date(indicatorToEdit.period) : new Date())
+  const [numerator, setNumerator] = React.useState(indicatorToEdit?.numerator?.toString() || "")
+  const [denominator, setDenominator] = React.useState(indicatorToEdit?.denominator?.toString() || "")
   const [analysisNotes, setAnalysisNotes] = React.useState(indicatorToEdit?.analysisNotes || "")
   const [followUpPlan, setFollowUpPlan] = React.useState(indicatorToEdit?.followUpPlan || "")
 
@@ -92,7 +92,7 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
         indicator: selectedSubmittedIndicator.name,
         category: selectedSubmittedIndicator.category,
         unit: selectedSubmittedIndicator.unit,
-        period: format(date, "yyyy-MM"), // Use YYYY-MM for monthly data
+        period: format(date, "yyyy-MM-dd"), // Save full date
         frequency: selectedSubmittedIndicator.frequency,
         numerator: Number(numerator),
         denominator: Number(denominator),
@@ -157,7 +157,7 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="period" className="text-base">Periode Laporan (Pilih hari apa saja dalam bulan yang relevan)</Label>
+          <Label htmlFor="period" className="text-base">Periode Laporan</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -165,7 +165,7 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
                 className={cn("w-full justify-start text-left font-normal text-base h-11", !date && "text-muted-foreground")}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "MMMM yyyy") : <span>Pilih bulan</span>}
+                {date ? format(date, "PPP") : <span>Pilih tanggal</span>}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">

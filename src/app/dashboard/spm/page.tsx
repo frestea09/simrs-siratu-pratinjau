@@ -169,8 +169,7 @@ export default function SpmPage() {
                             contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
                              labelFormatter={(label, payload) => {
                                 if (payload && payload.length > 0 && payload[0].payload.date) {
-                                  const date = parseISO(payload[0].payload.date);
-                                  const timeGroup = payload[0].payload.timeGroup;
+                                  const date = payload[0].payload.date;
                                    if(timeRange === '6m' || timeRange === '1y') return format(date, 'MMMM yyyy');
                                    return format(date, 'd MMMM yyyy');
                                 }

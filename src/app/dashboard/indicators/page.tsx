@@ -50,7 +50,7 @@ export default function IndicatorsPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Pengajuan Indikator (INM, IMP-RS, IPU, SPM)</CardTitle>
+              <CardTitle>Pengajuan Indikator (INM, IMP-RS, IMPU, SPM)</CardTitle>
               <CardDescription>
                 Daftar semua indikator yang telah diajukan beserta status
                 verifikasinya.

@@ -73,7 +73,7 @@ export default function LoginPage() {
         <CardHeader>
           <div className="flex items-center justify-center mb-4">
             <Hospital className="h-8 w-8 mr-2 text-primary" />
-            <CardTitle className="text-2xl">Si Ratu Web</CardTitle>
+            <CardTitle className="text-2xl">SIRATU</CardTitle>
           </div>
           <CardDescription>
             Sistem Informasi Rapor Mutu - RSUD Oto Iskandar Dinata

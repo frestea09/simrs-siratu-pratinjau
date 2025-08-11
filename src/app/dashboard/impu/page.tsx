@@ -32,17 +32,19 @@ export default function ImpuPage() {
   const meetingStandard = impuIndicators.filter(i => i.status === 'Memenuhi Standar').length;
   const notMeetingStandard = totalIndicators - meetingStandard;
 
-  const chartData = React.useMemo(() => {
+  const getStartDate = (range: TimeRange) => {
     const now = new Date();
-    let startDate: Date;
-    switch (timeRange) {
-        case '7d': startDate = subDays(now, 6); break;
-        case '30d': startDate = subDays(now, 29); break;
-        case '6m': startDate = startOfMonth(subDays(now, 30 * 5)); break; 
-        case '1y': startDate = startOfYear(now); break;
-        default: startDate = startOfMonth(subDays(now, 30 * 5));
+    switch (range) {
+        case '7d': return subDays(now, 6);
+        case '30d': return subDays(now, 29);
+        case '6m': return startOfMonth(subDays(now, 30 * 5)); // 5 months ago to include current month
+        case '1y': return startOfYear(now);
+        default: return startOfMonth(subDays(now, 30 * 5));
     }
+  }
 
+  const chartData = React.useMemo(() => {
+    const startDate = getStartDate(timeRange);
     const filtered = selectedIndicatorData.filter(d => parseISO(d.period) >= startDate);
 
     const getGroupKey = (date: Date) => {
@@ -76,6 +78,11 @@ export default function ImpuPage() {
 
   }, [selectedIndicatorData, timeRange]);
   
+  const filteredIndicatorsForTable = React.useMemo(() => {
+    const startDate = getStartDate(timeRange);
+    return selectedIndicatorData.filter(d => parseISO(d.period) >= startDate);
+  }, [selectedIndicatorData, timeRange]);
+
   const getChartDescription = () => {
     if (selectedIndicator === 'Semua Indikator') {
         return 'Menampilkan rata-rata capaian semua indikator IMPU'
@@ -200,6 +207,7 @@ export default function ImpuPage() {
             showInputButton={true}
             chartData={chartData}
             chartDescription={getChartDescription()}
+            indicators={filteredIndicatorsForTable}
         />
       </div>
     </div>

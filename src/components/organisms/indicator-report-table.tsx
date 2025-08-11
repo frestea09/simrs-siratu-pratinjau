@@ -15,8 +15,7 @@ import {
   FilterFn,
   RowData,
 } from "@tanstack/react-table"
-import { ArrowUpDown, Calendar as CalendarIcon, Download, Filter } from "lucide-react"
-import { DateRange } from "react-day-picker"
+import { ArrowUpDown, Download, Filter } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
 
@@ -31,9 +30,6 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Indicator, IndicatorCategory } from "@/store/indicator-store"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
-import { cn } from "@/lib/utils"
 import { Badge } from "../ui/badge"
 import { ActionsCell } from "./indicator-report-table/actions-cell"
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu"
@@ -43,19 +39,6 @@ declare module '@tanstack/react-table' {
         dateRangeFilter: FilterFn<RowData>
         categoryFilter: FilterFn<RowData>
     }
-}
-
-const dateRangeFilter: FilterFn<Indicator> = (row, columnId, value) => {
-    const rowDate = parseISO(row.original.period);
-    const [start, end] = value as [Date, Date];
-
-    const normalizedStart = start ? new Date(start.getFullYear(), start.getMonth(), 1) : null;
-    const normalizedEnd = end ? new Date(end.getFullYear(), end.getMonth() + 1, 0) : null;
-    
-    if (normalizedStart && !normalizedEnd) return rowDate >= normalizedStart;
-    if (!normalizedStart && normalizedEnd) return rowDate <= normalizedEnd;
-    if (normalizedStart && normalizedEnd) return rowDate >= normalizedStart && rowDate <= normalizedEnd;
-    return true;
 }
 
 const categoryFilter: FilterFn<Indicator> = (row, id, value) => {
@@ -75,13 +58,11 @@ type IndicatorReportTableProps = {
   onExport: (data: Indicator[], columns: ColumnDef<Indicator>[]) => void;
   onEdit: (indicator: Indicator) => void;
   showCategoryFilter?: boolean;
-  category: IndicatorCategory;
 }
 
-export function IndicatorReportTable({ indicators, onExport, onEdit, showCategoryFilter = false, category }: IndicatorReportTableProps) {
+export function IndicatorReportTable({ indicators, onExport, onEdit, showCategoryFilter = false }: IndicatorReportTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [date, setDate] = React.useState<DateRange | undefined>()
   
   const columns: ColumnDef<Indicator>[] = [
     {
@@ -103,7 +84,6 @@ export function IndicatorReportTable({ indicators, onExport, onEdit, showCategor
       accessorKey: "period",
       header: "Periode",
       cell: ({ row }) => <div>{format(parseISO(row.getValue("period")), "d MMMM yyyy", { locale: IndonesianLocale })}</div>,
-      filterFn: 'dateRangeFilter',
     },
     {
       accessorKey: "ratio",
@@ -142,7 +122,6 @@ export function IndicatorReportTable({ indicators, onExport, onEdit, showCategor
     data: indicators,
     columns,
     filterFns: {
-        dateRangeFilter,
         categoryFilter
     },
     onSortingChange: setSorting,
@@ -158,12 +137,6 @@ export function IndicatorReportTable({ indicators, onExport, onEdit, showCategor
         }
     }
   })
-  
-  React.useEffect(() => {
-    const from = date?.from;
-    const to = date?.to;
-    table.getColumn("period")?.setFilterValue(from || to ? [from, to] : undefined);
-  }, [date, table]);
 
   return (
     <div className="w-full">
@@ -174,17 +147,6 @@ export function IndicatorReportTable({ indicators, onExport, onEdit, showCategor
           onChange={(event) => table.getColumn("indicator")?.setFilterValue(event.target.value)}
           className="max-w-sm"
         />
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button id="date" variant={"outline"} className={cn("flex-1 min-w-[200px] justify-start text-left font-normal", !date && "text-muted-foreground")}>
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {date?.from ? (date.to ? (<>{format(date.from, "LLL dd, y")} - {format(date.to, "LLL dd, y")}</>) : (format(date.from, "LLL dd, y"))) : (<span>Pilih rentang periode</span>)}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar initialFocus mode="range" defaultMonth={date?.from} selected={date} onSelect={setDate} numberOfMonths={2} />
-          </PopoverContent>
-        </Popover>
         {showCategoryFilter && (
          <DropdownMenu>
           <DropdownMenuTrigger asChild>

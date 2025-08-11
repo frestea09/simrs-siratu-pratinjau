@@ -12,7 +12,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { ColumnDef } from "@tanstack/react-table"
 import { ReportPreviewDialog } from "./report-preview-dialog"
 import { useUserStore } from "@/store/user-store.tsx"
-import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis, LineChart, Line, Legend, Dot } from "recharts"
 
 const centralRoles = [
   'Admin Sistem',
@@ -23,6 +23,7 @@ const centralRoles = [
 ];
 
 type IndicatorReportProps = {
+    indicators: Indicator[];
     category: IndicatorCategory;
     title?: string;
     description?: string;
@@ -31,31 +32,24 @@ type IndicatorReportProps = {
     chartDescription?: string;
 }
 
-export function IndicatorReport({ category, title, description, showInputButton = true, chartData, chartDescription }: IndicatorReportProps) {
-    const { indicators, submittedIndicators } = useIndicatorStore()
+export function IndicatorReport({ indicators, category, title, description, showInputButton = true, chartData, chartDescription }: IndicatorReportProps) {
+    const { submittedIndicators } = useIndicatorStore()
     const { currentUser } = useUserStore();
     const [reportTableData, setReportTableData] = React.useState<any[] | null>(null)
     const [reportColumns, setReportColumns] = React.useState<ColumnDef<any>[] | null>(null)
     const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
-    const [editingIndicator, setEditingIndicator] = React.useState<Indicator | null>(null);
+    const [isInputOpen, setIsInputOpen] = React.useState(false);
+    const [editingIndicator, setEditingIndicator] = React.useState<Indicator | undefined>(undefined);
 
     const userCanSeeAll = currentUser && centralRoles.includes(currentUser.role);
     
-    const filteredIndicators = React.useMemo(() => {
-        const categoryIndicators = indicators.filter(i => i.category === category);
-        if (userCanSeeAll || !currentUser?.unit) {
-            return categoryIndicators;
-        }
-        return categoryIndicators.filter(indicator => indicator.unit === currentUser.unit);
-    }, [indicators, currentUser, userCanSeeAll, category]);
-
     const hasVerifiedIndicators = React.useMemo(() => {
         const relevantSubmitted = submittedIndicators.filter(i => i.category === category && i.status === 'Diverifikasi');
-        const relevantIndicators = userCanSeeAll || !currentUser?.unit
-            ? relevantSubmitted
-            : relevantSubmitted.filter(i => i.unit === currentUser.unit);
+        if (userCanSeeAll || !currentUser?.unit) {
+            return relevantSubmitted.length > 0;
+        }
+        return relevantSubmitted.filter(i => i.unit === currentUser.unit).length > 0;
         
-        return relevantIndicators.length > 0;
     }, [submittedIndicators, currentUser, userCanSeeAll, category]);
     
     const handleExport = (data: any[], columns: ColumnDef<any>[]) => {
@@ -66,20 +60,13 @@ export function IndicatorReport({ category, title, description, showInputButton 
 
     const handleEdit = (indicator: Indicator) => {
         setEditingIndicator(indicator);
+        setIsInputOpen(true);
     };
-    
-    const handleCloseDialog = () => {
-        setEditingIndicator(null);
+
+    const handleAddNew = () => {
+        setEditingIndicator(undefined);
+        setIsInputOpen(true);
     }
-
-    const inputDialogButton = (
-        <Button onClick={() => setEditingIndicator(null)}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Input Data Capaian
-        </Button>
-    );
-
-    const isDialogOpen = editingIndicator !== null;
 
     return (
         <div className="space-y-4">
@@ -96,7 +83,7 @@ export function IndicatorReport({ category, title, description, showInputButton 
                         {showInputButton && (
                              <div className="flex items-center gap-2">
                                 {hasVerifiedIndicators ? (
-                                    <Button onClick={() => setEditingIndicator({} as Indicator)}>
+                                    <Button onClick={handleAddNew}>
                                         <PlusCircle className="mr-2 h-4 w-4" />
                                         Input Data Capaian
                                     </Button>
@@ -120,7 +107,7 @@ export function IndicatorReport({ category, title, description, showInputButton 
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <IndicatorReportTable indicators={filteredIndicators} onExport={handleExport} category={category} onEdit={handleEdit}/>
+                    <IndicatorReportTable indicators={indicators} onExport={handleExport} onEdit={handleEdit}/>
                 </CardContent>
             </Card>
             <ReportPreviewDialog
@@ -136,40 +123,30 @@ export function IndicatorReport({ category, title, description, showInputButton 
                         <p className="text-center text-sm text-gray-600 mb-4">Grafik Tren Capaian</p>
                         <div style={{ width: '100%', height: 300 }}>
                              <ResponsiveContainer width="100%" height="100%">
-                               <BarChart data={chartData}>
+                                <LineChart data={chartData}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                    <XAxis
-                                    dataKey="name"
-                                    stroke="#888888"
-                                    fontSize={12}
-                                    tickLine={false}
-                                    axisLine={false}
-                                    />
-                                    <YAxis
-                                    stroke="#888888"
-                                    fontSize={12}
-                                    tickLine={false}
-                                    axisLine={false}
-                                    unit="%"
-                                    />
+                                    <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                                    <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
                                     <RechartsTooltip
-                                    cursor={{ fill: 'hsl(var(--muted))' }}
-                                    contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
+                                        cursor={{ fill: 'hsl(var(--muted))' }}
+                                        contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
                                     />
-                                    <Bar dataKey="Capaian" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
-                                        <LabelList dataKey="Capaian" position="top" formatter={(value: number) => `${value}%`} />
-                                    </Bar>
-                                </BarChart>
+                                    <Legend />
+                                    <Line type="monotone" dataKey="Capaian" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} dot={<Dot r={4} />}>
+                                        <LabelList dataKey="Capaian" position="top" />
+                                    </Line>
+                                     <Line type="monotone" dataKey="Standar" stroke="hsl(var(--destructive))" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                                </LineChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
                 )}
             </ReportPreviewDialog>
              <IndicatorInputDialog 
-                open={isDialogOpen} 
-                onOpenChange={handleCloseDialog} 
+                open={isInputOpen} 
+                onOpenChange={setIsInputOpen}
                 category={category}
-                indicatorToEdit={editingIndicator || undefined} 
+                indicatorToEdit={editingIndicator} 
             />
         </div>
     )

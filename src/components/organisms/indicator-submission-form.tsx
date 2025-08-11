@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import * as React from "react"
@@ -188,8 +189,10 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
           description: `Indikator "${submissionData.name}" telah berhasil diajukan.`,
         })
     }
-    setOpen(false)
-    form.reset()
+    setOpen(false);
+    setTimeout(() => {
+        form.reset();
+    }, 150);
   }
 
   const isAdoption = selectedCategory === 'IMPU' && adoptionType === 'adopt';

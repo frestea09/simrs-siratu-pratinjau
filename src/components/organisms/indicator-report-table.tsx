@@ -16,7 +16,7 @@ import {
   RowData,
 } from "@tanstack/react-table"
 import { ArrowUpDown, Download, Filter, Calendar as CalendarIcon, X as XIcon } from "lucide-react"
-import { format, parseISO } from "date-fns"
+import { format, parseISO, isValid } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
 import { DateRange } from "react-day-picker"
 
@@ -46,27 +46,34 @@ declare module '@tanstack/react-table' {
 }
 
 const dateRangeFilter: FilterFn<Indicator> = (row, columnId, value) => {
-    const date = new Date(row.original.period);
+    const rowDate = new Date(row.getValue(columnId));
     const [start, end] = value as [Date | undefined, Date | undefined];
+
+    if (!isValid(rowDate)) return false;
 
     // No filter applied
     if (!start && !end) return true;
 
-    // Set time to 00:00:00 for start date for accurate comparison
-    const startDate = start ? new Date(start.setHours(0, 0, 0, 0)) : null;
-    
-    // Set time to 23:59:59 for end date for accurate comparison
-    const endDate = end ? new Date(end.setHours(23, 59, 59, 999)) : null;
+    // Clone dates to avoid mutating original state
+    const startDate = start ? new Date(start) : null;
+    const endDate = end ? new Date(end) : null;
+
+    // Set time to the beginning of the day for the start date
+    if (startDate) startDate.setHours(0, 0, 0, 0);
+
+    // Set time to the end of the day for the end date
+    if (endDate) endDate.setHours(23, 59, 59, 999);
 
     if (startDate && !endDate) {
-        return date >= startDate;
+        return rowDate >= startDate;
     }
     if (!startDate && endDate) {
-        return date <= endDate;
+        return rowDate <= endDate;
     }
     if (startDate && endDate) {
-        return date >= startDate && date <= endDate;
+        return rowDate >= startDate && rowDate <= endDate;
     }
+    
     return true;
 }
 
@@ -114,7 +121,14 @@ export function IndicatorReportTable({ indicators, onExport, onEdit, showCategor
     {
       accessorKey: "period",
       header: "Periode",
-      cell: ({ row }) => <div>{format(parseISO(row.getValue("period")), "d MMMM yyyy", { locale: IndonesianLocale })}</div>,
+      cell: ({ row }) => {
+        const dateValue = row.getValue("period") as string;
+        const parsedDate = parseISO(dateValue);
+        if (!isValid(parsedDate)) {
+            return <span>Tanggal Invalid</span>;
+        }
+        return <div>{format(parsedDate, "d MMMM yyyy", { locale: IndonesianLocale })}</div>
+      },
       filterFn: dateRangeFilter,
     },
     {
@@ -277,5 +291,3 @@ export function IndicatorReportTable({ indicators, onExport, onEdit, showCategor
     </div>
   )
 }
-
-    

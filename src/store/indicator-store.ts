@@ -31,7 +31,8 @@ export type Indicator = {
   denominator: number;
   standard: number;
   standardUnit: '%' | 'menit';
-  notes?: string;
+  analysisNotes?: string;
+  followUpPlan?: string;
   ratio: string;
   status: 'Memenuhi Standar' | 'Tidak Memenuhi Standar' | 'N/A';
 }

@@ -45,7 +45,8 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
   const [date, setDate] = React.useState<Date | undefined>(indicatorToEdit ? new Date(indicatorToEdit.period) : new Date())
   const [numerator, setNumerator] = React.useState(indicatorToEdit?.numerator.toString() || "")
   const [denominator, setDenominator] = React.useState(indicatorToEdit?.denominator.toString() || "")
-  const [notes, setNotes] = React.useState(indicatorToEdit?.notes || "")
+  const [analysisNotes, setAnalysisNotes] = React.useState(indicatorToEdit?.analysisNotes || "")
+  const [followUpPlan, setFollowUpPlan] = React.useState(indicatorToEdit?.followUpPlan || "")
 
   const selectedSubmittedIndicator = React.useMemo(() => {
     return submittedIndicators.find(si => si.id === selectedIndicatorId);
@@ -59,7 +60,8 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
         setDate(new Date(indicatorToEdit.period));
         setNumerator(indicatorToEdit.numerator.toString());
         setDenominator(indicatorToEdit.denominator.toString());
-        setNotes(indicatorToEdit.notes || "");
+        setAnalysisNotes(indicatorToEdit.analysisNotes || "");
+        setFollowUpPlan(indicatorToEdit.followUpPlan || "");
     }
   }, [indicatorToEdit, submittedIndicators])
 
@@ -81,7 +83,7 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
         toast({
             variant: "destructive",
             title: "Data Tidak Lengkap",
-            description: "Harap isi semua kolom (kecuali Catatan) untuk menyimpan data.",
+            description: "Harap isi semua kolom wajib untuk menyimpan data.",
         })
         return
     }
@@ -96,7 +98,8 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
         denominator: Number(denominator),
         standard: selectedSubmittedIndicator.standard,
         standardUnit: selectedSubmittedIndicator.standardUnit,
-        notes: notes,
+        analysisNotes: analysisNotes,
+        followUpPlan: followUpPlan,
     };
 
     if (isEditMode && indicatorToEdit) {
@@ -128,7 +131,8 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
     setDate(new Date())
     setNumerator("")
     setDenominator("")
-    setNotes("")
+    setAnalysisNotes("")
+    setFollowUpPlan("")
     setOpen(false);
   }
 
@@ -197,12 +201,22 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
       </div>
       
        <div className="space-y-2">
-            <Label htmlFor="notes" className="text-base">Catatan Analisis dan Rencana Tindak Lanjut</Label>
+            <Label htmlFor="analysisNotes" className="text-base">Catatan Analisis</Label>
             <Textarea
-                id="notes"
-                placeholder="Jelaskan analisis dan rencana tindak lanjut jika capaian tidak memenuhi standar."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
+                id="analysisNotes"
+                placeholder="Jelaskan analisis capaian jika tidak memenuhi standar."
+                value={analysisNotes}
+                onChange={(e) => setAnalysisNotes(e.target.value)}
+                className="text-base min-h-[44px]"
+            />
+        </div>
+        <div className="space-y-2">
+            <Label htmlFor="followUpPlan" className="text-base">Rencana Tindak Lanjut</Label>
+            <Textarea
+                id="followUpPlan"
+                placeholder="Jelaskan rencana tindak lanjut untuk perbaikan."
+                value={followUpPlan}
+                onChange={(e) => setFollowUpPlan(e.target.value)}
                 className="text-base min-h-[44px]"
             />
         </div>

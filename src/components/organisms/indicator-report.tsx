@@ -12,6 +12,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { ColumnDef } from "@tanstack/react-table"
 import { ReportPreviewDialog } from "./report-preview-dialog"
 import { useUserStore } from "@/store/user-store.tsx"
+import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis } from "recharts"
 
 const centralRoles = [
   'Admin Sistem',
@@ -26,15 +27,16 @@ type IndicatorReportProps = {
     title?: string;
     description?: string;
     showInputButton?: boolean;
+    chartData?: any[]; // Allow passing chart data
+    chartDescription?: string;
 }
 
-export function IndicatorReport({ category, title, description, showInputButton = true }: IndicatorReportProps) {
+export function IndicatorReport({ category, title, description, showInputButton = true, chartData, chartDescription }: IndicatorReportProps) {
     const { indicators, submittedIndicators } = useIndicatorStore()
     const { currentUser } = useUserStore();
-    const [reportData, setReportData] = React.useState<any[] | null>(null)
+    const [reportTableData, setReportTableData] = React.useState<any[] | null>(null)
     const [reportColumns, setReportColumns] = React.useState<ColumnDef<any>[] | null>(null)
     const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
-    const [isInputOpen, setIsInputOpen] = React.useState(false);
     const [editingIndicator, setEditingIndicator] = React.useState<Indicator | null>(null);
 
     const userCanSeeAll = currentUser && centralRoles.includes(currentUser.role);
@@ -57,7 +59,7 @@ export function IndicatorReport({ category, title, description, showInputButton 
     }, [submittedIndicators, currentUser, userCanSeeAll, category]);
     
     const handleExport = (data: any[], columns: ColumnDef<any>[]) => {
-        setReportData(data);
+        setReportTableData(data);
         setReportColumns(columns);
         setIsPreviewOpen(true);
     };
@@ -67,18 +69,17 @@ export function IndicatorReport({ category, title, description, showInputButton 
     };
     
     const handleCloseDialog = () => {
-        setIsInputOpen(false);
         setEditingIndicator(null);
     }
 
     const inputDialogButton = (
-        <Button onClick={() => setIsInputOpen(true)}>
+        <Button onClick={() => setEditingIndicator(null)}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Input Data Capaian
         </Button>
     );
 
-    const isDialogOpen = isInputOpen || !!editingIndicator;
+    const isDialogOpen = editingIndicator !== null;
 
     return (
         <div className="space-y-4">
@@ -95,7 +96,10 @@ export function IndicatorReport({ category, title, description, showInputButton 
                         {showInputButton && (
                              <div className="flex items-center gap-2">
                                 {hasVerifiedIndicators ? (
-                                    inputDialogButton
+                                    <Button onClick={() => setEditingIndicator({} as Indicator)}>
+                                        <PlusCircle className="mr-2 h-4 w-4" />
+                                        Input Data Capaian
+                                    </Button>
                                 ) : (
                                     <Tooltip>
                                         <TooltipTrigger asChild>
@@ -119,15 +123,48 @@ export function IndicatorReport({ category, title, description, showInputButton 
                     <IndicatorReportTable indicators={filteredIndicators} onExport={handleExport} category={category} onEdit={handleEdit}/>
                 </CardContent>
             </Card>
-             {reportData && reportColumns && (
-                <ReportPreviewDialog
-                    open={isPreviewOpen}
-                    onOpenChange={setIsPreviewOpen}
-                    data={reportData}
-                    columns={reportColumns}
-                    title={`Laporan Capaian ${title || `Indikator ${category}`}`}
-                />
-            )}
+            <ReportPreviewDialog
+                open={isPreviewOpen}
+                onOpenChange={setIsPreviewOpen}
+                data={reportTableData || []}
+                columns={reportColumns || []}
+                title={`Laporan Capaian ${title || `Indikator ${category}`}`}
+            >
+                {chartData && (
+                    <div className="mb-8">
+                        <h3 className="text-lg font-semibold text-center mb-1">{chartDescription}</h3>
+                        <p className="text-center text-sm text-gray-600 mb-4">Grafik Tren Capaian</p>
+                        <div style={{ width: '100%', height: 300 }}>
+                             <ResponsiveContainer width="100%" height="100%">
+                               <BarChart data={chartData}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                    <XAxis
+                                    dataKey="name"
+                                    stroke="#888888"
+                                    fontSize={12}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    />
+                                    <YAxis
+                                    stroke="#888888"
+                                    fontSize={12}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    unit="%"
+                                    />
+                                    <RechartsTooltip
+                                    cursor={{ fill: 'hsl(var(--muted))' }}
+                                    contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
+                                    />
+                                    <Bar dataKey="Capaian" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
+                                        <LabelList dataKey="Capaian" position="top" formatter={(value: number) => `${value}%`} />
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                )}
+            </ReportPreviewDialog>
              <IndicatorInputDialog 
                 open={isDialogOpen} 
                 onOpenChange={handleCloseDialog} 

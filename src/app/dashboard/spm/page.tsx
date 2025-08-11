@@ -4,7 +4,7 @@
 import * as React from "react"
 import { Line, LineChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, LabelList, Dot } from "recharts"
 import { IndicatorReport } from "@/components/organisms/indicator-report"
-import { useIndicatorStore, Indicator } from "@/store/indicator-store"
+import { useIndicatorStore } from "@/store/indicator-store"
 import { Target, ThumbsUp, ThumbsDown } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -191,6 +191,8 @@ export default function SpmPage() {
             title="Laporan Standar Pelayanan Minimal"
             description="Riwayat data Standar Pelayanan Minimal (SPM) yang telah diinput."
             showInputButton={true}
+            chartData={chartData}
+            chartDescription={getChartDescription()}
         />
       </div>
     </div>

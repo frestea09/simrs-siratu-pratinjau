@@ -5,7 +5,16 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import React, { createContext, useContext, useRef } from 'react';
 
-export type UserRole = 'Admin Sistem' | 'PIC Mutu' | 'PJ Ruangan' | 'Komite Mutu';
+export type UserRole = 
+  | 'Admin Sistem' 
+  | 'PIC Mutu' 
+  | 'PJ Ruangan' 
+  | 'Kepala Unit/Instalasi' 
+  | 'Direktur'
+  | 'Sub. Komite Peningkatan Mutu'
+  | 'Sub. Komite Keselamatan Pasien'
+  | 'Sub. Komite Manajemen Risiko';
+
 
 export type User = {
   id: string;
@@ -13,6 +22,7 @@ export type User = {
   email: string;
   password?: string;
   role: UserRole;
+  unit?: string;
 }
 
 type UserState = {
@@ -27,9 +37,13 @@ type UserState = {
 
 const initialUsers: User[] = [
     { id: 'user-1', name: 'Admin Sistem', email: 'admin@sim.rs', password: '123456', role: 'Admin Sistem' },
-    { id: 'user-2', name: 'Delina (PIC Mutu)', email: 'delina@sim.rs', password: '123456', role: 'PIC Mutu' },
-    { id: 'user-3', name: 'Deti (PJ Ruangan)', email: 'deti@sim.rs', password: '123456', role: 'PJ Ruangan' },
-    { id: 'user-4', name: 'Devin (Komite Mutu)', email: 'devin@sim.rs', password: '123456', role: 'Komite Mutu' },
+    { id: 'user-2', name: 'Delina (PIC Mutu)', email: 'delina@sim.rs', password: '123456', role: 'PIC Mutu', unit: 'PPI' },
+    { id: 'user-3', name: 'Deti (PJ Ruangan)', email: 'deti@sim.rs', password: '123456', role: 'PJ Ruangan', unit: 'RANAP' },
+    { id: 'user-4', name: 'Devin (Keselamatan Pasien)', email: 'devin@sim.rs', password: '123456', role: 'Sub. Komite Keselamatan Pasien' },
+    { id: 'user-5', name: 'Deka (Kepala Unit)', email: 'deka@sim.rs', password: '123456', role: 'Kepala Unit/Instalasi', unit: 'IGD' },
+    { id: 'user-6', name: 'Dr. Direktur', email: 'dir@sim.rs', password: '123456', role: 'Direktur' },
+    { id: 'user-7', name: 'Dion (Peningkatan Mutu)', email: 'dion@sim.rs', password: '123456', role: 'Sub. Komite Peningkatan Mutu' },
+    { id: 'user-8', name: 'Dara (Manajemen Risiko)', email: 'dara@sim.rs', password: '123456', role: 'Sub. Komite Manajemen Risiko' },
 ]
 
 const createUserStore = () => create<UserState>()(

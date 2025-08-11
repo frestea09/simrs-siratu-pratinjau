@@ -174,25 +174,22 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
             details: `Indikator baru "${submissionData.name}" (${newId}) diajukan.`
         })
 
-        if(submissionData.category === 'IMPU') {
-             const notificationPayload = {
-                title: 'Pengajuan Indikator Baru (IMPU)',
-                description: `Indikator "${submissionData.name}" dari unit ${submissionData.unit} menunggu persetujuan.`,
-                link: '/dashboard/indicators',
-            };
-            // Central committee always gets notified for IMPU
-            addNotification({ ...notificationPayload, recipientRole: 'Sub. Komite Peningkatan Mutu' });
-        }
-
         toast({
           title: "Pengajuan Berhasil",
           description: `Indikator "${submissionData.name}" telah berhasil diajukan.`,
         })
+
+        if(submissionData.category === 'IMPU') {
+            addNotification({ 
+                title: 'Pengajuan Indikator Baru (IMPU)',
+                description: `Indikator "${submissionData.name}" dari unit ${submissionData.unit} menunggu persetujuan.`,
+                link: '/dashboard/indicators',
+                recipientRole: 'Sub. Komite Peningkatan Mutu' 
+            });
+        }
     }
     setOpen(false);
-    setTimeout(() => {
-        form.reset();
-    }, 150);
+    form.reset();
   }
 
   const isAdoption = selectedCategory === 'IMPU' && adoptionType === 'adopt';

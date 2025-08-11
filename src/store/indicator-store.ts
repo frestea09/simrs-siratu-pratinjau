@@ -1,4 +1,5 @@
 
+
 import { create } from 'zustand'
 import { useNotificationStore } from './notification-store.tsx';
 
@@ -129,19 +130,6 @@ export const useIndicatorStore = create<IndicatorState>((set, get) => ({
     set((state) => ({
       submittedIndicators: [newSubmittedIndicator, ...state.submittedIndicators]
     }));
-
-    if(newSubmittedIndicator.category === 'IMPU' && newSubmittedIndicator.status === 'Menunggu Persetujuan') {
-        const { addNotification } = useNotificationStore.getState();
-        const notificationPayload = {
-           title: 'Pengajuan IMPU Baru',
-           description: `Indikator "${newSubmittedIndicator.name}" dari unit ${newSubmittedIndicator.unit} menunggu persetujuan.`,
-           link: '/dashboard/indicators',
-       };
-       // Notify the central committee
-       addNotification({ ...notificationPayload, recipientRole: 'Sub. Komite Peningkatan Mutu' });
-   }
-
-
     return newId;
   },
   updateSubmittedIndicatorStatus: (id, status, reason) =>

@@ -8,11 +8,11 @@ import { useIndicatorStore } from "@/store/indicator-store"
 import { Target, ThumbsUp, ThumbsDown, LineChart as LineChartIcon, BarChart as BarChartIcon } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { subDays, startOfMonth, startOfYear, format, parseISO } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { TimeRange, getStartDate } from "@/lib/indicator-utils"
 
-type TimeRange = '7d' | '30d' | '6m' | '1y';
 type ChartType = 'line' | 'bar';
 
 export default function InmPage() {
@@ -36,17 +36,6 @@ export default function InmPage() {
   const meetingStandard = inmIndicators.filter(i => i.status === 'Memenuhi Standar').length;
   const notMeetingStandard = totalIndicators - meetingStandard;
   
-  const getStartDate = (range: TimeRange) => {
-    const now = new Date();
-    switch (range) {
-        case '7d': return subDays(now, 6);
-        case '30d': return subDays(now, 29);
-        case '6m': return startOfMonth(subDays(now, 30 * 5)); // 5 months ago to include current month
-        case '1y': return startOfYear(now);
-        default: return startOfMonth(subDays(now, 30 * 5));
-    }
-  }
-
   const chartData = React.useMemo(() => {
     const startDate = getStartDate(timeRange);
     const filtered = selectedIndicatorData.filter(d => parseISO(d.period) >= startDate);
@@ -247,5 +236,3 @@ export default function InmPage() {
     </div>
   )
 }
-
-    

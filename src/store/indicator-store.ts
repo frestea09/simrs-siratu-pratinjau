@@ -2,6 +2,7 @@
 
 import { create } from 'zustand'
 import { useNotificationStore } from './notification-store.tsx';
+import { calculateRatio, calculateStatus } from '@/lib/indicator-utils';
 
 export type IndicatorCategory = 'INM' | 'IMP-RS' | 'IMPU' | 'SPM';
 export type IndicatorFrequency = 'Harian' | 'Mingguan' | 'Bulanan' | 'Tahunan';
@@ -52,34 +53,6 @@ const initialSubmittedIndicators: SubmittedIndicator[] = [];
 
 const initialIndicators: Indicator[] = [];
 
-const calculateRatio = (indicator: Omit<Indicator, 'id' | 'ratio' | 'status'>): string => {
-    if (indicator.standardUnit === "menit") {
-        if (indicator.denominator === 0) return "0";
-        const average = indicator.numerator / indicator.denominator;
-        return `${average.toFixed(1)}`
-    }
-    if (indicator.denominator === 0) return "0.0"
-    const ratio = (indicator.numerator / indicator.denominator) * 100;
-    return `${ratio.toFixed(1)}`
-}
-
-const calculateStatus = (indicator: Omit<Indicator, 'id' |'ratio' | 'status'>): Indicator['status'] => {
-    let achievementValue: number;
-    
-    if (indicator.standardUnit === 'menit') {
-        if (indicator.denominator === 0) return 'N/A';
-        achievementValue = indicator.numerator / indicator.denominator;
-        // Lower is better for wait times
-        return achievementValue <= indicator.standard ? 'Memenuhi Standar' : 'Tidak Memenuhi Standar';
-    } else {
-        if (indicator.denominator === 0) return 'N/A';
-        achievementValue = (indicator.numerator / indicator.denominator) * 100;
-        // Higher is better for percentages
-        return achievementValue >= indicator.standard ? 'Memenuhi Standar' : 'Tidak Memenuhi Standar';
-    }
-}
-
-
 export const useIndicatorStore = create<IndicatorState>((set, get) => ({
   indicators: initialIndicators.map(i => ({
       ...i, 
@@ -114,7 +87,7 @@ export const useIndicatorStore = create<IndicatorState>((set, get) => ({
         return indicator
       }),
     })),
-  submitIndicator: (indicator) => {
+  submitIndicator: (indicator, sendNotificationCallback) => {
     const newId = `IND-${String(get().submittedIndicators.length + 1).padStart(3, '0')}`;
     
     const status = ['INM', 'IMP-RS', 'SPM'].includes(indicator.category)
@@ -130,6 +103,11 @@ export const useIndicatorStore = create<IndicatorState>((set, get) => ({
     set((state) => ({
       submittedIndicators: [newSubmittedIndicator, ...state.submittedIndicators]
     }));
+    
+    if (sendNotificationCallback) {
+        sendNotificationCallback();
+    }
+
     return newId;
   },
   updateSubmittedIndicatorStatus: (id, status, reason) =>

@@ -185,40 +185,40 @@ export default function SpmPage() {
           </CardHeader>
           <CardContent className="pl-2">
             <ResponsiveContainer width="100%" height={350}>
-                 {chartData.length > 0 ? (
-                    <>
-                        {chartType === 'line' ? (
-                             <LineChart data={chartData}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                                <Tooltip content={<ChartTooltipContent />}/>
-                                <Legend />
-                                <Line type="monotone" dataKey="Capaian" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} dot={<Dot r={4} />}>
-                                    <LabelList dataKey="Capaian" position="top" />
-                                </Line>
-                                {selectedIndicator !== 'Semua Indikator' && (
-                                    <Line type="monotone" dataKey="Standar" stroke="hsl(var(--destructive))" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-                                )}
-                            </LineChart>
-                        ) : (
-                            <BarChart data={chartData}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                                <Tooltip content={<ChartTooltipContent />} />
-                                <Legend />
-                                <Bar dataKey="Capaian" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
-                                    <LabelList dataKey="Capaian" position="top" />
-                                </Bar>
-                            </BarChart>
-                        )}
-                    </>
-                ) : (
-                    <div className="flex items-center justify-center h-full text-muted-foreground">
-                        Tidak cukup data untuk menampilkan grafik.
-                    </div>
-                )}
+              {chartData.length > 0 ? (
+                <div style={{ width: '100%', height: '100%' }}>
+                  {chartType === 'line' ? (
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                      <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                      <Tooltip content={<ChartTooltipContent />} />
+                      <Legend />
+                      <Line type="monotone" dataKey="Capaian" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} dot={<Dot r={4} />}>
+                        <LabelList dataKey="Capaian" position="top" />
+                      </Line>
+                      {selectedIndicator !== 'Semua Indikator' && (
+                        <Line type="monotone" dataKey="Standar" stroke="hsl(var(--destructive))" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                      )}
+                    </LineChart>
+                  ) : (
+                    <BarChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                      <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                      <Tooltip content={<ChartTooltipContent />} />
+                      <Legend />
+                      <Bar dataKey="Capaian" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
+                        <LabelList dataKey="Capaian" position="top" />
+                      </Bar>
+                    </BarChart>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-full text-muted-foreground">
+                  Tidak cukup data untuk menampilkan grafik.
+                </div>
+              )}
             </ResponsiveContainer>
           </CardContent>
         </Card>

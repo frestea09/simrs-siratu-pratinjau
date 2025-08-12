@@ -51,7 +51,7 @@ const columns: ColumnDef<Risk>[] = [
     { accessorKey: "riskLevel", header: () => <div className="text-center font-bold">(CXL)<br/>Description</div>, cell: ({ row }) => <span className={cn("p-1 rounded", getRiskLevelClass(row.original.riskLevel))}>{row.original.riskLevel}</span>, size: 80 },
     { accessorKey: "controllability", header: "CI", cell: info => info.getValue(), size: 20 },
     { accessorKey: "riskScore", header: "Skor Risiko", cell: info => info.getValue(), size: 50 },
-    { accessorKey: "manualRanking", header: "Ranking", cell: info => info.getValue() || "-", size: 50 },
+    { id: "ranking", header: "Ranking", cell: ({ row }) => row.index + 1, size: 50 },
     { accessorKey: "evaluation", header: "Evaluasi Risiko", cell: ({ row }) => evaluationMap[row.original.evaluation] || row.original.evaluation, size: 80 },
     { accessorKey: "actionPlan", header: "Risk Response & Action Plan", size: 250 },
     { accessorKey: "dueDate", header: "Due Date", cell: ({ row }) => row.original.dueDate ? format(parseISO(row.original.dueDate), "dd MMM yyyy", { locale: IndonesianLocale }) : "-", size: 80 },

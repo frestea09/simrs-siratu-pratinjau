@@ -25,7 +25,6 @@ export type Risk = {
   riskLevel: RiskLevel
   controllability: number
   riskScore: number
-  manualRanking?: string;
   // Evaluation
   evaluation: RiskEvaluation
   actionPlan: string
@@ -69,7 +68,6 @@ const initialRisks: Risk[] = [
         riskLevel: "Tinggi",
         controllability: 4,
         riskScore: 48,
-        manualRanking: "1",
         evaluation: "Mitigasi",
         actionPlan: "Membuat SOP baru tentang kewajiban menaikkan pengaman brankar setiap saat.",
         dueDate: "2023-11-30",
@@ -90,7 +88,6 @@ const initialRisks: Risk[] = [
         riskLevel: "Moderat",
         controllability: 2,
         riskScore: 12,
-        manualRanking: "2",
         evaluation: "Mitigasi",
         actionPlan: "Menerapkan sistem double check dan konfirmasi tanggal lahir pasien sebelum menyerahkan obat.",
         dueDate: "2023-12-15",

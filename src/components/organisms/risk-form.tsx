@@ -75,7 +75,6 @@ const formSchema = z.object({
   consequence: z.number().min(1).max(5),
   likelihood: z.number().min(1).max(5),
   controllability: z.number().min(1).max(5),
-  manualRanking: z.string().optional(),
   evaluation: z.enum(["Mitigasi", "Transfer", "Diterima", "Dihindari"], {
     required_error: "Evaluasi risiko harus dipilih."
   }),
@@ -337,20 +336,6 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
                         )}
                     />
                     
-                    <FormField
-                        control={form.control}
-                        name="manualRanking"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Ranking (Manual)</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Isi ranking manual jika ada" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
                     <FormField
                         control={form.control}
                         name="category"

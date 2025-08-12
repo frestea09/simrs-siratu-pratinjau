@@ -1,9 +1,11 @@
+
 "use client"
 
 import { create } from 'zustand'
 
 export type RiskSource = "Laporan Insiden" | "Komplain" | "Survey/Ronde" | "Rapat/Brainstorming" | "Investigasi" | "Litigasi" | "External Requirement";
 export type RiskCategory = "Klinis" | "Non-Klinis" | "Operasional" | "Finansial" | "Reputasi";
+export type RiskLevel = "Rendah" | "Moderat" | "Tinggi" | "Ekstrem";
 
 
 export type Risk = {
@@ -14,12 +16,24 @@ export type Risk = {
   cause: string
   category: RiskCategory
   submissionDate: string
+  // Risk Analysis
+  consequence: number
+  likelihood: number
+  riskScore: number
+  riskLevel: RiskLevel
 }
 
 type RiskState = {
   risks: Risk[]
-  addRisk: (risk: Omit<Risk, 'id' | 'submissionDate'>) => string
+  addRisk: (risk: Omit<Risk, 'id' | 'submissionDate' | 'riskScore' | 'riskLevel'>) => string
   updateRisk: (id: string, risk: Partial<Omit<Risk, 'id' | 'submissionDate'>>) => void
+}
+
+const getRiskLevel = (score: number): RiskLevel => {
+    if (score <= 4) return "Rendah";
+    if (score <= 9) return "Moderat";
+    if (score <= 15) return "Tinggi";
+    return "Ekstrem";
 }
 
 const initialRisks: Risk[] = [
@@ -30,7 +44,11 @@ const initialRisks: Risk[] = [
         description: "Pasien jatuh dari brankar saat menunggu triase.",
         cause: "Pengaman sisi brankar tidak dinaikkan oleh petugas.",
         category: "Klinis",
-        submissionDate: "2023-10-26"
+        submissionDate: "2023-10-26",
+        consequence: 4,
+        likelihood: 3,
+        riskScore: 12,
+        riskLevel: "Tinggi",
     },
     {
         id: "RISK-002",
@@ -39,7 +57,11 @@ const initialRisks: Risk[] = [
         description: "Salah memberikan obat kepada pasien rawat jalan.",
         cause: "Label obat tertukar karena nama pasien mirip (sound-alike).",
         category: "Klinis",
-        submissionDate: "2023-11-05"
+        submissionDate: "2023-11-05",
+        consequence: 3,
+        likelihood: 2,
+        riskScore: 6,
+        riskLevel: "Moderat",
     }
 ];
 
@@ -47,9 +69,12 @@ export const useRiskStore = create<RiskState>((set, get) => ({
   risks: initialRisks,
   addRisk: (risk) => {
     const newId = `RISK-${String(get().risks.length + 1).padStart(3, '0')}`;
-    const newRisk = {
-        ...(risk as Omit<Risk, 'id' | 'submissionDate'>),
+    const riskScore = risk.consequence * risk.likelihood;
+    const newRisk: Risk = {
+        ...(risk as Omit<Risk, 'id' | 'submissionDate' | 'riskScore' | 'riskLevel'>),
         id: newId,
+        riskScore,
+        riskLevel: getRiskLevel(riskScore),
         submissionDate: new Date().toISOString(),
     };
     set((state) => ({
@@ -58,6 +83,18 @@ export const useRiskStore = create<RiskState>((set, get) => ({
     return newId;
   },
   updateRisk: (id, riskData) => set((state) => ({
-      risks: state.risks.map(r => r.id === id ? { ...r, ...riskData } : r)
+      risks: state.risks.map(r => {
+        if (r.id === id) {
+            const updatedRisk = { ...r, ...riskData };
+            // Recalculate score and level if consequence or likelihood changes
+            if (riskData.consequence || riskData.likelihood) {
+                const score = updatedRisk.consequence * updatedRisk.likelihood;
+                updatedRisk.riskScore = score;
+                updatedRisk.riskLevel = getRiskLevel(score);
+            }
+            return updatedRisk;
+        }
+        return r;
+      })
   }))
 }));

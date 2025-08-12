@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -16,6 +17,8 @@ import { useUserStore } from "@/store/user-store.tsx"
 import { useLogStore } from "@/store/log-store.tsx"
 import { HOSPITAL_UNITS } from "@/lib/constants"
 import { Combobox } from "../ui/combobox"
+import { Slider } from "../ui/slider"
+import { Separator } from "../ui/separator"
 
 const sourceOptions: { value: RiskSource, label: string }[] = [
     { value: "Laporan Insiden", label: "1. Laporan Insiden" },
@@ -46,6 +49,8 @@ const formSchema = z.object({
   category: z.enum(["Klinis", "Non-Klinis", "Operasional", "Finansial", "Reputasi"], {
     required_error: "Kategori risiko harus dipilih."
   }),
+  consequence: z.number().min(1).max(5),
+  likelihood: z.number().min(1).max(5),
 });
 
 
@@ -53,6 +58,9 @@ type RiskFormProps = {
     setOpen: (open: boolean) => void;
     riskToEdit?: Risk;
 }
+
+const ratingLabels = ["Sangat Rendah", "Rendah", "Sedang", "Tinggi", "Sangat Tinggi"];
+
 
 export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
     const { toast } = useToast()
@@ -66,9 +74,14 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
         defaultValues: riskToEdit ? riskToEdit : {
             unit: currentUser?.unit,
             description: "",
-            cause: ""
+            cause: "",
+            consequence: 3,
+            likelihood: 3,
         },
     })
+    
+    const consequenceValue = form.watch("consequence");
+    const likelihoodValue = form.watch("likelihood");
 
     function onSubmit(values: z.infer<typeof formSchema>) {
         if (isEditMode && riskToEdit) {
@@ -148,6 +161,58 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
                             <Textarea placeholder="Jelaskan penyebab utama dari risiko/kejadian ini" {...field} />
                         </FormControl>
                         <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                
+                <Separator />
+                
+                <h3 className="text-lg font-semibold text-primary">Analisis Risiko</h3>
+
+                 <FormField
+                    control={form.control}
+                    name="consequence"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Dampak / Konsekuensi (Consequence)</FormLabel>
+                            <div className="flex items-center gap-4">
+                                <FormControl>
+                                    <Slider
+                                        min={1} max={5} step={1}
+                                        defaultValue={[field.value]}
+                                        onValueChange={(value) => field.onChange(value[0])}
+                                        className="flex-1"
+                                    />
+                                </FormControl>
+                                <div className="w-40 text-center font-semibold text-primary">
+                                    {consequenceValue} - {ratingLabels[consequenceValue - 1]}
+                                </div>
+                            </div>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="likelihood"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Kemungkinan Terjadi (Likelihood)</FormLabel>
+                             <div className="flex items-center gap-4">
+                                <FormControl>
+                                    <Slider
+                                        min={1} max={5} step={1}
+                                        defaultValue={[field.value]}
+                                        onValueChange={(value) => field.onChange(value[0])}
+                                        className="flex-1"
+                                    />
+                                </FormControl>
+                                <div className="w-40 text-center font-semibold text-primary">
+                                    {likelihoodValue} - {ratingLabels[likelihoodValue - 1]}
+                                </div>
+                            </div>
+                            <FormMessage />
                         </FormItem>
                     )}
                 />

@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -27,7 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Risk } from "@/store/risk-store"
+import { Risk, RiskLevel } from "@/store/risk-store"
 import { Badge } from "@/components/ui/badge"
 
 const ActionsCell = ({ row }: { row: any }) => {
@@ -54,11 +55,22 @@ const ActionsCell = ({ row }: { row: any }) => {
     )
 }
 
+const getRiskLevelVariant = (level: RiskLevel): "default" | "secondary" | "destructive" | "outline" => {
+    switch(level) {
+        case "Rendah": return "secondary";
+        case "Moderat": return "default";
+        case "Tinggi": return "outline";
+        case "Ekstrem": return "destructive";
+        default: return "secondary";
+    }
+}
+
 const columns: ColumnDef<Risk>[] = [
   {
     accessorKey: "id",
-    header: "No",
-    cell: ({ row }) => <div className="font-medium">{row.index + 1}</div>,
+    header: "ID",
+    cell: ({ row }) => <div className="font-medium">{row.getValue("id")}</div>,
+    size: 100,
   },
   {
     accessorKey: "unit",
@@ -69,23 +81,28 @@ const columns: ColumnDef<Risk>[] = [
     ),
   },
   {
-    accessorKey: "source",
-    header: "Sumber",
-    cell: ({ row }) => <Badge variant="outline">{row.getValue("source")}</Badge>
-  },
-  {
     accessorKey: "description",
     header: "Deskripsi Risiko",
     cell: ({ row }) => <div className="text-sm">{row.getValue("description")}</div>
   },
-  {
-    accessorKey: "cause",
-    header: "Penyebab",
-    cell: ({ row }) => <div className="text-sm text-muted-foreground">{row.getValue("cause")}</div>
-  },
    {
-    accessorKey: "category",
-    header: "Kategori Risiko",
+    accessorKey: "riskScore",
+    header: () => <div className="text-center">Skor Risiko</div>,
+    cell: ({ row }) => <div className="text-center font-bold">{row.getValue("riskScore")}</div>,
+    size: 50,
+  },
+  {
+    accessorKey: "riskLevel",
+    header: () => <div className="text-center">Level Risiko</div>,
+    cell: ({ row }) => {
+        const level = row.getValue("riskLevel") as RiskLevel;
+        return (
+            <div className="text-center">
+                <Badge variant={getRiskLevelVariant(level)}>{level}</Badge>
+            </div>
+        )
+    },
+    size: 100,
   },
 //   {
 //     id: "actions",
@@ -121,7 +138,7 @@ export function RiskTable({ risks }: RiskTableProps) {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead key={header.id} style={{ width: header.getSize() !== 150 ? `${header.getSize()}px` : undefined }}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(

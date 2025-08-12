@@ -57,17 +57,16 @@ const columns: ColumnDef<Risk>[] = [
     { accessorKey: "category", header: "Kategori Risiko", size: 100 },
     { accessorKey: "consequence", header: "C", cell: info => info.getValue(), size: 20 },
     { accessorKey: "likelihood", header: "L", cell: info => info.getValue(), size: 20 },
-    { accessorKey: "riskScore", header: "CxL", cell: info => info.getValue(), size: 30 },
-    { accessorKey: "riskLevel", header: "(CxL) Description", cell: ({ row }) => <span className={cn("p-1 rounded", getRiskLevelClass(row.original.riskLevel))}>{row.original.riskLevel}</span>, size: 80 },
-    { accessorKey: "controllability", header: "CI", cell: info => info.getValue(), size: 20 },
-    { accessorKey: "ranking", header: "Skor Risiko", cell: ({row}) => row.original.riskScore * row.original.controllability, size: 50 },
+    { accessorKey: "riskScore", header: "Skor Risiko (CxL)", cell: info => info.getValue(), size: 50 },
+    { accessorKey: "riskLevel", header: "Level Risiko", cell: ({ row }) => <span className={cn("p-1 rounded", getRiskLevelClass(row.original.riskLevel))}>{row.original.riskLevel}</span>, size: 80 },
+    { accessorKey: "controllability", header: "Controllability (CI)", cell: info => info.getValue(), size: 50 },
+    { accessorKey: "ranking", header: "Skor Prioritas Risiko", cell: ({row}) => row.original.ranking.toFixed(2), size: 50 },
     { accessorKey: "evaluation", header: "Evaluasi Risiko", cell: ({ row }) => evaluationMap[row.original.evaluation] || row.original.evaluation, size: 50 },
     { accessorKey: "actionPlan", header: "Risk Response & Action Plan", size: 250 },
     { accessorKey: "dueDate", header: "Due Date", cell: ({ row }) => row.original.dueDate ? format(parseISO(row.original.dueDate), "dd MMM yyyy", { locale: IndonesianLocale }) : "-", size: 80 },
     { accessorKey: "pic", header: "PIC", cell: info => info.getValue() || "-", size: 100 },
-    { accessorKey: "residualRiskScore", header: "Skor Risiko Sisa", cell: info => info.getValue() || "-", size: 50 },
-    { accessorKey: "progress", header: "Progress/Laporan Monev", cell: () => "Melakukan FMEA, evaluasi tindak lanjut", size: 150 },
     { accessorKey: "status", header: "Status", cell: info => info.getValue(), size: 50 },
+    { accessorKey: "residualRiskScore", header: "Skor Risiko Sisa", cell: info => info.getValue() || "-", size: 50 },
 ];
 
 type RiskReportTableProps = {

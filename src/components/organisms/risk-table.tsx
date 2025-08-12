@@ -124,7 +124,7 @@ const columns: ColumnDef<Risk>[] = [
     accessorKey: "ranking",
     header: ({ column }) => (
         <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Rank <ArrowUpDown className="ml-2 h-4 w-4" />
+            Skor Prioritas <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
     ),
     cell: ({ row }) => <div className="text-center font-bold text-lg">{row.original.ranking.toFixed(2)}</div>,

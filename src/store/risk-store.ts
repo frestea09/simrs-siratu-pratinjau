@@ -6,6 +6,7 @@ import { create } from 'zustand'
 export type RiskSource = "Laporan Insiden" | "Komplain" | "Survey/Ronde" | "Rapat/Brainstorming" | "Investigasi" | "Litigasi" | "External Requirement";
 export type RiskCategory = "Klinis" | "Non-Klinis" | "Operasional" | "Finansial" | "Reputasi";
 export type RiskLevel = "Rendah" | "Moderat" | "Tinggi" | "Ekstrem";
+export type RiskEvaluation = "Mitigasi" | "Transfer" | "Diterima" | "Dihindari";
 
 
 export type Risk = {
@@ -23,6 +24,7 @@ export type Risk = {
   riskScore: number
   riskLevel: RiskLevel
   ranking: number
+  evaluation: RiskEvaluation
 }
 
 type RiskState = {
@@ -53,6 +55,7 @@ const initialRisks: Risk[] = [
         riskScore: 12,
         riskLevel: "Tinggi",
         ranking: 12,
+        evaluation: "Mitigasi"
     },
     {
         id: "RISK-002",
@@ -68,6 +71,7 @@ const initialRisks: Risk[] = [
         riskScore: 6,
         riskLevel: "Moderat",
         ranking: 6,
+        evaluation: "Mitigasi"
     }
 ];
 

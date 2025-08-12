@@ -28,7 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Risk, RiskLevel } from "@/store/risk-store"
+import { Risk, RiskEvaluation, RiskLevel } from "@/store/risk-store"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
@@ -65,6 +65,17 @@ const getRiskLevelVariant = (level: RiskLevel): "default" | "secondary" | "destr
         default: return "secondary";
     }
 }
+
+const getEvaluationVariant = (evaluation: RiskEvaluation): "default" | "secondary" | "destructive" | "outline" => {
+    switch(evaluation) {
+        case "Mitigasi": return "default";
+        case "Transfer": return "secondary";
+        case "Diterima": return "outline";
+        case "Dihindari": return "destructive";
+        default: return "secondary";
+    }
+}
+
 
 const columns: ColumnDef<Risk>[] = [
   {
@@ -108,10 +119,17 @@ const columns: ColumnDef<Risk>[] = [
     size: 100,
   },
   {
-    accessorKey: "controllability",
-    header: () => <div className="text-center">Kendali</div>,
-    cell: ({ row }) => <div className="text-center font-medium">{row.getValue("controllability")}</div>,
-    size: 50,
+    accessorKey: "evaluation",
+    header: () => <div className="text-center">Evaluasi Risiko</div>,
+    cell: ({ row }) => {
+        const evaluation = row.getValue("evaluation") as RiskEvaluation;
+        return (
+            <div className="text-center">
+                <Badge variant={getEvaluationVariant(evaluation)}>{evaluation}</Badge>
+            </div>
+        )
+    },
+    size: 100,
   },
   {
     accessorKey: "ranking",

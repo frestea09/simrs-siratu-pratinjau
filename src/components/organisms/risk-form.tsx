@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { DialogFooter } from "../ui/dialog"
-import { Risk, RiskCategory, RiskSource, useRiskStore } from "@/store/risk-store"
+import { Risk, RiskCategory, RiskSource, useRiskStore, RiskEvaluation } from "@/store/risk-store"
 import { useToast } from "@/hooks/use-toast"
 import { useUserStore } from "@/store/user-store.tsx"
 import { useLogStore } from "@/store/log-store.tsx"
@@ -37,7 +37,12 @@ const categoryOptions: { value: RiskCategory, label: string }[] = [
     { value: "Reputasi", label: "Reputasi" },
 ];
 const unitOptions = HOSPITAL_UNITS.map(u => ({ value: u, label: u }));
-
+const evaluationOptions: { value: RiskEvaluation, label: string }[] = [
+    { value: "Mitigasi", label: "1. Mitigasi" },
+    { value: "Transfer", label: "2. Transfer" },
+    { value: "Diterima", label: "3. Diterima" },
+    { value: "Dihindari", label: "4. Dihindari" },
+];
 
 const formSchema = z.object({
   unit: z.string().min(1, "Unit kerja harus dipilih."),
@@ -52,6 +57,9 @@ const formSchema = z.object({
   consequence: z.number().min(1).max(5),
   likelihood: z.number().min(1).max(5),
   controllability: z.number().min(1).max(5),
+  evaluation: z.enum(["Mitigasi", "Transfer", "Diterima", "Dihindari"], {
+    required_error: "Evaluasi risiko harus dipilih."
+  }),
 });
 
 
@@ -80,6 +88,7 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
             consequence: 3,
             likelihood: 3,
             controllability: 3,
+            evaluation: "Mitigasi",
         },
     })
     
@@ -92,7 +101,7 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
             updateRisk(riskToEdit.id, values);
             toast({ title: "Risiko Diperbarui", description: "Data risiko telah berhasil diperbarui." });
         } else {
-            addRisk(values);
+            addRisk(values as any);
             toast({ title: "Risiko Baru Ditambahkan", description: "Risiko baru telah berhasil diidentifikasi dan ditambahkan ke register." });
         }
         setOpen(false)
@@ -240,6 +249,29 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
                                     {controllabilityValue} - {controllabilityLabels[controllabilityValue - 1]}
                                 </div>
                             </div>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <Separator />
+                
+                <h3 className="text-lg font-semibold text-primary">Evaluasi & Kategori</h3>
+                 <FormField
+                    control={form.control}
+                    name="evaluation"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Evaluasi Risiko</FormLabel>
+                             <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Pilih jenis evaluasi/perlakuan risiko" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {evaluationOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
                             <FormMessage />
                         </FormItem>
                     )}

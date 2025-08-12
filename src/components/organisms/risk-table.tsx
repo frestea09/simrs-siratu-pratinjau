@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/table"
 import { Risk, RiskLevel } from "@/store/risk-store"
 import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
 
 const ActionsCell = ({ row }: { row: any }) => {
     const risk = row.original
@@ -57,10 +58,10 @@ const ActionsCell = ({ row }: { row: any }) => {
 
 const getRiskLevelVariant = (level: RiskLevel): "default" | "secondary" | "destructive" | "outline" => {
     switch(level) {
-        case "Rendah": return "secondary";
-        case "Moderat": return "default";
-        case "Tinggi": return "outline";
-        case "Ekstrem": return "destructive";
+        case "Rendah": return "secondary"; // Blue
+        case "Moderat": return "default"; // Green
+        case "Tinggi": return "outline"; // Yellow
+        case "Ekstrem": return "destructive"; // Red
         default: return "secondary";
     }
 }
@@ -96,9 +97,11 @@ const columns: ColumnDef<Risk>[] = [
     header: () => <div className="text-center">Level Risiko</div>,
     cell: ({ row }) => {
         const level = row.getValue("riskLevel") as RiskLevel;
+        const variant = getRiskLevelVariant(level)
+        const className = variant === 'outline' ? 'bg-yellow-400/80 text-yellow-900 border-yellow-500/50 hover:bg-yellow-400' : ''
         return (
             <div className="text-center">
-                <Badge variant={getRiskLevelVariant(level)}>{level}</Badge>
+                <Badge variant={variant} className={cn(className)}>{level}</Badge>
             </div>
         )
     },

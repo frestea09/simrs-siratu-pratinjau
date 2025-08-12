@@ -31,9 +31,9 @@ type RiskState = {
 }
 
 const getRiskLevel = (score: number): RiskLevel => {
-    if (score <= 4) return "Rendah";
-    if (score <= 9) return "Moderat";
-    if (score <= 15) return "Tinggi";
+    if (score <= 3) return "Rendah";
+    if (score <= 6) return "Moderat";
+    if (score <= 12) return "Tinggi";
     return "Ekstrem";
 }
 

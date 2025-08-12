@@ -3,7 +3,7 @@
 
 import * as React from "react"
 import { Row } from "@tanstack/react-table"
-import { MoreHorizontal, Eye, Pencil } from "lucide-react"
+import { MoreHorizontal, Eye, Pencil, CheckCircle, ShieldQuestion } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -12,9 +12,15 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger
 } from "@/components/ui/dropdown-menu"
-import { Incident } from "@/store/incident-store"
+import { Incident, IncidentStatus, useIncidentStore } from "@/store/incident-store"
 import { IncidentReportDialog } from "../incident-report-dialog"
+import { useUserStore } from "@/store/user-store.tsx"
+import { useLogStore } from "@/store/log-store.tsx"
 
 type ActionsCellProps = {
   row: Row<Incident>;
@@ -23,7 +29,21 @@ type ActionsCellProps = {
 
 export function ActionsCell({ row, onViewDetails }: ActionsCellProps) {
   const incident = row.original
+  const { currentUser } = useUserStore();
+  const { addLog } = useLogStore();
+  const { updateIncidentStatus } = useIncidentStore()
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false)
+
+  const canChangeStatus = currentUser?.role === 'Admin Sistem' || currentUser?.role === 'Sub. Komite Keselamatan Pasien';
+
+  const handleStatusChange = (status: IncidentStatus) => {
+    updateIncidentStatus(incident.id, status)
+    addLog({
+      user: currentUser?.name || 'System',
+      action: 'UPDATE_INCIDENT',
+      details: `Status insiden ${incident.id} diubah menjadi ${status}.`
+    })
+  }
 
   return (
     <>
@@ -44,9 +64,26 @@ export function ActionsCell({ row, onViewDetails }: ActionsCellProps) {
              <Pencil className="mr-2 h-4 w-4" />
              Edit
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => navigator.clipboard.writeText(incident.id)}>
-            Salin ID
-          </DropdownMenuItem>
+          {canChangeStatus && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  Ubah Status
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuItem onClick={() => handleStatusChange('Investigasi')}>
+                    <ShieldQuestion className="mr-2 h-4 w-4" />
+                    <span>Investigasi</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleStatusChange('Selesai')}>
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    <span>Selesai</span>
+                  </DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 

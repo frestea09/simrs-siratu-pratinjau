@@ -1,11 +1,13 @@
 
 import { create } from 'zustand'
 
+export type IncidentStatus = 'Investigasi' | 'Selesai';
+
 export type Incident = {
   // Base Info
   id: string
   date: string
-  status: string
+  status: IncidentStatus
 
   // Step 1: Patient Data
   patientName?: string
@@ -48,6 +50,7 @@ type IncidentState = {
   incidents: Incident[]
   addIncident: (incident: Omit<Incident, 'id' | 'date' | 'status'>) => string
   updateIncident: (id: string, incident: Partial<Omit<Incident, 'id' | 'date' | 'status'>>) => void
+  updateIncidentStatus: (id: string, status: IncidentStatus) => void;
 }
 
 const initialIncidents: Incident[] = [];
@@ -57,8 +60,8 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
   incidents: initialIncidents,
   addIncident: (incident) => {
     const newId = `IKP-${String(get().incidents.length + 1).padStart(3, '0')}`;
-    const newIncident = {
-        ...incident,
+    const newIncident: Incident = {
+        ...(incident as Omit<Incident, 'id' | 'date' | 'status'>),
         id: newId,
         date: new Date().toISOString(),
         status: 'Investigasi',
@@ -78,5 +81,10 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
           }
           return inc;
       })
+  })),
+  updateIncidentStatus: (id, status) => set(state => ({
+      incidents: state.incidents.map(inc => 
+          inc.id === id ? { ...inc, status } : inc
+      )
   }))
 }))

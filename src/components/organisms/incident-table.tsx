@@ -26,9 +26,10 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Incident } from "@/store/incident-store"
+import { Incident, IncidentStatus } from "@/store/incident-store"
 import { IncidentDetailDialog } from "./incident-detail-dialog"
 import { ActionsCell } from "./incident-table/actions-cell"
+import { cn } from "@/lib/utils"
 
 type IncidentTableProps = {
   incidents: Incident[];
@@ -89,9 +90,9 @@ export function IncidentTable({ incidents, onExport }: IncidentTableProps) {
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) => {
-        const status = row.getValue("status") as string
-        const statusClass = status === 'Investigasi' ? 'bg-yellow-500/20 text-yellow-700' : ''
-        return <Badge variant={status === 'Selesai' ? 'default' : 'secondary'} className={statusClass}>{status}</Badge>
+        const status = row.getValue("status") as IncidentStatus;
+        const statusClass = status === 'Investigasi' ? 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30 hover:bg-yellow-500/30' : ''
+        return <Badge variant={status === 'Selesai' ? 'default' : 'secondary'} className={cn("capitalize", statusClass)}>{status}</Badge>
       },
     },
     {

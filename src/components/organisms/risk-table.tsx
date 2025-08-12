@@ -91,7 +91,7 @@ const columns: ColumnDef<Risk>[] = [
             Rank <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
     ),
-    cell: ({ row }) => <div className="text-center font-bold text-lg">{row.index + 1}</div>,
+    cell: ({ row }) => <div className="text-center font-bold text-lg">{row.original.ranking.toFixed(2)}</div>,
     size: 50,
   },
   {

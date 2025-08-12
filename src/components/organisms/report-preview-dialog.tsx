@@ -61,40 +61,40 @@ export function ReportPreviewDialog<TData>({
     const printWindow = window.open('', '', 'height=800,width=1200');
     if (printWindow && reportRef.current) {
         printWindow.document.write('<html><head><title>Cetak Laporan</title>');
-        printWindow.document.write('<script src="https://cdn.tailwindcss.com"><\/script>');
+        printWindow.document.write('<style>');
         printWindow.document.write(`
-            <style>
-                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-                body { font-family: 'Inter', sans-serif; }
-                @media print { 
-                    @page { 
-                        size: landscape; 
-                        margin: 20px; 
-                    } 
-                    body { 
-                        -webkit-print-color-adjust: exact; 
-                        print-color-adjust: exact;
-                    } 
-                    .no-print { display: none; }
-                    .print-page-break { page-break-after: always; }
-                    .print-header {
-                         text-align: center;
-                         margin-bottom: 1rem;
-                    }
-                    .print-header h1 {
-                        font-size: 1.5rem;
-                        font-weight: bold;
-                    }
-                     .print-header p {
-                        font-size: 0.875rem;
-                        color: #6B7280;
-                    }
-                    .print-page {
-                        break-inside: avoid;
-                    }
-                }
-            </style>
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+          body { 
+            font-family: 'Inter', sans-serif; 
+            -webkit-print-color-adjust: exact !important; 
+            print-color-adjust: exact !important;
+          }
+          @page { 
+            size: landscape; 
+            margin: 20px; 
+          }
+          .no-print { display: none; }
+          .print-page-break { page-break-after: always; }
+          .print-header {
+              text-align: center;
+              margin-bottom: 1rem;
+          }
+          .print-header h1 {
+              font-size: 1.5rem;
+              font-weight: bold;
+          }
+            .print-header p {
+              font-size: 0.875rem;
+              color: #6B7280;
+          }
+          .print-page {
+              break-inside: avoid;
+          }
+          table { width: 100%; border-collapse: collapse; }
+          th, td { border: 1px solid black; padding: 4px; text-align: left; vertical-align: top; }
+          th { background-color: #f2f2f2; }
         `);
+        printWindow.document.write('</style>');
         printWindow.document.write('</head><body class="bg-white">');
         printWindow.document.write(reportRef.current.innerHTML);
         printWindow.document.write('</body></html>');

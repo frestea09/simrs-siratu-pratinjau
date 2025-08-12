@@ -74,7 +74,7 @@ const ActionsCell = ({ row }: { row: Row<Risk> }) => {
                     <DropdownMenuSeparator />
                      <AlertDialog>
                         <AlertDialogTrigger asChild>
-                            <button className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full text-destructive">
+                            <button className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full text-destructive hover:bg-destructive/10">
                                <Trash2 className="mr-2 h-4 w-4" />
                                 <span>Hapus</span>
                             </button>
@@ -99,7 +99,8 @@ const ActionsCell = ({ row }: { row: Row<Risk> }) => {
     )
 }
 
-const getRiskLevelVariant = (level: RiskLevel): "default" | "secondary" | "destructive" | "outline" => {
+const getRiskLevelVariant = (level?: RiskLevel): "default" | "secondary" | "destructive" | "outline" => {
+    if (!level) return "secondary";
     switch(level) {
         case "Rendah": return "secondary"; // Blue
         case "Moderat": return "default"; // Green
@@ -109,12 +110,33 @@ const getRiskLevelVariant = (level: RiskLevel): "default" | "secondary" | "destr
     }
 }
 
+const getRiskLevelClass = (level?: RiskLevel) => {
+    if (!level) return "";
+     switch(level) {
+        case "Rendah": return "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100";
+        case "Moderat": return "bg-green-100 text-green-800 border-green-200 hover:bg-green-100";
+        case "Tinggi": return "bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100";
+        case "Ekstrem": return "bg-red-100 text-red-800 border-red-200 hover:bg-red-100";
+        default: return "";
+    }
+}
+
 const getStatusVariant = (status: RiskStatus): "default" | "secondary" | "destructive" | "outline" => {
     switch(status) {
         case "Open": return "secondary";
         case "In Progress": return "outline";
         case "Closed": return "default";
         default: return "secondary";
+    }
+}
+
+const getStatusClass = (status?: RiskStatus) => {
+    if (!status) return "";
+     switch(status) {
+        case "Open": return "bg-gray-200 text-gray-800";
+        case "In Progress": return "bg-blue-200 text-blue-800";
+        case "Closed": return "bg-primary/20 text-primary-foreground";
+        default: return "";
     }
 }
 
@@ -137,12 +159,12 @@ const columns: ColumnDef<Risk>[] = [
         const risk = row.original;
         return (
             <div>
-                <p className="font-semibold">{risk.description}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                    <strong>Penyebab:</strong> {risk.cause}
+                <p className="font-semibold text-base">{risk.description}</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                    <span className="font-semibold text-foreground/80">Penyebab:</span> {risk.cause}
                 </p>
-                <p className="text-xs text-muted-foreground">
-                    <strong>Unit:</strong> {risk.unit}
+                <p className="text-sm text-muted-foreground">
+                     <span className="font-semibold text-foreground/80">Unit:</span> {risk.unit}
                 </p>
             </div>
         )
@@ -154,11 +176,10 @@ const columns: ColumnDef<Risk>[] = [
     cell: ({ row }) => {
         const level = row.getValue("riskLevel") as RiskLevel;
         const score = row.original.riskScore;
-        const variant = getRiskLevelVariant(level)
-        const className = variant === 'outline' ? 'bg-yellow-400/80 text-yellow-900 border-yellow-500/50 hover:bg-yellow-400' : ''
+        const className = getRiskLevelClass(level);
         return (
-            <div className="text-center flex flex-col items-center">
-                <Badge variant={variant} className={cn("text-sm", className)}>{level}</Badge>
+            <div className="text-center flex flex-col items-center justify-center gap-1">
+                <Badge variant={getRiskLevelVariant(level)} className={cn("text-base py-1 px-3", className)}>{level}</Badge>
                 <span className="text-xs text-muted-foreground">(Skor: {score})</span>
             </div>
         )
@@ -166,27 +187,26 @@ const columns: ColumnDef<Risk>[] = [
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id))
     },
-    size: 120,
+    size: 150,
   },
   {
     accessorKey: "residualRiskLevel",
-    header: () => <div className="text-center">Level Risiko Sisa</div>,
+    header: () => <div className="text-center">Level Sisa</div>,
     cell: ({ row }) => {
         const level = row.getValue("residualRiskLevel") as RiskLevel | undefined;
-        if (!level) return <div className="text-center">-</div>
+        if (!level) return <div className="text-center text-muted-foreground">-</div>
         
         const score = row.original.residualRiskScore;
-        const variant = getRiskLevelVariant(level)
-        const className = variant === 'outline' ? 'bg-yellow-400/80 text-yellow-900 border-yellow-500/50 hover:bg-yellow-400' : ''
+        const className = getRiskLevelClass(level);
         
         return (
-            <div className="text-center flex flex-col items-center">
-                <Badge variant={variant} className={cn("text-sm", className)}>{level}</Badge>
+            <div className="text-center flex flex-col items-center justify-center gap-1">
+                <Badge variant={getRiskLevelVariant(level)} className={cn("text-base py-1 px-3", className)}>{level}</Badge>
                 <span className="text-xs text-muted-foreground">(Skor: {score})</span>
             </div>
         )
     },
-    size: 120,
+    size: 150,
   },
   {
     accessorKey: "actionPlan",
@@ -195,41 +215,33 @@ const columns: ColumnDef<Risk>[] = [
          const risk = row.original;
          return (
             <div>
-                <p className="font-semibold">{risk.actionPlan}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                    <strong>PIC:</strong> {risk.pic || '-'}
+                <p className="font-medium">{risk.actionPlan}</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                    <span className="font-semibold text-foreground/80">PIC:</span> {risk.pic || '-'}
                 </p>
             </div>
          )
     }
   },
   {
-    accessorKey: "dueDate",
-    header: () => <div className="text-center">Batas Waktu</div>,
-    cell: ({ row }) => {
-        const dueDate = row.getValue("dueDate") as string;
-        if (!dueDate) return <div className="text-center">-</div>;
-        return <div className="text-center">{format(parseISO(dueDate), "dd MMM yyyy", { locale: IndonesianLocale })}</div>;
-    },
-    size: 120,
-  },
-  {
     accessorKey: "status",
-    header: () => <div className="text-center">Status</div>,
+    header: () => <div className="text-center">Status & Batas Waktu</div>,
     cell: ({ row }) => {
-        const status = row.getValue("status") as RiskStatus;
-        const variant = getStatusVariant(status);
-        const className = variant === 'outline' ? 'bg-blue-400/80 text-blue-900 border-blue-500/50 hover:bg-blue-400' : ''
+        const risk = row.original;
+        const status = risk.status;
+        const dueDate = risk.dueDate;
+        
         return (
-            <div className="text-center">
-                <Badge variant={variant} className={cn(className)}>{status}</Badge>
+            <div className="text-center flex flex-col items-center justify-center gap-2">
+                <Badge className={cn("text-sm capitalize", getStatusClass(status))}>{status}</Badge>
+                {dueDate && <span className="text-xs text-muted-foreground">{format(parseISO(dueDate), "dd MMM yyyy")}</span>}
             </div>
         )
     },
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id))
     },
-    size: 120,
+    size: 150,
   },
   {
     id: "actions",
@@ -264,6 +276,9 @@ export function RiskTable({ risks }: RiskTableProps) {
       sorting,
       columnFilters,
     },
+    initialState: {
+        columnVisibility: { riskScore: false } // Hide the score column by default
+    }
   })
 
   return (
@@ -344,6 +359,7 @@ export function RiskTable({ risks }: RiskTableProps) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className="[&>td]:py-4"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -386,3 +402,5 @@ export function RiskTable({ risks }: RiskTableProps) {
     </div>
   )
 }
+
+    

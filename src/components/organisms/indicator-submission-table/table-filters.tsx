@@ -25,6 +25,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { SubmittedIndicator } from "@/store/indicator-store"
 import { statusOptions, categoryOptions } from "../indicator-submission-table"
+import { TableFiltersProps } from "./table-filters.types"
 
 declare module '@tanstack/react-table' {
     interface FilterFns {
@@ -39,7 +40,7 @@ export const getStatusVariant = (status: SubmittedIndicator['status']) => {
         case 'Diverifikasi': return 'default'
         case 'Menunggu Persetujuan': return 'secondary'
         case 'Ditolak': return 'destructive'
-        default: return 'outline'
+        default: 'outline'
     }
 }
 
@@ -69,12 +70,11 @@ export const statusFilter: FilterFn<SubmittedIndicator> = (row, id, value) => {
     return value.includes(row.getValue(id))
 }
 
-interface TableFiltersProps<TData> {
-  table: Table<TData>
-}
 
 export function TableFilters<TData>({ table }: TableFiltersProps<TData>) {
   const [date, setDate] = React.useState<DateRange | undefined>()
+  const nameFilter = table.getState().columnFilters.find(f => f.id === 'name')?.value as string ?? ""
+
 
   React.useEffect(() => {
     const from = date?.from;
@@ -86,7 +86,7 @@ export function TableFilters<TData>({ table }: TableFiltersProps<TData>) {
     <div className="flex items-center py-4 gap-2 flex-wrap">
       <Input
         placeholder="Cari nama indikator..."
-        value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+        value={nameFilter}
         onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
         className="max-w-sm"
       />

@@ -48,7 +48,7 @@ const columns: ColumnDef<Risk>[] = [
     { accessorKey: "consequence", header: "C", cell: info => info.getValue(), size: 20 },
     { accessorKey: "likelihood", header: "L", cell: info => info.getValue(), size: 20 },
     { accessorKey: "cxl", header: "CxL", cell: info => info.getValue(), size: 30 },
-    { accessorKey: "riskLevel", header: "Level Risiko", cell: ({ row }) => <span className={cn("p-1 rounded", getRiskLevelClass(row.original.riskLevel))}>{row.original.riskLevel}</span>, size: 80 },
+    { accessorKey: "riskLevel", header: () => <div className="text-center font-bold">(CXL)<br/>Description</div>, cell: ({ row }) => <span className={cn("p-1 rounded", getRiskLevelClass(row.original.riskLevel))}>{row.original.riskLevel}</span>, size: 80 },
     { accessorKey: "controllability", header: "CI", cell: info => info.getValue(), size: 20 },
     { accessorKey: "riskScore", header: "Skor Risiko", cell: info => info.getValue(), size: 50 },
     { accessorKey: "ranking", header: "Skor Prioritas Risiko", cell: ({row}) => row.original.ranking.toFixed(2), size: 50 },

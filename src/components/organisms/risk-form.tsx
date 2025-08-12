@@ -43,10 +43,10 @@ const categoryOptions: { value: RiskCategory, label: string }[] = [
 ];
 const unitOptions = HOSPITAL_UNITS.map(u => ({ value: u, label: u }));
 const evaluationOptions: { value: RiskEvaluation, label: string }[] = [
-    { value: "Mitigasi", label: "1. Mitigasi" },
-    { value: "Transfer", label: "2. Transfer" },
-    { value: "Diterima", label: "3. Diterima" },
-    { value: "Dihindari", label: "4. Dihindari" },
+    { value: "Mitigasi", label: "Mitigasi" },
+    { value: "Transfer", label: "Transfer" },
+    { value: "Diterima", label: "Diterima" },
+    { value: "Dihindari", label: "Dihindari" },
 ];
 const statusOptions: { value: RiskStatus, label: string }[] = [
     { value: "Open", label: "Open" },

@@ -126,7 +126,8 @@ export default function ReportsPage() {
           <CardHeader>
             <CardTitle>Buat Laporan Rekapitulasi Tahunan</CardTitle>
             <CardDescription>
-                Pilih tahun untuk membuat laporan rekapitulasi capaian indikator bulanan. Laporan akan dikelompokkan berdasarkan kategori.
+                Pilih tahun untuk membuat laporan rekapitulasi capaian indikator bulanan.
+                Hanya indikator dengan status 'Diverifikasi' yang akan disertakan.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -153,6 +154,7 @@ export default function ReportsPage() {
           open={isPreviewOpen}
           onOpenChange={setPreviewOpen}
           data={[]}
+          columns={[]}
           title={`Laporan Rekapitulasi Capaian Mutu Tahun ${selectedYear}`}
         >
             <div className="space-y-8">
@@ -166,3 +168,5 @@ export default function ReportsPage() {
     </div>
   )
 }
+
+    

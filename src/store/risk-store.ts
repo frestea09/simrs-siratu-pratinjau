@@ -21,9 +21,10 @@ export type Risk = {
   // Risk Analysis
   consequence: number
   likelihood: number
+  cxl: number // Consequence x Likelihood
+  riskLevel: RiskLevel
   controllability: number
   riskScore: number
-  riskLevel: RiskLevel
   ranking: number
   // Evaluation
   evaluation: RiskEvaluation
@@ -43,15 +44,15 @@ export type Risk = {
 
 type RiskState = {
   risks: Risk[]
-  addRisk: (risk: Omit<Risk, 'id' | 'submissionDate' | 'riskScore' | 'riskLevel' | 'ranking' | 'status'>) => string
+  addRisk: (risk: Omit<Risk, 'id' | 'submissionDate' | 'cxl' | 'riskScore' | 'riskLevel' | 'ranking' | 'status'>) => string
   updateRisk: (id: string, risk: Partial<Omit<Risk, 'id' | 'submissionDate'>>) => void
   removeRisk: (id: string) => void
 }
 
-const getRiskLevel = (score: number): RiskLevel => {
-    if (score <= 3) return "Rendah";
-    if (score <= 6) return "Moderat";
-    if (score <= 12) return "Tinggi";
+const getRiskLevel = (cxlScore: number): RiskLevel => {
+    if (cxlScore <= 3) return "Rendah";
+    if (cxlScore <= 6) return "Moderat";
+    if (cxlScore <= 12) return "Tinggi";
     return "Ekstrem";
 }
 
@@ -66,10 +67,11 @@ const initialRisks: Risk[] = [
         submissionDate: "2023-10-26",
         consequence: 4,
         likelihood: 3,
+        cxl: 12, // 4 * 3
+        riskLevel: "Tinggi",
         controllability: 2,
-        riskScore: 24, // 4 * 3 * 2
-        riskLevel: "Ekstrem",
-        ranking: 12, // 24 / 2
+        riskScore: 24, // 12 * 2
+        ranking: 12, // 24 / 2 (Skor Risiko / CI) - This seems to be the old logic, let's keep it for now as it aligns with priority
         evaluation: "Mitigasi",
         actionPlan: "Membuat SOP baru tentang kewajiban menaikkan pengaman brankar setiap saat.",
         dueDate: "2023-11-30",
@@ -86,9 +88,10 @@ const initialRisks: Risk[] = [
         submissionDate: "2023-11-05",
         consequence: 3,
         likelihood: 2,
+        cxl: 6, // 3 * 2
+        riskLevel: "Moderat",
         controllability: 4,
-        riskScore: 24, // 3 * 2 * 4
-        riskLevel: "Ekstrem",
+        riskScore: 24, // 6 * 4
         ranking: 6, // 24 / 4
         evaluation: "Mitigasi",
         actionPlan: "Menerapkan sistem double check dan konfirmasi tanggal lahir pasien sebelum menyerahkan obat.",
@@ -103,41 +106,45 @@ const calculateRiskProperties = (risk: Partial<Risk>) => {
     const likelihood = risk.likelihood || 0;
     const controllability = risk.controllability || 1; // Avoid division by zero
 
-    const riskScore = consequence * likelihood * controllability;
-    const riskLevel = getRiskLevel(riskScore);
-    const ranking = riskScore / controllability;
+    const cxl = consequence * likelihood;
+    const riskLevel = getRiskLevel(cxl);
+    const riskScore = cxl * controllability;
+    const ranking = riskScore / controllability; // Priority Score
     
     let residualRiskScore: number | undefined;
     let residualRiskLevel: RiskLevel | undefined;
 
     if (risk.residualConsequence && risk.residualLikelihood) {
-        residualRiskScore = risk.residualConsequence * risk.residualLikelihood * controllability;
-        residualRiskLevel = getRiskLevel(residualRiskScore);
+        const residualCxL = risk.residualConsequence * risk.residualLikelihood;
+        residualRiskScore = residualCxL * controllability;
+        residualRiskLevel = getRiskLevel(residualCxL);
     }
     
-    return { riskScore, riskLevel, ranking, residualRiskScore, residualRiskLevel };
+    return { cxl, riskLevel, riskScore, ranking, residualRiskScore, residualRiskLevel };
 }
 
 
 export const useRiskStore = create<RiskState>((set, get) => ({
   risks: initialRisks.map(r => {
-      const { riskScore, riskLevel, ranking } = calculateRiskProperties(r);
+      const { cxl, riskLevel, riskScore, ranking } = calculateRiskProperties(r);
       return {
           ...r,
-          riskScore,
+          cxl,
           riskLevel,
+          riskScore,
           ranking,
       }
   }).sort((a,b) => b.ranking - a.ranking),
   addRisk: (risk) => {
     const newId = `RISK-${String(get().risks.length + 1).padStart(3, '0')}`;
-    const { riskScore, riskLevel, ranking } = calculateRiskProperties(risk);
+    const { cxl, riskLevel, riskScore, ranking } = calculateRiskProperties(risk);
 
     const newRisk: Risk = {
-        ...(risk as Omit<Risk, 'id' | 'submissionDate' | 'riskScore' | 'riskLevel' | 'ranking' | 'status'>),
+        ...(risk as Omit<Risk, 'id' | 'submissionDate' | 'cxl' | 'riskScore' | 'riskLevel' | 'ranking' | 'status'>),
         id: newId,
-        riskScore,
+        cxl,
         riskLevel,
+        riskScore,
         ranking,
         submissionDate: new Date().toISOString(),
         status: 'Open'
@@ -151,10 +158,11 @@ export const useRiskStore = create<RiskState>((set, get) => ({
       risks: state.risks.map(r => {
         if (r.id === id) {
             const updatedRisk = { ...r, ...riskData };
-            const { riskScore, riskLevel, ranking, residualRiskScore, residualRiskLevel } = calculateRiskProperties(updatedRisk);
+            const { cxl, riskLevel, riskScore, ranking, residualRiskScore, residualRiskLevel } = calculateRiskProperties(updatedRisk);
             
-            updatedRisk.riskScore = riskScore;
+            updatedRisk.cxl = cxl;
             updatedRisk.riskLevel = riskLevel;
+            updatedRisk.riskScore = riskScore;
             updatedRisk.ranking = ranking;
 
             if (residualRiskScore !== undefined && residualRiskLevel !== undefined) {
@@ -173,4 +181,3 @@ export const useRiskStore = create<RiskState>((set, get) => ({
       risks: state.risks.filter(r => r.id !== id)
   }))
 }));
-

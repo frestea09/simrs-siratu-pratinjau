@@ -100,7 +100,7 @@ export default function ReportsPage() {
                     // If multiple entries in a month, calculate average
                     const totalRatio = achievementsForMonth.reduce((acc, curr) => acc + parseFloat(curr.ratio), 0);
                     const averageRatio = totalRatio / achievementsForMonth.length;
-                    monthlyData[i] = averageRatio.toFixed(1);
+                    monthlyData[i] = averageRatio.toFixed(1) + (si.standardUnit === '%' ? '%' : '');
                 }
             }
 
@@ -159,7 +159,9 @@ export default function ReportsPage() {
         >
             <div className="space-y-8">
                 {Object.entries(reportData).map(([category, data]) => 
-                    data.length > 0 && <ReportTable key={category} title={categoryLabels[category as IndicatorCategory]} data={data} />
+                    data.length > 0 ? (
+                      <ReportTable key={category} title={categoryLabels[category as IndicatorCategory]} data={data} />
+                    ) : null
                 )}
             </div>
         </ReportPreviewDialog>
@@ -168,5 +170,3 @@ export default function ReportsPage() {
     </div>
   )
 }
-
-    

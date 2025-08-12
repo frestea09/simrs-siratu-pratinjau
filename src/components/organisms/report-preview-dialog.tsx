@@ -23,8 +23,6 @@ import {
 import { ScrollArea } from "../ui/scroll-area"
 import { Printer } from "lucide-react"
 import { format } from "date-fns"
-import { Indicator } from "@/store/indicator-store"
-import { BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis, Bar, LineChart, Line, Legend, Dot } from "recharts"
 
 type ReportPreviewDialogProps<TData> = {
   open: boolean
@@ -36,6 +34,7 @@ type ReportPreviewDialogProps<TData> = {
   lineChart?: React.ReactNode
   barChart?: React.ReactNode
   analysisTable?: React.ReactNode
+  children?: React.ReactNode // Allow custom content
 }
 
 export function ReportPreviewDialog<TData>({
@@ -48,6 +47,7 @@ export function ReportPreviewDialog<TData>({
   lineChart,
   barChart,
   analysisTable,
+  children
 }: ReportPreviewDialogProps<TData>) {
   const reportRef = React.useRef<HTMLDivElement>(null)
 
@@ -159,9 +159,8 @@ export function ReportPreviewDialog<TData>({
 
   const renderHeader = (pageTitle: string) => (
     <header className="print-header">
-      <h1 className="text-2xl font-bold text-center">{title}</h1>
-      <p className="text-center text-sm text-gray-600">{pageTitle}</p>
-      <p className="text-center text-xs text-gray-500 mt-1">RSUD Oto Iskandar Dinata</p>
+      <h1 className="text-2xl font-bold text-center">{pageTitle}</h1>
+      <p className="text-center text-sm text-gray-600">RSUD Oto Iskandar Dinata</p>
     </header>
   )
 
@@ -170,6 +169,9 @@ export function ReportPreviewDialog<TData>({
         <p>Tanggal Cetak: {format(new Date(), "d MMMM yyyy HH:mm")}</p>
     </footer>
   )
+
+  const hasCharts = !!lineChart || !!barChart;
+  const hasTables = (columns && data.length > 0) || !!analysisTable;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -183,47 +185,56 @@ export function ReportPreviewDialog<TData>({
 
         <ScrollArea className="max-h-[70vh] bg-gray-200/50 p-4 rounded-md">
           <div ref={reportRef} className="p-4 bg-white text-black space-y-8">
-            {lineChart && (
-                <div className="print-page">
-                    {renderHeader("Grafik Tren (Line Chart)")}
-                    <div className="mt-6">{lineChart}</div>
+            {children ? (
+                 <div className="print-page">
+                    {renderHeader(title)}
+                    <div className="mt-6">{children}</div>
                     {renderFooter()}
                 </div>
-            )}
-
-            {barChart && (
+            ) : (
                 <>
-                    <div className="print-page-break"></div>
-                    <div className="print-page">
-                        {renderHeader("Grafik Perbandingan (Bar Chart)")}
-                        <div className="mt-6">{barChart}</div>
-                        {renderFooter()}
-                    </div>
-                </>
-            )}
-           
-           {columns && data && (
-                <>
-                    <div className="print-page-break"></div>
-                    <div className="print-page">
-                        {renderHeader("Tabel Data Capaian")}
-                        <div className="mt-6">{renderDataTable()}</div>
-                        {renderFooter()}
-                    </div>
-                </>
-            )}
+                    {lineChart && (
+                        <div className="print-page">
+                            {renderHeader("Grafik Tren (Line Chart)")}
+                            <div className="mt-6">{lineChart}</div>
+                            {renderFooter()}
+                        </div>
+                    )}
 
-            {analysisTable && (
-                 <>
-                    <div className="print-page-break"></div>
-                    <div className="print-page">
-                        {renderHeader("Tabel Analisis & Tindak Lanjut")}
-                        <div className="mt-6">{analysisTable}</div>
-                        {renderFooter()}
-                    </div>
+                    {barChart && (
+                        <>
+                            {(lineChart) && <div className="print-page-break"></div>}
+                            <div className="print-page">
+                                {renderHeader("Grafik Perbandingan (Bar Chart)")}
+                                <div className="mt-6">{barChart}</div>
+                                {renderFooter()}
+                            </div>
+                        </>
+                    )}
+                
+                {columns && data && (
+                        <>
+                            {hasCharts && <div className="print-page-break"></div>}
+                            <div className="print-page">
+                                {renderHeader("Tabel Data Capaian")}
+                                <div className="mt-6">{renderDataTable()}</div>
+                                {renderFooter()}
+                            </div>
+                        </>
+                    )}
+
+                    {analysisTable && (
+                        <>
+                            {(hasCharts || hasTables) && <div className="print-page-break"></div>}
+                            <div className="print-page">
+                                {renderHeader("Tabel Analisis & Tindak Lanjut")}
+                                <div className="mt-6">{analysisTable}</div>
+                                {renderFooter()}
+                            </div>
+                        </>
+                    )}
                 </>
             )}
-            
           </div>
         </ScrollArea>
 

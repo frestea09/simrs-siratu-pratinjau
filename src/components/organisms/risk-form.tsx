@@ -13,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { DialogFooter } from "../ui/dialog"
-import { Risk, RiskCategory, RiskSource, useRiskStore, RiskEvaluation } from "@/store/risk-store"
+import { Risk, RiskCategory, RiskSource, useRiskStore, RiskEvaluation, RiskStatus } from "@/store/risk-store"
 import { useToast } from "@/hooks/use-toast"
 import { useUserStore } from "@/store/user-store.tsx"
 import { useLogStore } from "@/store/log-store.tsx"
@@ -48,6 +48,12 @@ const evaluationOptions: { value: RiskEvaluation, label: string }[] = [
     { value: "Diterima", label: "3. Diterima" },
     { value: "Dihindari", label: "4. Dihindari" },
 ];
+const statusOptions: { value: RiskStatus, label: string }[] = [
+    { value: "Open", label: "Open" },
+    { value: "In Progress", label: "In Progress" },
+    { value: "Closed", label: "Closed" },
+];
+
 
 const formSchema = z.object({
   unit: z.string().min(1, "Unit kerja harus dipilih."),
@@ -67,6 +73,8 @@ const formSchema = z.object({
   }),
   actionPlan: z.string().min(10, "Rencana aksi harus diisi (minimal 10 karakter)."),
   dueDate: z.date().optional(),
+  pic: z.string().optional(),
+  status: z.enum(["Open", "In Progress", "Closed"]).optional(),
 });
 
 
@@ -82,9 +90,10 @@ const controllabilityLabels = ["Sangat Sulit", "Sulit", "Sedang", "Mudah", "Sang
 export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
     const { toast } = useToast()
     const { addRisk, updateRisk } = useRiskStore()
-    const { currentUser } = useUserStore()
-    // const { addLog } = useLogStore()
+    const { currentUser, users } = useUserStore()
     const isEditMode = !!riskToEdit;
+
+    const userOptions = React.useMemo(() => users.map(u => ({ value: u.name, label: `${u.name} (${u.role})`})), [users]);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -100,6 +109,7 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
             likelihood: 3,
             controllability: 3,
             evaluation: "Mitigasi",
+            status: "Open"
         },
     })
     
@@ -328,47 +338,86 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
                     )}
                 />
 
-                <FormField
-                    control={form.control}
-                    name="dueDate"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                            <FormLabel>Batas Waktu (Due Date)</FormLabel>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                <FormControl>
-                                    <Button
-                                    variant={"outline"}
-                                    className={cn(
-                                        "w-full pl-3 text-left font-normal",
-                                        !field.value && "text-muted-foreground"
-                                    )}
-                                    >
-                                    {field.value ? (
-                                        format(field.value, "PPP")
-                                    ) : (
-                                        <span>Pilih tanggal</span>
-                                    )}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={field.onChange}
-                                    disabled={(date) =>
-                                        date < new Date() || date < new Date("1900-01-01")
-                                    }
-                                    initialFocus
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <FormField
+                        control={form.control}
+                        name="pic"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Penanggung Jawab (PIC)</FormLabel>
+                                <Combobox
+                                    options={userOptions}
+                                    placeholder="Pilih PIC"
+                                    searchPlaceholder="Cari nama pengguna..."
+                                    onSelect={(value) => form.setValue('pic', value)}
+                                    value={field.value}
                                 />
-                                </PopoverContent>
-                            </Popover>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name="dueDate"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-col">
+                                <FormLabel>Batas Waktu (Due Date)</FormLabel>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                    <FormControl>
+                                        <Button
+                                        variant={"outline"}
+                                        className={cn(
+                                            "w-full pl-3 text-left font-normal",
+                                            !field.value && "text-muted-foreground"
+                                        )}
+                                        >
+                                        {field.value ? (
+                                            format(field.value, "PPP")
+                                        ) : (
+                                            <span>Pilih tanggal</span>
+                                        )}
+                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                        </Button>
+                                    </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar
+                                        mode="single"
+                                        selected={field.value}
+                                        onSelect={field.onChange}
+                                        initialFocus
+                                    />
+                                    </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                {isEditMode && (
+                      <FormField
+                        control={form.control}
+                        name="status"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Status Penyelesaian</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Pilih status" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {statusOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
 
 
                 <DialogFooter className="pt-4">

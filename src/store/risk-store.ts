@@ -7,6 +7,7 @@ export type RiskSource = "Laporan Insiden" | "Komplain" | "Survey/Ronde" | "Rapa
 export type RiskCategory = "Klinis" | "Non-Klinis" | "Operasional" | "Finansial" | "Reputasi";
 export type RiskLevel = "Rendah" | "Moderat" | "Tinggi" | "Ekstrem";
 export type RiskEvaluation = "Mitigasi" | "Transfer" | "Diterima" | "Dihindari";
+export type RiskStatus = "Open" | "In Progress" | "Closed";
 
 
 export type Risk = {
@@ -28,11 +29,13 @@ export type Risk = {
   evaluation: RiskEvaluation
   actionPlan: string
   dueDate?: string
+  pic?: string // Penanggung Jawab
+  status: RiskStatus
 }
 
 type RiskState = {
   risks: Risk[]
-  addRisk: (risk: Omit<Risk, 'id' | 'submissionDate' | 'riskScore' | 'riskLevel' | 'ranking'>) => string
+  addRisk: (risk: Omit<Risk, 'id' | 'submissionDate' | 'riskScore' | 'riskLevel' | 'ranking' | 'status'>) => string
   updateRisk: (id: string, risk: Partial<Omit<Risk, 'id' | 'submissionDate'>>) => void
 }
 
@@ -60,7 +63,9 @@ const initialRisks: Risk[] = [
         ranking: 12,
         evaluation: "Mitigasi",
         actionPlan: "Membuat SOP baru tentang kewajiban menaikkan pengaman brankar setiap saat.",
-        dueDate: "2023-11-30"
+        dueDate: "2023-11-30",
+        pic: "Deka (Kepala Unit)",
+        status: "In Progress"
     },
     {
         id: "RISK-002",
@@ -78,25 +83,36 @@ const initialRisks: Risk[] = [
         ranking: 6,
         evaluation: "Mitigasi",
         actionPlan: "Menerapkan sistem double check dan konfirmasi tanggal lahir pasien sebelum menyerahkan obat.",
-        dueDate: "2023-12-15"
+        dueDate: "2023-12-15",
+        pic: "Admin Sistem",
+        status: "Open"
     }
 ];
 
 export const useRiskStore = create<RiskState>((set, get) => ({
-  risks: initialRisks,
+  risks: initialRisks.map(r => {
+      const score = r.consequence * r.likelihood;
+      return {
+          ...r,
+          riskScore: score,
+          riskLevel: getRiskLevel(score),
+          ranking: score / r.controllability
+      }
+  }),
   addRisk: (risk) => {
     const newId = `RISK-${String(get().risks.length + 1).padStart(3, '0')}`;
     const riskScore = risk.consequence * risk.likelihood;
     const newRisk: Risk = {
-        ...(risk as Omit<Risk, 'id' | 'submissionDate' | 'riskScore' | 'riskLevel' | 'ranking'>),
+        ...(risk as Omit<Risk, 'id' | 'submissionDate' | 'riskScore' | 'riskLevel' | 'ranking' | 'status'>),
         id: newId,
         riskScore,
         riskLevel: getRiskLevel(riskScore),
-        ranking: riskScore, // Default ranking to risk score
+        ranking: riskScore / risk.controllability,
         submissionDate: new Date().toISOString(),
+        status: 'Open'
     };
     set((state) => ({
-      risks: [newRisk, ...state.risks],
+      risks: [newRisk, ...state.risks].sort((a,b) => b.ranking - a.ranking),
     }));
     return newId;
   },
@@ -105,15 +121,15 @@ export const useRiskStore = create<RiskState>((set, get) => ({
         if (r.id === id) {
             const updatedRisk = { ...r, ...riskData };
             // Recalculate score and level if consequence or likelihood changes
-            if (riskData.consequence || riskData.likelihood) {
+            if (riskData.consequence || riskData.likelihood || riskData.controllability) {
                 const score = updatedRisk.consequence * updatedRisk.likelihood;
                 updatedRisk.riskScore = score;
                 updatedRisk.riskLevel = getRiskLevel(score);
-                updatedRisk.ranking = score; // Update ranking as well
+                updatedRisk.ranking = score / updatedRisk.controllability;
             }
             return updatedRisk;
         }
         return r;
-      })
+      }).sort((a,b) => b.ranking - a.ranking)
   }))
 }));

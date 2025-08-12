@@ -8,9 +8,12 @@ import {
   getCoreRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  getFilteredRowModel,
   useReactTable,
+  ColumnFiltersState,
+  SortingState
 } from "@tanstack/react-table"
-import { MoreHorizontal, ArrowUpDown } from "lucide-react"
+import { MoreHorizontal, ArrowUpDown, ChevronDown } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
 
@@ -21,6 +24,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu"
 import {
   Table,
@@ -30,13 +34,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Risk, RiskEvaluation, RiskLevel } from "@/store/risk-store"
+import { Risk, RiskEvaluation, RiskLevel, RiskStatus } from "@/store/risk-store"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { RiskDialog } from "./risk-dialog"
+import { Input } from "../ui/input"
 
 const ActionsCell = ({ row }: { row: any }) => {
     const risk = row.original
-    // const [isEditOpen, setIsEditOpen] = React.useState(false);
+    const [isEditOpen, setIsEditOpen] = React.useState(false);
 
     return (
         <>
@@ -49,11 +55,10 @@ const ActionsCell = ({ row }: { row: any }) => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                    <DropdownMenuItem>Lihat Detail</DropdownMenuItem>
-                    <DropdownMenuItem>Edit Risiko</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => setIsEditOpen(true)}>Edit Risiko</DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
-            {/* <RiskDialog risk={risk} open={isEditOpen} onOpenChange={setIsEditOpen} /> */}
+            <RiskDialog risk={risk} open={isEditOpen} onOpenChange={setIsEditOpen} />
         </>
     )
 }
@@ -68,12 +73,11 @@ const getRiskLevelVariant = (level: RiskLevel): "default" | "secondary" | "destr
     }
 }
 
-const getEvaluationVariant = (evaluation: RiskEvaluation): "default" | "secondary" | "destructive" | "outline" => {
-    switch(evaluation) {
-        case "Mitigasi": return "default";
-        case "Transfer": return "secondary";
-        case "Diterima": return "outline";
-        case "Dihindari": return "destructive";
+const getStatusVariant = (status: RiskStatus): "default" | "secondary" | "destructive" | "outline" => {
+    switch(status) {
+        case "Open": return "secondary";
+        case "In Progress": return "outline";
+        case "Closed": return "default";
         default: return "secondary";
     }
 }
@@ -81,49 +85,67 @@ const getEvaluationVariant = (evaluation: RiskEvaluation): "default" | "secondar
 
 const columns: ColumnDef<Risk>[] = [
   {
-    accessorKey: "id",
-    header: "ID",
-    cell: ({ row }) => <div className="font-medium">{row.getValue("id")}</div>,
-    size: 100,
-  },
-  {
-    accessorKey: "unit",
+    accessorKey: "ranking",
     header: ({ column }) => (
         <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Unit Kerja <ArrowUpDown className="ml-2 h-4 w-4" />
+            Rank <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
     ),
+    cell: ({ row }) => <div className="text-center font-bold text-lg">{row.index + 1}</div>,
+    size: 50,
   },
   {
     accessorKey: "description",
     header: "Deskripsi Risiko",
-    cell: ({ row }) => <div className="text-sm">{row.getValue("description")}</div>
-  },
-  {
-    accessorKey: "actionPlan",
-    header: "Rencana Aksi",
-    cell: ({ row }) => <div className="text-sm">{row.getValue("actionPlan")}</div>
+    cell: ({ row }) => {
+        const risk = row.original;
+        return (
+            <div>
+                <p className="font-semibold">{risk.description}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                    <strong>Penyebab:</strong> {risk.cause}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                    <strong>Unit:</strong> {risk.unit}
+                </p>
+            </div>
+        )
+    }
   },
    {
-    accessorKey: "riskScore",
-    header: () => <div className="text-center">Skor Risiko</div>,
-    cell: ({ row }) => <div className="text-center font-bold">{row.getValue("riskScore")}</div>,
-    size: 50,
-  },
-  {
     accessorKey: "riskLevel",
     header: () => <div className="text-center">Level Risiko</div>,
     cell: ({ row }) => {
         const level = row.getValue("riskLevel") as RiskLevel;
+        const score = row.original.riskScore;
         const variant = getRiskLevelVariant(level)
         const className = variant === 'outline' ? 'bg-yellow-400/80 text-yellow-900 border-yellow-500/50 hover:bg-yellow-400' : ''
         return (
-            <div className="text-center">
-                <Badge variant={variant} className={cn(className)}>{level}</Badge>
+            <div className="text-center flex flex-col items-center">
+                <Badge variant={variant} className={cn("text-sm", className)}>{level}</Badge>
+                <span className="text-xs text-muted-foreground">(Skor: {score})</span>
             </div>
         )
     },
-    size: 100,
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id))
+    },
+    size: 120,
+  },
+  {
+    accessorKey: "actionPlan",
+    header: "Rencana Aksi & PIC",
+    cell: ({ row }) => {
+         const risk = row.original;
+         return (
+            <div>
+                <p className="font-semibold">{risk.actionPlan}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                    <strong>PIC:</strong> {risk.pic || '-'}
+                </p>
+            </div>
+         )
+    }
   },
   {
     accessorKey: "dueDate",
@@ -135,35 +157,111 @@ const columns: ColumnDef<Risk>[] = [
     },
     size: 120,
   },
-//   {
-//     id: "actions",
-//     cell: ActionsCell,
-//   },
+  {
+    accessorKey: "status",
+    header: () => <div className="text-center">Status</div>,
+    cell: ({ row }) => {
+        const status = row.getValue("status") as RiskStatus;
+        const variant = getStatusVariant(status);
+        const className = variant === 'outline' ? 'bg-blue-400/80 text-blue-900 border-blue-500/50 hover:bg-blue-400' : ''
+        return (
+            <div className="text-center">
+                <Badge variant={variant} className={cn(className)}>{status}</Badge>
+            </div>
+        )
+    },
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id))
+    },
+    size: 120,
+  },
+  {
+    id: "actions",
+    cell: ActionsCell,
+    size: 50,
+  },
 ]
 
 type RiskTableProps = {
   risks: Risk[]
 }
 
+const riskLevelOptions: RiskLevel[] = ["Rendah", "Moderat", "Tinggi", "Ekstrem"];
+const statusOptions: RiskStatus[] = ["Open", "In Progress", "Closed"];
+
 export function RiskTable({ risks }: RiskTableProps) {
-  const [sorting, setSorting] = React.useState<any[]>([
-      { id: 'ranking', desc: true }
-  ])
+    const [sorting, setSorting] = React.useState<SortingState>([
+        { id: 'ranking', desc: true }
+    ]);
+    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   
   const table = useReactTable({
     data: risks,
     columns,
     onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     state: {
       sorting,
+      columnFilters,
     },
   })
 
   return (
     <div className="w-full">
+         <div className="flex items-center py-4 gap-2">
+            <Input
+            placeholder="Cari deskripsi risiko..."
+            value={(table.getColumn("description")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+                table.getColumn("description")?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm"
+            />
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="ml-auto">
+                        Level Risiko <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    {riskLevelOptions.map(level => (
+                        <DropdownMenuCheckboxItem
+                            key={level}
+                            checked={(table.getColumn("riskLevel")?.getFilterValue() as string[] | undefined)?.includes(level) ?? false}
+                             onCheckedChange={(value) => {
+                                const currentFilter = (table.getColumn("riskLevel")?.getFilterValue() as string[] | undefined) || [];
+                                const newFilter = value ? [...currentFilter, level] : currentFilter.filter(s => s !== level);
+                                table.getColumn("riskLevel")?.setFilterValue(newFilter.length ? newFilter : undefined);
+                            }}
+                        >{level}</DropdownMenuCheckboxItem>
+                    ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="outline">
+                        Status <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    {statusOptions.map(status => (
+                         <DropdownMenuCheckboxItem
+                            key={status}
+                            checked={(table.getColumn("status")?.getFilterValue() as string[] | undefined)?.includes(status) ?? false}
+                             onCheckedChange={(value) => {
+                                const currentFilter = (table.getColumn("status")?.getFilterValue() as string[] | undefined) || [];
+                                const newFilter = value ? [...currentFilter, status] : currentFilter.filter(s => s !== status);
+                                table.getColumn("status")?.setFilterValue(newFilter.length ? newFilter : undefined);
+                            }}
+                        >{status}</DropdownMenuCheckboxItem>
+                    ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -209,6 +307,9 @@ export function RiskTable({ risks }: RiskTableProps) {
         </Table>
       </div>
        <div className="flex items-center justify-end space-x-2 py-4">
+        <div className="flex-1 text-sm text-muted-foreground">
+          Menampilkan {table.getFilteredRowModel().rows.length} dari {risks.length} total risiko.
+        </div>
         <Button
           variant="outline"
           size="sm"

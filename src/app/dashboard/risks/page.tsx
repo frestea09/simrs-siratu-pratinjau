@@ -11,6 +11,7 @@ import { RiskDialog } from "@/components/organisms/risk-dialog"
 import { RiskTable } from "@/components/organisms/risk-table"
 import { ReportPreviewDialog } from "@/components/organisms/report-preview-dialog"
 import { RiskReportTable } from "@/components/organisms/risk-report-table"
+import { RiskAnalysisTable } from "@/components/organisms/risk-analysis-table"
 
 
 const COLORS: {[key in RiskLevel]: string} = {
@@ -48,6 +49,10 @@ export default function RisksPage() {
             levelData: Object.entries(levelCounts).map(([name, value]) => ({ name, value })).reverse(),
             statusData: Object.entries(statusCounts).map(([name, value]) => ({ name, value }))
         };
+    }, [risks]);
+    
+    const risksInProgress = React.useMemo(() => {
+        return risks.filter(r => r.status === 'Open' || r.status === 'In Progress');
     }, [risks]);
 
     return (
@@ -171,9 +176,68 @@ export default function RisksPage() {
                 open={isReportOpen}
                 onOpenChange={setIsReportOpen}
                 title="Laporan Register Risiko"
-                data={risks}
+                data={[]}
             >
-                <RiskReportTable data={risks} />
+                <div className="grid grid-cols-1 lg:grid-cols-7 gap-6 print-page">
+                    <div className="lg:col-span-4">
+                        <h3 className="text-lg font-semibold mb-2">Distribusi Level Risiko</h3>
+                        <div className="h-[300px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                             <BarChart data={summary.levelData} layout="vertical" margin={{ left: 10 }}>
+                                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                <XAxis type="number" allowDecimals={false} />
+                                <YAxis type="category" dataKey="name" width={80} />
+                                <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} />
+                                <Bar dataKey="value" name="Jumlah Risiko" barSize={30}>
+                                    {summary.levelData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[entry.name as RiskLevel]} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                        </div>
+                    </div>
+                     <div className="lg:col-span-3">
+                         <h3 className="text-lg font-semibold mb-2">Status Penyelesaian Risiko</h3>
+                         <div className="h-[300px]">
+                         <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie
+                                    data={summary.statusData}
+                                    cx="50%"
+                                    cy="50%"
+                                    labelLine={false}
+                                    outerRadius={80}
+                                    fill="#8884d8"
+                                    dataKey="value"
+                                    nameKey="name"
+                                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                                >
+                                    {summary.statusData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name as RiskStatus]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip />
+                                <Legend />
+                            </PieChart>
+                        </ResponsiveContainer>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="print-page-break"></div>
+
+                <div className="print-page">
+                    <h3 className="text-lg font-semibold mb-4">Daftar Rencana Aksi & Tindak Lanjut (Risiko Open & In Progress)</h3>
+                    <RiskAnalysisTable data={risksInProgress} />
+                </div>
+
+                <div className="print-page-break"></div>
+                
+                <div className="print-page">
+                    <h3 className="text-lg font-semibold mb-4">Register Risiko Lengkap</h3>
+                    <RiskReportTable data={risks} />
+                </div>
             </ReportPreviewDialog>
         </div>
     )

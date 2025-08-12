@@ -31,9 +31,6 @@ type ReportPreviewDialogProps<TData> = {
   columns?: ColumnDef<TData, any>[]
   title: string
   description?: string
-  lineChart?: React.ReactNode
-  barChart?: React.ReactNode
-  analysisTable?: React.ReactNode
   children?: React.ReactNode // Allow custom content
 }
 
@@ -44,9 +41,6 @@ export function ReportPreviewDialog<TData>({
   columns,
   title,
   description,
-  lineChart,
-  barChart,
-  analysisTable,
   children
 }: ReportPreviewDialogProps<TData>) {
   const reportRef = React.useRef<HTMLDivElement>(null)
@@ -74,10 +68,15 @@ export function ReportPreviewDialog<TData>({
             margin: 20px; 
           }
           .no-print { display: none; }
-          .print-page-break { page-break-after: always; }
+          .print-page-break { 
+            page-break-after: always; 
+            margin-top: 2rem; 
+            margin-bottom: 2rem;
+          }
           .print-header {
               text-align: center;
               margin-bottom: 1rem;
+              padding-top: 1rem;
           }
           .print-header h1 {
               font-size: 1.5rem;
@@ -89,14 +88,30 @@ export function ReportPreviewDialog<TData>({
           }
           .print-page {
               break-inside: avoid;
+              padding-top: 1rem;
+              padding-bottom: 1rem;
           }
           table { width: 100%; border-collapse: collapse; }
           th, td { border: 1px solid black; padding: 4px; text-align: left; vertical-align: top; font-size: 10px; }
           th { background-color: #f2f2f2; font-weight: bold; text-align: center; vertical-align: middle; }
+          h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; }
         `);
         printWindow.document.write('</style>');
         printWindow.document.write('</head><body class="bg-white">');
-        printWindow.document.write(reportRef.current.innerHTML);
+        
+        const contentToPrint = reportRef.current.cloneNode(true) as HTMLDivElement;
+        
+        // Remove ResponsiveContainer wrappers for printing to allow charts to render statically
+        contentToPrint.querySelectorAll('.recharts-responsive-container').forEach(container => {
+          const wrapper = container.firstChild as HTMLElement;
+          if (wrapper) {
+            wrapper.style.width = '100%';
+            wrapper.style.height = '300px'; // fixed height for printing
+            container.parentNode?.replaceChild(wrapper, container);
+          }
+        });
+
+        printWindow.document.write(contentToPrint.innerHTML);
         printWindow.document.write('</body></html>');
         printWindow.document.close();
         printWindow.focus();
@@ -106,61 +121,15 @@ export function ReportPreviewDialog<TData>({
         }, 500);
     }
   }
-
-  const renderDataTable = () => (
-     <div className="rounded-md border">
-        <Table>
-            <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id} className="bg-gray-100">
-                {headerGroup.headers.map((header) => {
-                    return (
-                    <TableHead key={header.id} className="font-bold text-black">
-                        {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                        )}
-                    </TableHead>
-                    )
-                })}
-                </TableRow>
-            ))}
-            </TableHeader>
-            <TableBody>
-            {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="border-b">
-                    {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-2 px-4">
-                        {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                        )}
-                    </TableCell>
-                    ))}
-                </TableRow>
-                ))
-            ) : (
-                <TableRow>
-                <TableCell
-                    colSpan={columns?.length || 1}
-                    className="h-24 text-center"
-                >
-                    Tidak ada data.
-                </TableCell>
-                </TableRow>
-            )}
-            </TableBody>
-        </Table>
-    </div>
-  )
-
-  const renderHeader = (pageTitle: string) => (
+  
+  const renderHeader = (pageTitle: string, isFirstPage: boolean = false) => (
     <header className="print-header">
-      <h1 className="text-2xl font-bold text-center">{pageTitle}</h1>
-      <p className="text-center text-sm text-gray-600">RSUD Oto Iskandar Dinata</p>
+       {isFirstPage && (
+         <>
+          <h1 className="text-2xl font-bold text-center">{title}</h1>
+          <p className="text-center text-sm text-gray-600">RSUD Oto Iskandar Dinata</p>
+         </>
+       )}
     </header>
   )
 
@@ -169,9 +138,6 @@ export function ReportPreviewDialog<TData>({
         <p>Tanggal Cetak: {format(new Date(), "d MMMM yyyy HH:mm")}</p>
     </footer>
   )
-
-  const hasCharts = !!lineChart || !!barChart;
-  const hasDataTables = (columns && data.length > 0);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -184,58 +150,13 @@ export function ReportPreviewDialog<TData>({
         </DialogHeader>
 
         <ScrollArea className="max-h-[70vh] bg-gray-200/50 p-4 rounded-md">
-          <div ref={reportRef} className="p-4 bg-white text-black space-y-8">
-            {children ? (
-                 <div className="print-page">
-                    {renderHeader(title)}
-                    <div className="mt-6">{children}</div>
-                    {renderFooter()}
-                </div>
-            ) : (
-                <>
-                    {lineChart && (
-                        <div className="print-page">
-                            {renderHeader("Grafik Tren (Line Chart)")}
-                            <div className="mt-6">{lineChart}</div>
-                            {renderFooter()}
-                        </div>
-                    )}
-
-                    {barChart && (
-                        <>
-                            {(lineChart) && <div className="print-page-break"></div>}
-                            <div className="print-page">
-                                {renderHeader("Grafik Perbandingan (Bar Chart)")}
-                                <div className="mt-6">{barChart}</div>
-                                {renderFooter()}
-                            </div>
-                        </>
-                    )}
-                
-                    {hasDataTables && (
-                        <>
-                            {hasCharts && <div className="print-page-break"></div>}
-                            <div className="print-page">
-                                {renderHeader(title)}
-                                <div className="mt-6">{renderDataTable()}</div>
-                                {renderFooter()}
-                            </div>
-                        </>
-                    )}
-
-                    {analysisTable && (
-                        <>
-                            {(hasCharts || hasDataTables) && <div className="print-page-break"></div>}
-                            <div className="print-page">
-                                {renderHeader("Tabel Analisis & Tindak Lanjut")}
-                                <div className="mt-6">{analysisTable}</div>
-                                {renderFooter()}
-                            </div>
-                        </>
-                    )}
-                </>
-            )}
-          </div>
+            <div ref={reportRef} className="p-4 bg-white text-black space-y-8">
+              {renderHeader(title, true)}
+              <div className="space-y-8">
+                {children}
+              </div>
+              {renderFooter()}
+            </div>
         </ScrollArea>
 
         <DialogFooter>

@@ -171,7 +171,7 @@ export function ReportPreviewDialog<TData>({
   )
 
   const hasCharts = !!lineChart || !!barChart;
-  const hasTables = (columns && data.length > 0) || !!analysisTable;
+  const hasDataTables = (columns && data.length > 0);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -212,11 +212,11 @@ export function ReportPreviewDialog<TData>({
                         </>
                     )}
                 
-                {columns && data && (
+                    {hasDataTables && (
                         <>
                             {hasCharts && <div className="print-page-break"></div>}
                             <div className="print-page">
-                                {renderHeader("Tabel Data Capaian")}
+                                {renderHeader(title)}
                                 <div className="mt-6">{renderDataTable()}</div>
                                 {renderFooter()}
                             </div>
@@ -225,7 +225,7 @@ export function ReportPreviewDialog<TData>({
 
                     {analysisTable && (
                         <>
-                            {(hasCharts || hasTables) && <div className="print-page-break"></div>}
+                            {(hasCharts || hasDataTables) && <div className="print-page-break"></div>}
                             <div className="print-page">
                                 {renderHeader("Tabel Analisis & Tindak Lanjut")}
                                 <div className="mt-6">{analysisTable}</div>

@@ -57,15 +57,6 @@ export default function IncidentsPage() {
                 <IncidentTable incidents={incidents} onExport={handleExport} />
                 </CardContent>
             </Card>
-            {reportData && reportColumns && (
-                <ReportPreviewDialog
-                    open={!!reportData}
-                    onOpenChange={(open) => !open && setReportData(null)}
-                    data={reportData}
-                    columns={reportColumns}
-                    title="Laporan Insiden Keselamatan Pasien"
-                />
-            )}
         </>
       ) : (
         <Card>

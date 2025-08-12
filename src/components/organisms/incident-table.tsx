@@ -30,6 +30,8 @@ import { Incident, IncidentStatus } from "@/store/incident-store"
 import { IncidentDetailDialog } from "./incident-detail-dialog"
 import { ActionsCell } from "./incident-table/actions-cell"
 import { cn } from "@/lib/utils"
+import { ReportPreviewDialog } from "./report-preview-dialog"
+import { IncidentAnalysisTable } from "./incident-analysis-table"
 
 type IncidentTableProps = {
   incidents: Incident[];
@@ -41,6 +43,11 @@ export function IncidentTable({ incidents, onExport }: IncidentTableProps) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [selectedIncident, setSelectedIncident] = React.useState<Incident | null>(null);
   const [isDetailOpen, setIsDetailOpen] = React.useState(false);
+
+  const [reportData, setReportData] = React.useState<any[] | null>(null)
+  const [reportColumns, setReportColumns] = React.useState<ColumnDef<any>[] | null>(null)
+  const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
+
 
   const handleViewDetails = (incident: Incident) => {
     setSelectedIncident(incident);
@@ -115,6 +122,13 @@ export function IncidentTable({ incidents, onExport }: IncidentTableProps) {
       columnFilters
     }
   })
+  
+  const handleExport = (data: Incident[], columns: ColumnDef<Incident>[]) => {
+    setReportData(data);
+    setReportColumns(columns);
+    setIsPreviewOpen(true);
+  };
+
 
   return (
     <div className="w-full">
@@ -127,7 +141,7 @@ export function IncidentTable({ incidents, onExport }: IncidentTableProps) {
           }
           className="max-w-sm"
         />
-        <Button variant="outline" className="ml-auto" onClick={() => onExport(table.getFilteredRowModel().rows.map(row => row.original), columns.filter(c => c.id !== 'actions'))}>
+        <Button variant="outline" className="ml-auto" onClick={() => handleExport(table.getFilteredRowModel().rows.map(row => row.original), columns.filter(c => c.id !== 'actions'))}>
             <Download className="mr-2 h-4 w-4" />
             Unduh Laporan
         </Button>
@@ -178,6 +192,14 @@ export function IncidentTable({ incidents, onExport }: IncidentTableProps) {
         incident={selectedIncident}
         open={isDetailOpen}
         onOpenChange={setIsDetailOpen}
+      />
+       <ReportPreviewDialog
+          open={isPreviewOpen}
+          onOpenChange={setIsPreviewOpen}
+          data={reportData || []}
+          columns={reportColumns || []}
+          title="Laporan Insiden Keselamatan"
+          analysisTable={<IncidentAnalysisTable data={reportData || []} />}
       />
     </div>
   )

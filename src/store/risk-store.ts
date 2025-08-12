@@ -31,6 +31,11 @@ export type Risk = {
   dueDate?: string
   pic?: string // Penanggung Jawab
   status: RiskStatus
+  // Residual Risk
+  residualConsequence?: number
+  residualLikelihood?: number
+  residualRiskScore?: number
+  residualRiskLevel?: RiskLevel
 }
 
 type RiskState = {
@@ -60,7 +65,7 @@ const initialRisks: Risk[] = [
         controllability: 2,
         riskScore: 12,
         riskLevel: "Tinggi",
-        ranking: 12,
+        ranking: 6, // 12 / 2
         evaluation: "Mitigasi",
         actionPlan: "Membuat SOP baru tentang kewajiban menaikkan pengaman brankar setiap saat.",
         dueDate: "2023-11-30",
@@ -80,7 +85,7 @@ const initialRisks: Risk[] = [
         controllability: 4,
         riskScore: 6,
         riskLevel: "Moderat",
-        ranking: 6,
+        ranking: 1.5, // 6 / 4
         evaluation: "Mitigasi",
         actionPlan: "Menerapkan sistem double check dan konfirmasi tanggal lahir pasien sebelum menyerahkan obat.",
         dueDate: "2023-12-15",
@@ -98,7 +103,7 @@ export const useRiskStore = create<RiskState>((set, get) => ({
           riskLevel: getRiskLevel(score),
           ranking: score / r.controllability
       }
-  }),
+  }).sort((a,b) => b.ranking - a.ranking),
   addRisk: (risk) => {
     const newId = `RISK-${String(get().risks.length + 1).padStart(3, '0')}`;
     const riskScore = risk.consequence * risk.likelihood;
@@ -126,6 +131,15 @@ export const useRiskStore = create<RiskState>((set, get) => ({
                 updatedRisk.riskScore = score;
                 updatedRisk.riskLevel = getRiskLevel(score);
                 updatedRisk.ranking = score / updatedRisk.controllability;
+            }
+             // Recalculate residual score and level
+            if (updatedRisk.residualConsequence && updatedRisk.residualLikelihood) {
+                const residualScore = updatedRisk.residualConsequence * updatedRisk.residualLikelihood;
+                updatedRisk.residualRiskScore = residualScore;
+                updatedRisk.residualRiskLevel = getRiskLevel(residualScore);
+            } else {
+                delete updatedRisk.residualRiskScore;
+                delete updatedRisk.residualRiskLevel;
             }
             return updatedRisk;
         }

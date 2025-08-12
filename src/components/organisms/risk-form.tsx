@@ -75,6 +75,17 @@ const formSchema = z.object({
   dueDate: z.date().optional(),
   pic: z.string().optional(),
   status: z.enum(["Open", "In Progress", "Closed"]).optional(),
+  residualConsequence: z.number().min(0).max(5).optional(),
+  residualLikelihood: z.number().min(0).max(5).optional(),
+}).refine(data => {
+    // If one residual field is filled, the other must be too, or both can be empty.
+    if ((data.residualConsequence && !data.residualLikelihood) || (!data.residualConsequence && data.residualLikelihood)) {
+        return false;
+    }
+    return true;
+}, {
+    message: "Dampak dan Kemungkinan Sisa harus diisi bersamaan atau dikosongkan bersamaan.",
+    path: ["residualConsequence"],
 });
 
 
@@ -100,6 +111,8 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
         defaultValues: riskToEdit ? {
             ...riskToEdit,
             dueDate: riskToEdit.dueDate ? new Date(riskToEdit.dueDate) : undefined,
+            residualConsequence: riskToEdit.residualConsequence || 0,
+            residualLikelihood: riskToEdit.residualLikelihood || 0,
         } : {
             unit: currentUser?.unit,
             description: "",
@@ -109,18 +122,24 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
             likelihood: 3,
             controllability: 3,
             evaluation: "Mitigasi",
-            status: "Open"
+            status: "Open",
+            residualConsequence: 0,
+            residualLikelihood: 0,
         },
     })
     
     const consequenceValue = form.watch("consequence");
     const likelihoodValue = form.watch("likelihood");
     const controllabilityValue = form.watch("controllability");
+    const residualConsequenceValue = form.watch("residualConsequence");
+    const residualLikelihoodValue = form.watch("residualLikelihood");
 
     function onSubmit(values: z.infer<typeof formSchema>) {
         const dataToSave = {
             ...values,
             dueDate: values.dueDate ? values.dueDate.toISOString() : undefined,
+            residualConsequence: values.residualConsequence === 0 ? undefined : values.residualConsequence,
+            residualLikelihood: values.residualLikelihood === 0 ? undefined : values.residualLikelihood,
         }
 
         if (isEditMode && riskToEdit) {
@@ -418,6 +437,58 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
                         )}
                     />
                 )}
+                
+                <Separator />
+                <h3 className="text-lg font-semibold text-primary">Penilaian Risiko Sisa (Opsional)</h3>
+                 <p className="text-sm text-muted-foreground -mt-2">Isi bagian ini setelah rencana aksi diimplementasikan untuk menilai risiko yang tersisa.</p>
+                
+                 <FormField
+                    control={form.control}
+                    name="residualConsequence"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Dampak Sisa (Residual Consequence)</FormLabel>
+                            <div className="flex items-center gap-4">
+                                <FormControl>
+                                    <Slider
+                                        min={0} max={5} step={1}
+                                        defaultValue={[field.value || 0]}
+                                        onValueChange={(value) => field.onChange(value[0])}
+                                        className="flex-1"
+                                    />
+                                </FormControl>
+                                <div className="w-40 text-center font-semibold text-primary">
+                                    {residualConsequenceValue ? `${residualConsequenceValue} - ${ratingLabels[residualConsequenceValue - 1]}`: "N/A"}
+                                </div>
+                            </div>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                 <FormField
+                    control={form.control}
+                    name="residualLikelihood"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Kemungkinan Sisa (Residual Likelihood)</FormLabel>
+                            <div className="flex items-center gap-4">
+                                <FormControl>
+                                    <Slider
+                                        min={0} max={5} step={1}
+                                        defaultValue={[field.value || 0]}
+                                        onValueChange={(value) => field.onChange(value[0])}
+                                        className="flex-1"
+                                    />
+                                </FormControl>
+                                <div className="w-40 text-center font-semibold text-primary">
+                                    {residualLikelihoodValue ? `${residualLikelihoodValue} - ${ratingLabels[residualLikelihoodValue - 1]}`: "N/A"}
+                                </div>
+                            </div>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
 
                 <DialogFooter className="pt-4">

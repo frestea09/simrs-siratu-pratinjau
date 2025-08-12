@@ -133,6 +133,26 @@ const columns: ColumnDef<Risk>[] = [
     size: 120,
   },
   {
+    accessorKey: "residualRiskLevel",
+    header: () => <div className="text-center">Level Risiko Sisa</div>,
+    cell: ({ row }) => {
+        const level = row.getValue("residualRiskLevel") as RiskLevel | undefined;
+        if (!level) return <div className="text-center">-</div>
+        
+        const score = row.original.residualRiskScore;
+        const variant = getRiskLevelVariant(level)
+        const className = variant === 'outline' ? 'bg-yellow-400/80 text-yellow-900 border-yellow-500/50 hover:bg-yellow-400' : ''
+        
+        return (
+            <div className="text-center flex flex-col items-center">
+                <Badge variant={variant} className={cn("text-sm", className)}>{level}</Badge>
+                <span className="text-xs text-muted-foreground">(Skor: {score})</span>
+            </div>
+        )
+    },
+    size: 120,
+  },
+  {
     accessorKey: "actionPlan",
     header: "Rencana Aksi & PIC",
     cell: ({ row }) => {

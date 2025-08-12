@@ -14,7 +14,7 @@ import {
   SortingState,
   Row
 } from "@tanstack/react-table"
-import { MoreHorizontal, ArrowUpDown, ChevronDown, Trash2 } from "lucide-react"
+import { MoreHorizontal, ArrowUpDown, ChevronDown, Trash2, Edit, CheckSquare } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
 
@@ -47,7 +47,8 @@ import { useToast } from "@/hooks/use-toast"
 
 const ActionsCell = ({ row }: { row: Row<Risk> }) => {
     const risk = row.original
-    const [isEditOpen, setIsEditOpen] = React.useState(false);
+    const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+    const [dialogMode, setDialogMode] = React.useState<'edit' | 'update'>('edit');
     const { removeRisk } = useRiskStore();
     const { toast } = useToast();
 
@@ -58,6 +59,13 @@ const ActionsCell = ({ row }: { row: Row<Risk> }) => {
             description: `Risiko "${risk.description.substring(0, 30)}..." telah dihapus.`,
         });
     }
+
+    const openDialog = (mode: 'edit' | 'update') => {
+        setDialogMode(mode);
+        setIsDialogOpen(true);
+    }
+
+    const canUpdate = risk.status === 'In Progress' || risk.status === 'Open';
 
     return (
         <>
@@ -70,11 +78,20 @@ const ActionsCell = ({ row }: { row: Row<Risk> }) => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                    <DropdownMenuItem onSelect={() => setIsEditOpen(true)}>Edit Risiko</DropdownMenuItem>
+                     <DropdownMenuItem onSelect={() => openDialog('edit')}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        <span>Edit Identifikasi</span>
+                    </DropdownMenuItem>
+                    {canUpdate && (
+                        <DropdownMenuItem onSelect={() => openDialog('update')}>
+                            <CheckSquare className="mr-2 h-4 w-4" />
+                            <span>Update Evaluasi</span>
+                        </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                      <AlertDialog>
                         <AlertDialogTrigger asChild>
-                            <button className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full text-destructive hover:bg-destructive/10">
+                             <button className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full text-destructive hover:bg-destructive/10">
                                <Trash2 className="mr-2 h-4 w-4" />
                                 <span>Hapus</span>
                             </button>
@@ -94,7 +111,12 @@ const ActionsCell = ({ row }: { row: Row<Risk> }) => {
                     </AlertDialog>
                 </DropdownMenuContent>
             </DropdownMenu>
-            <RiskDialog risk={risk} open={isEditOpen} onOpenChange={setIsEditOpen} />
+            <RiskDialog 
+                risk={risk} 
+                open={isDialogOpen} 
+                onOpenChange={setIsDialogOpen}
+                mode={dialogMode}
+             />
         </>
     )
 }
@@ -121,15 +143,6 @@ const getRiskLevelClass = (level?: RiskLevel) => {
     }
 }
 
-const getStatusVariant = (status: RiskStatus): "default" | "secondary" | "destructive" | "outline" => {
-    switch(status) {
-        case "Open": return "secondary";
-        case "In Progress": return "outline";
-        case "Closed": return "default";
-        default: return "secondary";
-    }
-}
-
 const getStatusClass = (status?: RiskStatus) => {
     if (!status) return "";
      switch(status) {
@@ -150,7 +163,7 @@ const columns: ColumnDef<Risk>[] = [
         </Button>
     ),
     cell: ({ row }) => <div className="text-center font-bold text-lg">{row.original.riskScore}</div>,
-    size: 50,
+    sortingFn: 'alphanumeric',
   },
   {
     accessorKey: "description",
@@ -277,7 +290,7 @@ export function RiskTable({ risks }: RiskTableProps) {
       columnFilters,
     },
     initialState: {
-        columnVisibility: { riskScore: false } // Hide the score column by default
+        columnVisibility: { riskScore: false }
     }
   })
 
@@ -402,5 +415,3 @@ export function RiskTable({ risks }: RiskTableProps) {
     </div>
   )
 }
-
-    

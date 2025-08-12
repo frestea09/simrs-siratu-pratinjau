@@ -23,6 +23,8 @@ import {
 import { ScrollArea } from "../ui/scroll-area"
 import { Printer } from "lucide-react"
 import { format } from "date-fns"
+import { Indicator } from "@/store/indicator-store"
+import { BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis, Bar, LineChart, Line, Legend, Dot } from "recharts"
 
 type ReportPreviewDialogProps<TData> = {
   open: boolean
@@ -31,7 +33,9 @@ type ReportPreviewDialogProps<TData> = {
   columns?: ColumnDef<TData, any>[]
   title: string
   description?: string
-  children?: React.ReactNode
+  lineChart?: React.ReactNode
+  barChart?: React.ReactNode
+  analysisTable?: React.ReactNode
 }
 
 export function ReportPreviewDialog<TData>({
@@ -41,7 +45,9 @@ export function ReportPreviewDialog<TData>({
   columns,
   title,
   description,
-  children,
+  lineChart,
+  barChart,
+  analysisTable,
 }: ReportPreviewDialogProps<TData>) {
   const reportRef = React.useRef<HTMLDivElement>(null)
 
@@ -83,6 +89,9 @@ export function ReportPreviewDialog<TData>({
                         font-size: 0.875rem;
                         color: #6B7280;
                     }
+                    .print-page {
+                        break-inside: avoid;
+                    }
                 }
             </style>
         `);
@@ -98,7 +107,7 @@ export function ReportPreviewDialog<TData>({
     }
   }
 
-  const renderTable = () => (
+  const renderDataTable = () => (
      <div className="rounded-md border">
         <Table>
             <TableHeader>
@@ -168,30 +177,53 @@ export function ReportPreviewDialog<TData>({
         <DialogHeader>
           <DialogTitle>Pratinjau Laporan</DialogTitle>
           <DialogDescription>
-            Pratinjau laporan sebelum diunduh atau dicetak. Laporan akan dibagi menjadi beberapa halaman untuk kejelasan.
+            {description || "Pratinjau laporan sebelum diunduh atau dicetak. Laporan akan dibagi menjadi beberapa halaman untuk kejelasan."}
           </DialogDescription>
         </DialogHeader>
 
         <ScrollArea className="max-h-[70vh] bg-gray-200/50 p-4 rounded-md">
           <div ref={reportRef} className="p-4 bg-white text-black space-y-8">
-            {/* Page 1: Chart */}
-            {children && (
-              <div className="print-page">
-                 {renderHeader("Grafik Capaian Indikator")}
-                 <div className="mt-6">{children}</div>
-                 {renderFooter()}
-              </div>
+            {lineChart && (
+                <div className="print-page">
+                    {renderHeader("Grafik Tren (Line Chart)")}
+                    <div className="mt-6">{lineChart}</div>
+                    {renderFooter()}
+                </div>
+            )}
+
+            {barChart && (
+                <>
+                    <div className="print-page-break"></div>
+                    <div className="print-page">
+                        {renderHeader("Grafik Perbandingan (Bar Chart)")}
+                        <div className="mt-6">{barChart}</div>
+                        {renderFooter()}
+                    </div>
+                </>
             )}
            
-           {/* Page Break */}
-           <div className="print-page-break"></div>
+           {columns && data && (
+                <>
+                    <div className="print-page-break"></div>
+                    <div className="print-page">
+                        {renderHeader("Tabel Data Capaian")}
+                        <div className="mt-6">{renderDataTable()}</div>
+                        {renderFooter()}
+                    </div>
+                </>
+            )}
 
-           {/* Page 2: Table */}
-            <div className="print-page">
-                {renderHeader("Tabel Data Laporan")}
-                <div className="mt-6">{renderTable()}</div>
-                {renderFooter()}
-            </div>
+            {analysisTable && (
+                 <>
+                    <div className="print-page-break"></div>
+                    <div className="print-page">
+                        {renderHeader("Tabel Analisis & Tindak Lanjut")}
+                        <div className="mt-6">{analysisTable}</div>
+                        {renderFooter()}
+                    </div>
+                </>
+            )}
+            
           </div>
         </ScrollArea>
 

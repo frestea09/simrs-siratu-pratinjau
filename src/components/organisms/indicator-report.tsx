@@ -12,8 +12,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { ColumnDef } from "@tanstack/react-table"
 import { ReportPreviewDialog } from "./report-preview-dialog"
 import { useUserStore } from "@/store/user-store.tsx"
-import { CartesianGrid, LabelList, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis, LineChart, Line, Legend, Dot } from "recharts"
-import { format, parseISO } from "date-fns"
+import { CartesianGrid, LabelList, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis, LineChart, Line, Legend, Dot, BarChart, Bar } from "recharts"
+import { format } from "date-fns"
+import { AnalysisTable } from "./analysis-table"
 
 const centralRoles = [
   'Admin Sistem',
@@ -74,6 +75,62 @@ export function IndicatorReport({ indicators, category, title, description, show
         return indicators.filter(i => i.unit === currentUser.unit);
     }, [indicators, currentUser, userCanSeeAll]);
 
+    const ChartTooltipContent = (props: any) => {
+        const { active, payload } = props;
+        if (active && payload && payload.length) {
+            const data = payload[0].payload;
+            const date = data.date;
+            const timeRange = chartData && chartData.length > 30 ? '1y' : '30d'; // A simple heuristic
+            const formattedDate = (timeRange === '6m' || timeRange === '1y') ? format(date, 'MMMM yyyy') : format(date, 'd MMMM yyyy');
+          
+            return (
+                <div className="p-2 bg-background border rounded-md shadow-lg">
+                    <p className="font-bold text-foreground">{formattedDate}</p>
+                    <p className="text-sm text-primary">{`Capaian: ${data.Capaian}`}</p>
+                    {data.Standar && <p className="text-sm text-destructive">{`Standar: ${data.Standar}`}</p>}
+                </div>
+            );
+        }
+        return null;
+    };
+    
+    const lineChartComponent = chartData && (
+        <div style={{ width: '100%', height: 350 }}>
+            <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                    <RechartsTooltip content={<ChartTooltipContent />} />
+                    <Legend />
+                    <Line type="monotone" dataKey="Capaian" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} dot={<Dot r={4} />}>
+                        <LabelList dataKey="Capaian" position="top" />
+                    </Line>
+                     {chartData.some(d => d.Standar) && (
+                        <Line type="monotone" dataKey="Standar" stroke="hsl(var(--destructive))" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                     )}
+                </LineChart>
+            </ResponsiveContainer>
+        </div>
+    )
+
+    const barChartComponent = chartData && (
+        <div style={{ width: '100%', height: 350 }}>
+            <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                    <RechartsTooltip content={<ChartTooltipContent />} />
+                    <Legend />
+                    <Bar dataKey="Capaian" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
+                        <LabelList dataKey="Capaian" position="top" />
+                    </Bar>
+                </BarChart>
+            </ResponsiveContainer>
+        </div>
+    )
+
 
     return (
         <div className="space-y-4">
@@ -123,37 +180,11 @@ export function IndicatorReport({ indicators, category, title, description, show
                 data={reportTableData || []}
                 columns={reportColumns || []}
                 title={`Laporan Capaian ${title || `Indikator ${category}`}`}
-            >
-                {chartData && (
-                    <div style={{ width: '100%', height: 350 }}>
-                         <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                                <RechartsTooltip
-                                    cursor={{ fill: 'hsl(var(--muted))' }}
-                                    contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
-                                    labelFormatter={(label, payload) => {
-                                        if (payload && payload.length > 0 && payload[0].payload.date) {
-                                            const date = payload[0].payload.date;
-                                            const timeRange = chartData.length > 7 ? '6m' : '7d'; // Heuristic
-                                            if (timeRange === '6m' || timeRange === '1y') return format(date, 'MMMM yyyy');
-                                            return format(date, 'd MMMM yyyy');
-                                        }
-                                        return label;
-                                    }}
-                                />
-                                <Legend />
-                                <Line type="monotone" dataKey="Capaian" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} dot={<Dot r={4} />}>
-                                    <LabelList dataKey="Capaian" position="top" />
-                                </Line>
-                                <Line type="monotone" dataKey="Standar" stroke="hsl(var(--destructive))" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </div>
-                )}
-            </ReportPreviewDialog>
+                description={chartDescription}
+                lineChart={lineChartComponent}
+                barChart={barChartComponent}
+                analysisTable={<AnalysisTable data={reportTableData || []} />}
+            />
              <IndicatorInputDialog 
                 open={isInputOpen} 
                 onOpenChange={setIsInputOpen}

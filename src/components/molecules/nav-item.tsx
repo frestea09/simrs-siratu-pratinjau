@@ -82,10 +82,10 @@ const NavLink = ({ item, isSubItem }: Pick<NavItemProps, 'item' | 'isSubItem'>) 
       onClick: item.onClick,
     };
     const children = (
-      <>
+      <div className="flex flex-row gap-4">
         {item.icon && <item.icon className={cn(isSubItem ? "size-5" : "size-6")} />}
         <span>{item.label}</span>
-      </>
+      </div>
     );
 
     if (isSubItem) {

@@ -65,8 +65,6 @@ const ActionsCell = ({ row }: { row: Row<Risk> }) => {
         setIsDialogOpen(true);
     }
 
-    const canUpdate = risk.status === 'In Progress' || risk.status === 'Open';
-
     return (
         <>
             <DropdownMenu>
@@ -82,12 +80,10 @@ const ActionsCell = ({ row }: { row: Row<Risk> }) => {
                         <Edit className="mr-2 h-4 w-4" />
                         <span>Edit Identifikasi</span>
                     </DropdownMenuItem>
-                    {canUpdate && (
-                        <DropdownMenuItem onSelect={() => openDialog('update')}>
-                            <CheckSquare className="mr-2 h-4 w-4" />
-                            <span>Update Evaluasi</span>
-                        </DropdownMenuItem>
-                    )}
+                    <DropdownMenuItem onSelect={() => openDialog('update')}>
+                        <CheckSquare className="mr-2 h-4 w-4" />
+                        <span>Update Evaluasi</span>
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                      <AlertDialog>
                         <AlertDialogTrigger asChild>
@@ -159,10 +155,20 @@ const columns: ColumnDef<Risk>[] = [
     accessorKey: "riskScore",
     header: ({ column }) => (
         <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Skor Risiko <ArrowUpDown className="ml-2 h-4 w-4" />
+            Skor <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
     ),
     cell: ({ row }) => <div className="text-center font-bold text-lg">{row.original.riskScore}</div>,
+    sortingFn: 'alphanumeric',
+  },
+  {
+    id: "ranking",
+    header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Ranking <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+    ),
+    cell: ({ row }) => <div className="text-center font-bold text-lg">{row.index + 1}</div>,
     sortingFn: 'alphanumeric',
   },
   {

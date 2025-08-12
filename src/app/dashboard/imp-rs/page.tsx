@@ -2,15 +2,18 @@
 "use client"
 
 import * as React from "react"
-import { Line, LineChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, LabelList, Dot } from "recharts"
+import { Line, LineChart, BarChart, Bar, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, LabelList, Dot } from "recharts"
 import { IndicatorReport } from "@/components/organisms/indicator-report"
 import { useIndicatorStore } from "@/store/indicator-store"
-import { Target, ThumbsUp, ThumbsDown } from "lucide-react"
+import { Target, ThumbsUp, ThumbsDown, LineChart as LineChartIcon, BarChart as BarChartIcon } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { subDays, startOfMonth, startOfYear, format, parseISO } from 'date-fns'
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 type TimeRange = '7d' | '30d' | '6m' | '1y';
+type ChartType = 'line' | 'bar';
 
 export default function ImpRsPage() {
   const { indicators } = useIndicatorStore();
@@ -23,6 +26,7 @@ export default function ImpRsPage() {
 
   const [selectedIndicator, setSelectedIndicator] = React.useState<string>("Semua Indikator");
   const [timeRange, setTimeRange] = React.useState<TimeRange>('6m');
+  const [chartType, setChartType] = React.useState<ChartType>('line');
 
   const selectedIndicatorData = React.useMemo(() => {
     return impRsIndicators.filter(i => selectedIndicator === 'Semua Indikator' || i.indicator === selectedIndicator);
@@ -89,6 +93,24 @@ export default function ImpRsPage() {
     }
     return `Menampilkan tren untuk: ${selectedIndicator}`
   }
+  
+  const ChartTooltipContent = (props: any) => {
+    const { active, payload, label } = props;
+    if (active && payload && payload.length) {
+        const data = payload[0].payload;
+        const date = data.date;
+        const formattedDate = (timeRange === '6m' || timeRange === '1y') ? format(date, 'MMMM yyyy') : format(date, 'd MMMM yyyy');
+      
+        return (
+            <div className="p-2 bg-background border rounded-md shadow-lg">
+                <p className="font-bold text-foreground">{formattedDate}</p>
+                <p className="text-sm text-primary">{`Capaian: ${data.Capaian}`}</p>
+                {data.Standar && <p className="text-sm text-destructive">{`Standar: ${data.Standar}`}</p>}
+            </div>
+        );
+    }
+    return null;
+  };
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -161,36 +183,48 @@ export default function ImpRsPage() {
                             </SelectContent>
                         </Select>
                     )}
+                    <div className="flex items-center rounded-md border p-1">
+                        <Button variant="ghost" size="icon" onClick={() => setChartType('line')} className={cn("h-8 w-8", chartType === 'line' && 'bg-muted')}>
+                            <LineChartIcon className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => setChartType('bar')} className={cn("h-8 w-8", chartType === 'bar' && 'bg-muted')}>
+                            <BarChartIcon className="h-4 w-4" />
+                        </Button>
+                    </div>
                 </div>
              </div>
           </CardHeader>
           <CardContent className="pl-2">
             <ResponsiveContainer width="100%" height={350}>
                 {chartData.length > 0 ? (
-                    <LineChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                        <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                        <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                        <Tooltip
-                            cursor={{ fill: 'hsl(var(--muted))' }}
-                            contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
-                             labelFormatter={(label, payload) => {
-                                if (payload && payload.length > 0 && payload[0].payload.date) {
-                                  const date = payload[0].payload.date;
-                                   if(timeRange === '6m' || timeRange === '1y') return format(date, 'MMMM yyyy');
-                                   return format(date, 'd MMMM yyyy');
-                                }
-                                return label;
-                            }}
-                        />
-                        <Legend />
-                        <Line type="monotone" dataKey="Capaian" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} dot={<Dot r={4} />}>
-                            <LabelList dataKey="Capaian" position="top" />
-                        </Line>
-                        {selectedIndicator !== 'Semua Indikator' && (
-                            <Line type="monotone" dataKey="Standar" stroke="hsl(var(--destructive))" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                    <>
+                        {chartType === 'line' ? (
+                             <LineChart data={chartData}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                                <Tooltip content={<ChartTooltipContent />}/>
+                                <Legend />
+                                <Line type="monotone" dataKey="Capaian" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} dot={<Dot r={4} />}>
+                                    <LabelList dataKey="Capaian" position="top" />
+                                </Line>
+                                {selectedIndicator !== 'Semua Indikator' && (
+                                    <Line type="monotone" dataKey="Standar" stroke="hsl(var(--destructive))" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                                )}
+                            </LineChart>
+                        ) : (
+                            <BarChart data={chartData}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                                <Tooltip content={<ChartTooltipContent />} />
+                                <Legend />
+                                <Bar dataKey="Capaian" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
+                                    <LabelList dataKey="Capaian" position="top" />
+                                </Bar>
+                            </BarChart>
                         )}
-                    </LineChart>
+                    </>
                 ) : (
                     <div className="flex items-center justify-center h-full text-muted-foreground">
                         Tidak cukup data untuk menampilkan grafik.
@@ -213,3 +247,5 @@ export default function ImpRsPage() {
     </div>
   )
 }
+
+    

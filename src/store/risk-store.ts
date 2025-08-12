@@ -36,6 +36,9 @@ export type Risk = {
   residualLikelihood?: number
   residualRiskScore?: number
   residualRiskLevel?: RiskLevel
+  // New fields
+  manualRanking?: string;
+  reportNotes?: string;
 }
 
 type RiskState = {
@@ -64,9 +67,9 @@ const initialRisks: Risk[] = [
         consequence: 4,
         likelihood: 3,
         controllability: 2,
-        riskScore: 12,
-        riskLevel: "Tinggi",
-        ranking: 6, // 12 / 2
+        riskScore: 24, // 4 * 3 * 2
+        riskLevel: "Ekstrem",
+        ranking: 12, // 24 / 2
         evaluation: "Mitigasi",
         actionPlan: "Membuat SOP baru tentang kewajiban menaikkan pengaman brankar setiap saat.",
         dueDate: "2023-11-30",
@@ -84,9 +87,9 @@ const initialRisks: Risk[] = [
         consequence: 3,
         likelihood: 2,
         controllability: 4,
-        riskScore: 6,
-        riskLevel: "Moderat",
-        ranking: 1.5, // 6 / 4
+        riskScore: 24, // 3 * 2 * 4
+        riskLevel: "Ekstrem",
+        ranking: 6, // 24 / 4
         evaluation: "Mitigasi",
         actionPlan: "Menerapkan sistem double check dan konfirmasi tanggal lahir pasien sebelum menyerahkan obat.",
         dueDate: "2023-12-15",
@@ -95,25 +98,47 @@ const initialRisks: Risk[] = [
     }
 ];
 
+const calculateRiskProperties = (risk: Partial<Risk>) => {
+    const consequence = risk.consequence || 0;
+    const likelihood = risk.likelihood || 0;
+    const controllability = risk.controllability || 1; // Avoid division by zero
+
+    const riskScore = consequence * likelihood * controllability;
+    const riskLevel = getRiskLevel(riskScore);
+    const ranking = riskScore / controllability;
+    
+    let residualRiskScore: number | undefined;
+    let residualRiskLevel: RiskLevel | undefined;
+
+    if (risk.residualConsequence && risk.residualLikelihood) {
+        residualRiskScore = risk.residualConsequence * risk.residualLikelihood * controllability;
+        residualRiskLevel = getRiskLevel(residualRiskScore);
+    }
+    
+    return { riskScore, riskLevel, ranking, residualRiskScore, residualRiskLevel };
+}
+
+
 export const useRiskStore = create<RiskState>((set, get) => ({
   risks: initialRisks.map(r => {
-      const score = r.consequence * r.likelihood;
+      const { riskScore, riskLevel, ranking } = calculateRiskProperties(r);
       return {
           ...r,
-          riskScore: score,
-          riskLevel: getRiskLevel(score),
-          ranking: score / r.controllability
+          riskScore,
+          riskLevel,
+          ranking,
       }
   }).sort((a,b) => b.ranking - a.ranking),
   addRisk: (risk) => {
     const newId = `RISK-${String(get().risks.length + 1).padStart(3, '0')}`;
-    const riskScore = risk.consequence * risk.likelihood;
+    const { riskScore, riskLevel, ranking } = calculateRiskProperties(risk);
+
     const newRisk: Risk = {
         ...(risk as Omit<Risk, 'id' | 'submissionDate' | 'riskScore' | 'riskLevel' | 'ranking' | 'status'>),
         id: newId,
         riskScore,
-        riskLevel: getRiskLevel(riskScore),
-        ranking: riskScore / risk.controllability,
+        riskLevel,
+        ranking,
         submissionDate: new Date().toISOString(),
         status: 'Open'
     };
@@ -126,18 +151,15 @@ export const useRiskStore = create<RiskState>((set, get) => ({
       risks: state.risks.map(r => {
         if (r.id === id) {
             const updatedRisk = { ...r, ...riskData };
-            // Recalculate score and level if consequence or likelihood changes
-            if (riskData.consequence || riskData.likelihood || riskData.controllability) {
-                const score = updatedRisk.consequence * updatedRisk.likelihood;
-                updatedRisk.riskScore = score;
-                updatedRisk.riskLevel = getRiskLevel(score);
-                updatedRisk.ranking = score / updatedRisk.controllability;
-            }
-             // Recalculate residual score and level
-            if (updatedRisk.residualConsequence && updatedRisk.residualLikelihood) {
-                const residualScore = updatedRisk.residualConsequence * updatedRisk.residualLikelihood;
-                updatedRisk.residualRiskScore = residualScore;
-                updatedRisk.residualRiskLevel = getRiskLevel(residualScore);
+            const { riskScore, riskLevel, ranking, residualRiskScore, residualRiskLevel } = calculateRiskProperties(updatedRisk);
+            
+            updatedRisk.riskScore = riskScore;
+            updatedRisk.riskLevel = riskLevel;
+            updatedRisk.ranking = ranking;
+
+            if (residualRiskScore !== undefined && residualRiskLevel !== undefined) {
+                updatedRisk.residualRiskScore = residualRiskScore;
+                updatedRisk.residualRiskLevel = residualRiskLevel;
             } else {
                 delete updatedRisk.residualRiskScore;
                 delete updatedRisk.residualRiskLevel;
@@ -151,3 +173,4 @@ export const useRiskStore = create<RiskState>((set, get) => ({
       risks: state.risks.filter(r => r.id !== id)
   }))
 }));
+

@@ -24,6 +24,7 @@ import { Separator } from "../ui/separator"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Calendar } from "../ui/calendar"
 import { cn } from "@/lib/utils"
+import { Input } from "../ui/input"
 
 const sourceOptions: { value: RiskSource, label: string }[] = [
     { value: "Laporan Insiden", label: "1. Laporan Insiden" },
@@ -74,6 +75,7 @@ const formSchema = z.object({
   consequence: z.number().min(1).max(5),
   likelihood: z.number().min(1).max(5),
   controllability: z.number().min(1).max(5),
+  manualRanking: z.string().optional(),
   evaluation: z.enum(["Mitigasi", "Transfer", "Diterima", "Dihindari"], {
     required_error: "Evaluasi risiko harus dipilih."
   }),
@@ -83,6 +85,7 @@ const formSchema = z.object({
   status: z.enum(["Open", "In Progress", "Closed"]).optional(),
   residualConsequence: z.number().min(0).max(5).optional(),
   residualLikelihood: z.number().min(0).max(5).optional(),
+  reportNotes: z.string().optional(),
 }).refine(data => {
     // If one residual field is filled, the other must be too, or both can be empty.
     if ((data.residualConsequence && !data.residualLikelihood) || (!data.residualConsequence && data.residualLikelihood)) {
@@ -327,6 +330,20 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
                         </FormItem>
                     )}
                 />
+                 
+                 <FormField
+                    control={form.control}
+                    name="manualRanking"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Ranking (Manual)</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Isi ranking manual jika ada" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
                  <FormField
                     control={form.control}
@@ -495,6 +512,19 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
                         </FormItem>
                     )}
                 />
+                 <FormField
+                    control={form.control}
+                    name="reportNotes"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Laporan Singkat / Monev</FormLabel>
+                            <FormControl>
+                                <Textarea placeholder="Isi laporan singkat atau hasil monitoring dan evaluasi di sini" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
 
                 <DialogFooter className="pt-4">
@@ -504,3 +534,4 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
         </Form>
     )
 }
+

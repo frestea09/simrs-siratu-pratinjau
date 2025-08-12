@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Risk, RiskLevel } from "@/store/risk-store"
+import { Risk, RiskLevel, RiskEvaluation } from "@/store/risk-store"
 import { format, parseISO } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
 import { cn } from "@/lib/utils"
@@ -31,11 +31,11 @@ const sourceMap: Record<Risk['source'], string> = {
     "External Requirement": "7",
 };
 
-const evaluationMap: Record<Risk['evaluation'], string> = {
-    "Mitigasi": "1",
-    "Transfer": "2",
-    "Diterima": "3",
-    "Dihindari": "4",
+const evaluationMap: Record<RiskEvaluation, string> = {
+    "Mitigasi": "1. Mitigasi",
+    "Transfer": "2. Transfer",
+    "Diterima": "3. Diterima",
+    "Dihindari": "4. Dihindari",
 };
 
 const getRiskLevelClass = (level?: RiskLevel) => {
@@ -57,16 +57,18 @@ const columns: ColumnDef<Risk>[] = [
     { accessorKey: "category", header: "Kategori Risiko", size: 100 },
     { accessorKey: "consequence", header: "C", cell: info => info.getValue(), size: 20 },
     { accessorKey: "likelihood", header: "L", cell: info => info.getValue(), size: 20 },
-    { accessorKey: "riskScore", header: "Skor Risiko (CxL)", cell: info => info.getValue(), size: 50 },
+    { accessorKey: "controllability", header: "CI", cell: info => info.getValue(), size: 20 },
+    { accessorKey: "riskScore", header: "Skor Risiko (CxLxCI)", cell: info => info.getValue(), size: 50 },
     { accessorKey: "riskLevel", header: "Level Risiko", cell: ({ row }) => <span className={cn("p-1 rounded", getRiskLevelClass(row.original.riskLevel))}>{row.original.riskLevel}</span>, size: 80 },
-    { accessorKey: "controllability", header: "Controllability (CI)", cell: info => info.getValue(), size: 50 },
     { accessorKey: "ranking", header: "Skor Prioritas Risiko", cell: ({row}) => row.original.ranking.toFixed(2), size: 50 },
-    { accessorKey: "evaluation", header: "Evaluasi Risiko", cell: ({ row }) => evaluationMap[row.original.evaluation] || row.original.evaluation, size: 50 },
+    { accessorKey: "manualRanking", header: "Ranking", cell: info => info.getValue() || "-", size: 50 },
+    { accessorKey: "evaluation", header: "Evaluasi Risiko", cell: ({ row }) => evaluationMap[row.original.evaluation] || row.original.evaluation, size: 80 },
     { accessorKey: "actionPlan", header: "Risk Response & Action Plan", size: 250 },
     { accessorKey: "dueDate", header: "Due Date", cell: ({ row }) => row.original.dueDate ? format(parseISO(row.original.dueDate), "dd MMM yyyy", { locale: IndonesianLocale }) : "-", size: 80 },
     { accessorKey: "pic", header: "PIC", cell: info => info.getValue() || "-", size: 100 },
-    { accessorKey: "status", header: "Status", cell: info => info.getValue(), size: 50 },
     { accessorKey: "residualRiskScore", header: "Skor Risiko Sisa", cell: info => info.getValue() || "-", size: 50 },
+    { accessorKey: "reportNotes", header: "Progress/ Laporan Monev", cell: info => info.getValue() || "-", size: 200 },
+    { accessorKey: "status", header: "Status", cell: info => info.getValue(), size: 50 },
 ];
 
 type RiskReportTableProps = {
@@ -117,3 +119,4 @@ export function RiskReportTable({ data }: RiskReportTableProps) {
     </div>
   )
 }
+

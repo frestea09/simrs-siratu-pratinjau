@@ -42,6 +42,7 @@ type RiskState = {
   risks: Risk[]
   addRisk: (risk: Omit<Risk, 'id' | 'submissionDate' | 'riskScore' | 'riskLevel' | 'ranking' | 'status'>) => string
   updateRisk: (id: string, risk: Partial<Omit<Risk, 'id' | 'submissionDate'>>) => void
+  removeRisk: (id: string) => void
 }
 
 const getRiskLevel = (score: number): RiskLevel => {
@@ -145,5 +146,8 @@ export const useRiskStore = create<RiskState>((set, get) => ({
         }
         return r;
       }).sort((a,b) => b.ranking - a.ranking)
+  })),
+  removeRisk: (id: string) => set((state) => ({
+      risks: state.risks.filter(r => r.id !== id)
   }))
 }));

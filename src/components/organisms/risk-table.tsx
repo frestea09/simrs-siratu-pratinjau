@@ -11,9 +11,10 @@ import {
   getFilteredRowModel,
   useReactTable,
   ColumnFiltersState,
-  SortingState
+  SortingState,
+  Row
 } from "@tanstack/react-table"
-import { MoreHorizontal, ArrowUpDown, ChevronDown } from "lucide-react"
+import { MoreHorizontal, ArrowUpDown, ChevronDown, Trash2 } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
 
@@ -25,6 +26,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import {
   Table,
@@ -34,15 +36,28 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Risk, RiskEvaluation, RiskLevel, RiskStatus } from "@/store/risk-store"
+import { Risk, RiskEvaluation, RiskLevel, RiskStatus, useRiskStore } from "@/store/risk-store"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { RiskDialog } from "./risk-dialog"
 import { Input } from "../ui/input"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog"
+import { useToast } from "@/hooks/use-toast"
 
-const ActionsCell = ({ row }: { row: any }) => {
+
+const ActionsCell = ({ row }: { row: Row<Risk> }) => {
     const risk = row.original
     const [isEditOpen, setIsEditOpen] = React.useState(false);
+    const { removeRisk } = useRiskStore();
+    const { toast } = useToast();
+
+    const handleDelete = () => {
+        removeRisk(risk.id);
+        toast({
+            title: "Risiko Dihapus",
+            description: `Risiko "${risk.description.substring(0, 30)}..." telah dihapus.`,
+        });
+    }
 
     return (
         <>
@@ -56,6 +71,27 @@ const ActionsCell = ({ row }: { row: any }) => {
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Aksi</DropdownMenuLabel>
                     <DropdownMenuItem onSelect={() => setIsEditOpen(true)}>Edit Risiko</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                     <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <button className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full text-destructive">
+                               <Trash2 className="mr-2 h-4 w-4" />
+                                <span>Hapus</span>
+                            </button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Anda yakin?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Aksi ini tidak dapat dibatalkan. Ini akan menghapus data risiko secara permanen.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Batal</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Hapus</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </DropdownMenuContent>
             </DropdownMenu>
             <RiskDialog risk={risk} open={isEditOpen} onOpenChange={setIsEditOpen} />

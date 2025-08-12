@@ -7,6 +7,7 @@ import {
   SortingState,
   VisibilityState,
   RowSelectionState,
+  Updater,
 } from "@tanstack/react-table"
 
 type TableState = {
@@ -16,21 +17,34 @@ type TableState = {
   rowSelection?: RowSelectionState
 }
 
-export function useTableState(initialState: TableState = {}) {
-  const [tableState, setTableState] = React.useState<TableState>({
-    sorting: initialState.sorting ?? [],
-    columnFilters: initialState.columnFilters ?? [],
-    columnVisibility: initialState.columnVisibility ?? {},
-    rowSelection: initialState.rowSelection ?? {},
-  })
+type SetTableState = {
+    setSorting: (updater: Updater<SortingState>) => void;
+    setColumnFilters: (updater: Updater<ColumnFiltersState>) => void;
+    setColumnVisibility: (updater: Updater<VisibilityState>) => void;
+    setRowSelection: (updater: Updater<RowSelectionState>) => void;
+};
 
-  const customSetTableState = (updater: TableState | ((prevState: TableState) => TableState)) => {
-    if (typeof updater === "function") {
-        setTableState(prevState => ({ ...prevState, ...updater(prevState) }));
-    } else {
-        setTableState(prevState => ({ ...prevState, ...updater }));
-    }
+
+export function useTableState(initialState: TableState = {}) {
+  const [sorting, setSorting] = React.useState<SortingState>(initialState.sorting ?? [])
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(initialState.columnFilters ?? [])
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(initialState.columnVisibility ?? {})
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>(initialState.rowSelection ?? {})
+
+  const tableState: TableState = {
+    sorting,
+    columnFilters,
+    columnVisibility,
+    rowSelection,
   }
 
-  return { tableState, setTableState: customSetTableState }
+  const setTableState: SetTableState = {
+    setSorting,
+    setColumnFilters,
+    setColumnVisibility,
+    setRowSelection,
+  }
+
+
+  return { tableState, setTableState }
 }

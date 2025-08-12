@@ -543,5 +543,3 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
         </Form>
     )
 }
-
-    

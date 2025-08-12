@@ -42,7 +42,7 @@ export type Risk = {
 
 type RiskState = {
   risks: Risk[]
-  addRisk: (risk: Omit<Risk, 'id' | 'submissionDate' | 'cxl' | 'riskScore' | 'riskLevel' >) => string
+  addRisk: (risk: Omit<Risk, 'id' | 'submissionDate' | 'cxl' | 'riskScore' | 'riskLevel' | 'status' >) => string
   updateRisk: (id: string, risk: Partial<Omit<Risk, 'id' | 'submissionDate'>>) => void
   removeRisk: (id: string) => void
 }
@@ -67,8 +67,9 @@ const initialRisks: Risk[] = [
         likelihood: 3,
         cxl: 12,
         riskLevel: "Tinggi",
-        controllability: 2,
-        riskScore: 24,
+        controllability: 4,
+        riskScore: 48,
+        manualRanking: "1",
         evaluation: "Mitigasi",
         actionPlan: "Membuat SOP baru tentang kewajiban menaikkan pengaman brankar setiap saat.",
         dueDate: "2023-11-30",
@@ -87,8 +88,9 @@ const initialRisks: Risk[] = [
         likelihood: 2,
         cxl: 6,
         riskLevel: "Moderat",
-        controllability: 4,
-        riskScore: 24,
+        controllability: 2,
+        riskScore: 12,
+        manualRanking: "2",
         evaluation: "Mitigasi",
         actionPlan: "Menerapkan sistem double check dan konfirmasi tanggal lahir pasien sebelum menyerahkan obat.",
         dueDate: "2023-12-15",

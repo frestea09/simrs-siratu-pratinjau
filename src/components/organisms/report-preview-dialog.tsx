@@ -91,8 +91,8 @@ export function ReportPreviewDialog<TData>({
               break-inside: avoid;
           }
           table { width: 100%; border-collapse: collapse; }
-          th, td { border: 1px solid black; padding: 4px; text-align: left; vertical-align: top; }
-          th { background-color: #f2f2f2; }
+          th, td { border: 1px solid black; padding: 4px; text-align: left; vertical-align: top; font-size: 10px; }
+          th { background-color: #f2f2f2; font-weight: bold; text-align: center; vertical-align: middle; }
         `);
         printWindow.document.write('</style>');
         printWindow.document.write('</head><body class="bg-white">');

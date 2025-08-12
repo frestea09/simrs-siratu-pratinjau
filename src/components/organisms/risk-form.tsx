@@ -27,13 +27,13 @@ import { cn } from "@/lib/utils"
 import { Input } from "../ui/input"
 
 const sourceOptions: { value: RiskSource, label: string }[] = [
-    { value: "Laporan Insiden", label: "1. Laporan Insiden" },
-    { value: "Komplain", label: "2. Komplain" },
-    { value: "Survey/Ronde", label: "3. Survey/Ronde" },
-    { value: "Rapat/Brainstorming", label: "4. Rapat/Brainstorming" },
-    { value: "Investigasi", label: "5. Investigasi" },
-    { value: "Litigasi", label: "6. Litigasi" },
-    { value: "External Requirement", label: "7. External Requirement" },
+    { value: "Laporan Insiden", label: "Laporan Insiden" },
+    { value: "Komplain", label: "Komplain" },
+    { value: "Survey/Ronde", label: "Survey/Ronde" },
+    { value: "Rapat/Brainstorming", label: "Rapat/Brainstorming" },
+    { value: "Investigasi", label: "Investigasi" },
+    { value: "Litigasi", label: "Litigasi" },
+    { value: "External Requirement", label: "External Requirement" },
 ];
 const categoryOptions: { value: RiskCategory, label: string }[] = [
     { value: "Strategis", label: "Strategis" },
@@ -164,367 +164,376 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
-
-                <FormField
-                    control={form.control}
-                    name="unit"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Nama Unit Kerja</FormLabel>
-                             <Combobox
-                                options={unitOptions}
-                                placeholder="Pilih unit..."
-                                searchPlaceholder="Cari unit..."
-                                onSelect={(value) => form.setValue('unit', value)}
-                                value={field.value}
-                            />
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
-                    name="source"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Sumber Risiko</FormLabel>
-                             <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Pilih sumber risiko" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    {sourceOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Deskripsi Risiko/Kejadian</FormLabel>
-                        <FormControl>
-                            <Textarea placeholder="Jelaskan risiko potensial atau aktual yang terjadi" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                 <FormField
-                    control={form.control}
-                    name="cause"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Penyebab (Akar Masalah)</FormLabel>
-                        <FormControl>
-                            <Textarea placeholder="Jelaskan penyebab utama dari risiko/kejadian ini" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
                 
-                <Separator />
-                
-                <h3 className="text-lg font-semibold text-primary">Analisis Risiko</h3>
-
-                 <FormField
-                    control={form.control}
-                    name="consequence"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Dampak / Konsekuensi (Consequence)</FormLabel>
-                            <div className="flex items-center gap-4">
-                                <FormControl>
-                                    <Slider
-                                        min={1} max={5} step={1}
-                                        defaultValue={[field.value]}
-                                        onValueChange={(value) => field.onChange(value[0])}
-                                        className="flex-1"
-                                    />
-                                </FormControl>
-                                <div className="w-40 text-center font-semibold text-primary">
-                                    {consequenceValue} - {ratingLabels[consequenceValue - 1]}
-                                </div>
-                            </div>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
-                    name="likelihood"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Kemungkinan Terjadi (Likelihood)</FormLabel>
-                             <div className="flex items-center gap-4">
-                                <FormControl>
-                                    <Slider
-                                        min={1} max={5} step={1}
-                                        defaultValue={[field.value]}
-                                        onValueChange={(value) => field.onChange(value[0])}
-                                        className="flex-1"
-                                    />
-                                </FormControl>
-                                <div className="w-40 text-center font-semibold text-primary">
-                                    {likelihoodValue} - {ratingLabels[likelihoodValue - 1]}
-                                </div>
-                            </div>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
-                    name="controllability"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Tingkat Kendali (Controllability)</FormLabel>
-                             <div className="flex items-center gap-4">
-                                <FormControl>
-                                    <Slider
-                                        min={1} max={5} step={1}
-                                        defaultValue={[field.value]}
-                                        onValueChange={(value) => field.onChange(value[0])}
-                                        className="flex-1"
-                                    />
-                                </FormControl>
-                                <div className="w-40 text-center font-semibold text-primary">
-                                    {controllabilityValue} - {controllabilityLabels[controllabilityValue - 1]}
-                                </div>
-                            </div>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                 <Separator />
-                
-                <h3 className="text-lg font-semibold text-primary">Evaluasi & Tindak Lanjut</h3>
-                 <FormField
-                    control={form.control}
-                    name="evaluation"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Evaluasi Risiko</FormLabel>
-                             <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Pilih jenis evaluasi/perlakuan risiko" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    {evaluationOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                 
-                 <FormField
-                    control={form.control}
-                    name="manualRanking"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Ranking (Manual)</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Isi ranking manual jika ada" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                 <FormField
-                    control={form.control}
-                    name="category"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Kategori Risiko</FormLabel>
-                             <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Pilih kategori yang sesuai dengan akar masalah" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    {categoryOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                 <FormField
-                    control={form.control}
-                    name="actionPlan"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Rencana Aksi & Tindak Lanjut</FormLabel>
-                        <FormControl>
-                            <Textarea placeholder="Jelaskan langkah-langkah yang akan diambil untuk menangani risiko ini..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                     <FormField
+                <h3 className="text-lg font-semibold text-primary">Identifikasi Risiko</h3>
+                <div className="space-y-4 pl-2 border-l-2 border-primary/20">
+                    <FormField
                         control={form.control}
-                        name="pic"
+                        name="unit"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Penanggung Jawab (PIC)</FormLabel>
+                                <FormLabel>Nama Unit Kerja</FormLabel>
                                 <Combobox
-                                    options={userOptions}
-                                    placeholder="Pilih PIC"
-                                    searchPlaceholder="Cari nama pengguna..."
-                                    onSelect={(value) => form.setValue('pic', value)}
+                                    options={unitOptions}
+                                    placeholder="Pilih unit..."
+                                    searchPlaceholder="Cari unit..."
+                                    onSelect={(value) => form.setValue('unit', value)}
                                     value={field.value}
                                 />
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
-                     <FormField
-                        control={form.control}
-                        name="dueDate"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                                <FormLabel>Batas Waktu (Due Date)</FormLabel>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                    <FormControl>
-                                        <Button
-                                        variant={"outline"}
-                                        className={cn(
-                                            "w-full pl-3 text-left font-normal",
-                                            !field.value && "text-muted-foreground"
-                                        )}
-                                        >
-                                        {field.value ? (
-                                            format(field.value, "PPP")
-                                        ) : (
-                                            <span>Pilih tanggal</span>
-                                        )}
-                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                        </Button>
-                                    </FormControl>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                    <Calendar
-                                        mode="single"
-                                        selected={field.value}
-                                        onSelect={field.onChange}
-                                        initialFocus
-                                    />
-                                    </PopoverContent>
-                                </Popover>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
 
-                {isEditMode && (
-                      <FormField
+                    <FormField
                         control={form.control}
-                        name="status"
+                        name="source"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Status Penyelesaian</FormLabel>
+                                <FormLabel>Sumber Risiko</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Pilih status" />
+                                        <SelectValue placeholder="Pilih sumber risiko" />
                                     </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {statusOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                                        {sourceOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
-                )}
+
+                    <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Deskripsi Risiko/Kejadian</FormLabel>
+                            <FormControl>
+                                <Textarea placeholder="Jelaskan risiko potensial atau aktual yang terjadi" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="cause"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Penyebab (Akar Masalah)</FormLabel>
+                            <FormControl>
+                                <Textarea placeholder="Jelaskan penyebab utama dari risiko/kejadian ini" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+                
+                <Separator />
+                
+                <h3 className="text-lg font-semibold text-primary">Analisis Risiko</h3>
+                <div className="space-y-4 pl-2 border-l-2 border-primary/20">
+                    <FormField
+                        control={form.control}
+                        name="consequence"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Dampak / Konsekuensi (Consequence)</FormLabel>
+                                <div className="flex items-center gap-4">
+                                    <FormControl>
+                                        <Slider
+                                            min={1} max={5} step={1}
+                                            defaultValue={[field.value]}
+                                            onValueChange={(value) => field.onChange(value[0])}
+                                            className="flex-1"
+                                        />
+                                    </FormControl>
+                                    <div className="w-40 text-center font-semibold text-primary">
+                                        {consequenceValue} - {ratingLabels[consequenceValue - 1]}
+                                    </div>
+                                </div>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="likelihood"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Kemungkinan Terjadi (Likelihood)</FormLabel>
+                                <div className="flex items-center gap-4">
+                                    <FormControl>
+                                        <Slider
+                                            min={1} max={5} step={1}
+                                            defaultValue={[field.value]}
+                                            onValueChange={(value) => field.onChange(value[0])}
+                                            className="flex-1"
+                                        />
+                                    </FormControl>
+                                    <div className="w-40 text-center font-semibold text-primary">
+                                        {likelihoodValue} - {ratingLabels[likelihoodValue - 1]}
+                                    </div>
+                                </div>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="controllability"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Tingkat Kendali (Controllability)</FormLabel>
+                                <div className="flex items-center gap-4">
+                                    <FormControl>
+                                        <Slider
+                                            min={1} max={5} step={1}
+                                            defaultValue={[field.value]}
+                                            onValueChange={(value) => field.onChange(value[0])}
+                                            className="flex-1"
+                                        />
+                                    </FormControl>
+                                    <div className="w-40 text-center font-semibold text-primary">
+                                        {controllabilityValue} - {controllabilityLabels[controllabilityValue - 1]}
+                                    </div>
+                                </div>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                <Separator />
+                
+                <h3 className="text-lg font-semibold text-primary">Evaluasi & Tindak Lanjut</h3>
+                <div className="space-y-4 pl-2 border-l-2 border-primary/20">
+                    <FormField
+                        control={form.control}
+                        name="evaluation"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Evaluasi Risiko</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Pilih jenis evaluasi/perlakuan risiko" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {evaluationOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    
+                    <FormField
+                        control={form.control}
+                        name="manualRanking"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Ranking (Manual)</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Isi ranking manual jika ada" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="category"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Kategori Risiko</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Pilih kategori yang sesuai dengan akar masalah" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {categoryOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="actionPlan"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Rencana Aksi & Tindak Lanjut</FormLabel>
+                            <FormControl>
+                                <Textarea placeholder="Jelaskan langkah-langkah yang akan diambil untuk menangani risiko ini..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                            control={form.control}
+                            name="pic"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Penanggung Jawab (PIC)</FormLabel>
+                                    <Combobox
+                                        options={userOptions}
+                                        placeholder="Pilih PIC"
+                                        searchPlaceholder="Cari nama pengguna..."
+                                        onSelect={(value) => form.setValue('pic', value)}
+                                        value={field.value}
+                                    />
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="dueDate"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                    <FormLabel>Batas Waktu (Due Date)</FormLabel>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                        <FormControl>
+                                            <Button
+                                            variant={"outline"}
+                                            className={cn(
+                                                "w-full pl-3 text-left font-normal",
+                                                !field.value && "text-muted-foreground"
+                                            )}
+                                            >
+                                            {field.value ? (
+                                                format(field.value, "PPP")
+                                            ) : (
+                                                <span>Pilih tanggal</span>
+                                            )}
+                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                            mode="single"
+                                            selected={field.value}
+                                            onSelect={field.onChange}
+                                            initialFocus
+                                        />
+                                        </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+
+                    {isEditMode && (
+                        <FormField
+                            control={form.control}
+                            name="status"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Status Penyelesaian</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Pilih status" />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {statusOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    )}
+                </div>
                 
                 <Separator />
                 <h3 className="text-lg font-semibold text-primary">Penilaian Risiko Sisa (Opsional)</h3>
-                 <p className="text-sm text-muted-foreground -mt-2">Isi bagian ini setelah rencana aksi diimplementasikan untuk menilai risiko yang tersisa.</p>
-                
-                 <FormField
-                    control={form.control}
-                    name="residualConsequence"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Dampak Sisa (Residual Consequence)</FormLabel>
-                            <div className="flex items-center gap-4">
-                                <FormControl>
-                                    <Slider
-                                        min={0} max={5} step={1}
-                                        defaultValue={[field.value || 0]}
-                                        onValueChange={(value) => field.onChange(value[0])}
-                                        className="flex-1"
-                                    />
-                                </FormControl>
-                                <div className="w-40 text-center font-semibold text-primary">
-                                    {residualConsequenceValue ? `${residualConsequenceValue} - ${ratingLabels[residualConsequenceValue - 1]}`: "N/A"}
+                <div className="space-y-4 pl-2 border-l-2 border-primary/20">
+                    <p className="text-sm text-muted-foreground -mt-2">Isi bagian ini setelah rencana aksi diimplementasikan untuk menilai risiko yang tersisa.</p>
+                    
+                    <FormField
+                        control={form.control}
+                        name="residualConsequence"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Dampak Sisa (Residual Consequence)</FormLabel>
+                                <div className="flex items-center gap-4">
+                                    <FormControl>
+                                        <Slider
+                                            min={0} max={5} step={1}
+                                            defaultValue={[field.value || 0]}
+                                            onValueChange={(value) => field.onChange(value[0])}
+                                            className="flex-1"
+                                        />
+                                    </FormControl>
+                                    <div className="w-40 text-center font-semibold text-primary">
+                                        {residualConsequenceValue ? `${residualConsequenceValue} - ${ratingLabels[residualConsequenceValue - 1]}`: "N/A"}
+                                    </div>
                                 </div>
-                            </div>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                 <FormField
-                    control={form.control}
-                    name="residualLikelihood"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Kemungkinan Sisa (Residual Likelihood)</FormLabel>
-                            <div className="flex items-center gap-4">
-                                <FormControl>
-                                    <Slider
-                                        min={0} max={5} step={1}
-                                        defaultValue={[field.value || 0]}
-                                        onValueChange={(value) => field.onChange(value[0])}
-                                        className="flex-1"
-                                    />
-                                </FormControl>
-                                <div className="w-40 text-center font-semibold text-primary">
-                                    {residualLikelihoodValue ? `${residualLikelihoodValue} - ${ratingLabels[residualLikelihoodValue - 1]}`: "N/A"}
+                    <FormField
+                        control={form.control}
+                        name="residualLikelihood"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Kemungkinan Sisa (Residual Likelihood)</FormLabel>
+                                <div className="flex items-center gap-4">
+                                    <FormControl>
+                                        <Slider
+                                            min={0} max={5} step={1}
+                                            defaultValue={[field.value || 0]}
+                                            onValueChange={(value) => field.onChange(value[0])}
+                                            className="flex-1"
+                                        />
+                                    </FormControl>
+                                    <div className="w-40 text-center font-semibold text-primary">
+                                        {residualLikelihoodValue ? `${residualLikelihoodValue} - ${ratingLabels[residualLikelihoodValue - 1]}`: "N/A"}
+                                    </div>
                                 </div>
-                            </div>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                 <FormField
-                    control={form.control}
-                    name="reportNotes"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Laporan Singkat / Monev</FormLabel>
-                            <FormControl>
-                                <Textarea placeholder="Isi laporan singkat atau hasil monitoring dan evaluasi di sini" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="reportNotes"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Laporan Singkat / Monev</FormLabel>
+                                <FormControl>
+                                    <Textarea placeholder="Isi laporan singkat atau hasil monitoring dan evaluasi di sini" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
 
 
                 <DialogFooter className="pt-4">
@@ -534,4 +543,3 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
         </Form>
     )
 }
-

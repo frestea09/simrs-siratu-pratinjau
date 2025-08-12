@@ -22,11 +22,12 @@ export type Risk = {
   controllability: number
   riskScore: number
   riskLevel: RiskLevel
+  ranking: number
 }
 
 type RiskState = {
   risks: Risk[]
-  addRisk: (risk: Omit<Risk, 'id' | 'submissionDate' | 'riskScore' | 'riskLevel'>) => string
+  addRisk: (risk: Omit<Risk, 'id' | 'submissionDate' | 'riskScore' | 'riskLevel' | 'ranking'>) => string
   updateRisk: (id: string, risk: Partial<Omit<Risk, 'id' | 'submissionDate'>>) => void
 }
 
@@ -51,6 +52,7 @@ const initialRisks: Risk[] = [
         controllability: 2,
         riskScore: 12,
         riskLevel: "Tinggi",
+        ranking: 12,
     },
     {
         id: "RISK-002",
@@ -65,6 +67,7 @@ const initialRisks: Risk[] = [
         controllability: 4,
         riskScore: 6,
         riskLevel: "Moderat",
+        ranking: 6,
     }
 ];
 
@@ -74,10 +77,11 @@ export const useRiskStore = create<RiskState>((set, get) => ({
     const newId = `RISK-${String(get().risks.length + 1).padStart(3, '0')}`;
     const riskScore = risk.consequence * risk.likelihood;
     const newRisk: Risk = {
-        ...(risk as Omit<Risk, 'id' | 'submissionDate' | 'riskScore' | 'riskLevel'>),
+        ...(risk as Omit<Risk, 'id' | 'submissionDate' | 'riskScore' | 'riskLevel' | 'ranking'>),
         id: newId,
         riskScore,
         riskLevel: getRiskLevel(riskScore),
+        ranking: riskScore, // Default ranking to risk score
         submissionDate: new Date().toISOString(),
     };
     set((state) => ({
@@ -94,6 +98,7 @@ export const useRiskStore = create<RiskState>((set, get) => ({
                 const score = updatedRisk.consequence * updatedRisk.likelihood;
                 updatedRisk.riskScore = score;
                 updatedRisk.riskLevel = getRiskLevel(score);
+                updatedRisk.ranking = score; // Update ranking as well
             }
             return updatedRisk;
         }

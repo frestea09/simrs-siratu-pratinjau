@@ -113,6 +113,18 @@ const columns: ColumnDef<Risk>[] = [
     cell: ({ row }) => <div className="text-center font-medium">{row.getValue("controllability")}</div>,
     size: 50,
   },
+  {
+    accessorKey: "ranking",
+    header: ({ column }) => (
+        <div className="text-center">
+            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+                Ranking <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+        </div>
+    ),
+    cell: ({ row }) => <div className="text-center font-bold text-lg text-primary">{row.getValue("ranking")}</div>,
+    size: 50,
+  },
 //   {
 //     id: "actions",
 //     cell: ActionsCell,
@@ -124,7 +136,9 @@ type RiskTableProps = {
 }
 
 export function RiskTable({ risks }: RiskTableProps) {
-  const [sorting, setSorting] = React.useState<any[]>([])
+  const [sorting, setSorting] = React.useState<any[]>([
+      { id: 'ranking', desc: true }
+  ])
   
   const table = useReactTable({
     data: risks,

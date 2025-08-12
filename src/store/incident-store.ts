@@ -34,6 +34,8 @@ export type Incident = {
   hasHappenedBefore?: string
   severity: 'biru' | 'hijau' | 'kuning' | 'merah'
   patientImpact?: string
+  analysisNotes?: string
+  followUpPlan?: string
 }
 
 const incidentTypeMap: { [key: string]: string } = {

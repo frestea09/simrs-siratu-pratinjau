@@ -7,6 +7,7 @@ import { Incident } from "@/store/incident-store"
 import { FormInputTextarea } from "@/components/molecules/form-input-textarea"
 import { FormInputRadio } from "@/components/molecules/form-input-radio"
 import { HOSPITAL_UNITS } from "@/lib/constants"
+import { useUserStore } from "@/store/user-store.tsx"
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
     <h3 className="font-semibold text-lg text-primary">{children}</h3>
@@ -36,6 +37,9 @@ const patientImpactOptions = [
 ];
 
 export function Step3FollowUp({ data, onUpdate }: StepProps) {
+    const { currentUser } = useUserStore()
+    const canAnalyze = currentUser?.role === 'Admin Sistem' || currentUser?.role === 'Sub. Komite Keselamatan Pasien';
+
     return (
         <div className="space-y-6">
             <SectionTitle>Tindak Lanjut & Dampak</SectionTitle>
@@ -46,6 +50,16 @@ export function Step3FollowUp({ data, onUpdate }: StepProps) {
             <SectionTitle>Analisis & Pelaporan</SectionTitle>
             <FormInputRadio id="hasHappenedBefore" label="Apakah kejadian sama pernah terjadi di unit lain?" items={hasHappenedOptions} value={data.hasHappenedBefore} onValueChange={val => onUpdate({ hasHappenedBefore: val })} />
              <FormInputRadio id="severity" label="Grading Risiko Kejadian" items={severityOptions} orientation="vertical" value={data.severity} onValueChange={val => onUpdate({ severity: val })} />
+            
+            {canAnalyze && (
+                <>
+                    <Separator />
+                    <SectionTitle>Analisis & Rencana Tindak Lanjut (Diisi oleh Komite)</SectionTitle>
+                     <FormInputTextarea id="analysisNotes" label="Catatan Analisis" placeholder="Jelaskan analisis akar masalah dari insiden ini." value={data.analysisNotes} onChange={e => onUpdate({ analysisNotes: e.target.value })} containerClassName="grid grid-cols-1 md:grid-cols-form-label-full gap-x-4" />
+                    <FormInputTextarea id="followUpPlan" label="Rencana Tindak Lanjut" placeholder="Jelaskan rencana tindak lanjut untuk mencegah kejadian serupa di masa depan." value={data.followUpPlan} onChange={e => onUpdate({ followUpPlan: e.target.value })} containerClassName="grid grid-cols-1 md:grid-cols-form-label-full gap-x-4" />
+                </>
+            )}
+
             <Separator />
             <div className="p-4 bg-muted/50 rounded-lg text-sm text-muted-foreground">
                 <p className="font-semibold">Laporan Anda bersifat anonim.</p>

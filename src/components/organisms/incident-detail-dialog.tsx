@@ -21,6 +21,13 @@ const DetailItem = ({ label, value }: { label: string, value: React.ReactNode })
     </div>
 )
 
+const FullWidthDetailItem = ({ label, value }: { label: string, value: React.ReactNode }) => (
+    <div className="md:col-span-2">
+        <p className="text-muted-foreground">{label}</p>
+        <p className="font-medium whitespace-pre-wrap">{value || "-"}</p>
+    </div>
+)
+
 type IncidentDetailDialogProps = {
     incident: Incident | null
     open: boolean
@@ -58,19 +65,17 @@ export const IncidentDetailDialog = ({ incident, open, onOpenChange }: IncidentD
                          <DetailItem label="Insiden Mengenai" value={incident.incidentSubject} />
                          <DetailItem label="Lokasi Insiden" value={incident.incidentLocation} />
                          <DetailItem label="Unit Terkait" value={incident.relatedUnit} />
-                         <div className="md:col-span-2">
-                             <DetailItem label="Kronologis Insiden" value={<p className="whitespace-pre-wrap">{incident.chronology}</p>} />
-                         </div>
+                         <FullWidthDetailItem label="Kronologis Insiden" value={incident.chronology} />
                     </DetailSection>
                     <Separator />
                     <DetailSection title="Tindak Lanjut & Analisis">
-                         <div className="md:col-span-2">
-                            <DetailItem label="Tindakan Segera" value={<p className="whitespace-pre-wrap">{incident.firstAction}</p>} />
-                         </div>
+                         <FullWidthDetailItem label="Tindakan Segera" value={incident.firstAction} />
                          <DetailItem label="Tindakan Dilakukan Oleh" value={incident.firstActionBy} />
                          <DetailItem label="Akibat Insiden Terhadap Pasien" value={incident.patientImpact} />
                          <DetailItem label="Pernah Terjadi di Unit Lain?" value={incident.hasHappenedBefore} />
                          <DetailItem label="Grading Risiko" value={incident.severity} />
+                         <FullWidthDetailItem label="Catatan Analisis (oleh Komite)" value={incident.analysisNotes} />
+                         <FullWidthDetailItem label="Rencana Tindak Lanjut (oleh Komite)" value={incident.followUpPlan} />
                     </DetailSection>
                 </div>
                 <DialogFooter>

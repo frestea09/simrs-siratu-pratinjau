@@ -2,14 +2,29 @@
 "use client"
 
 import * as React from "react"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Download, PlusCircle } from "lucide-react"
-import { useRiskStore, Risk } from "@/store/risk-store"
+import { Download, PlusCircle, AlertTriangle, ListTodo, ShieldCheck } from "lucide-react"
+import { useRiskStore, Risk, RiskLevel, RiskStatus } from "@/store/risk-store"
 import { RiskDialog } from "@/components/organisms/risk-dialog"
 import { RiskTable } from "@/components/organisms/risk-table"
 import { ReportPreviewDialog } from "@/components/organisms/report-preview-dialog"
 import { RiskReportTable } from "@/components/organisms/risk-report-table"
+
+
+const COLORS: {[key in RiskLevel]: string} = {
+  Ekstrem: "hsl(var(--destructive))",
+  Tinggi: "hsl(var(--primary))",
+  Moderat: "hsl(var(--chart-4))",
+  Rendah: "hsl(var(--chart-5))",
+};
+
+const STATUS_COLORS: {[key in RiskStatus]: string} = {
+  Open: "hsl(var(--chart-2))",
+  'In Progress': "hsl(var(--chart-4))",
+  Closed: "hsl(var(--primary))",
+};
 
 
 export default function RisksPage() {
@@ -17,9 +32,115 @@ export default function RisksPage() {
     const [isReportOpen, setIsReportOpen] = React.useState(false)
     const risks = useRiskStore((state) => state.risks)
 
+    const summary = React.useMemo(() => {
+        const levelCounts: Record<RiskLevel, number> = { Ekstrem: 0, Tinggi: 0, Moderat: 0, Rendah: 0 };
+        const statusCounts: Record<RiskStatus, number> = { Open: 0, 'In Progress': 0, Closed: 0 };
+
+        risks.forEach(risk => {
+            levelCounts[risk.riskLevel]++;
+            statusCounts[risk.status]++;
+        });
+
+        return {
+            total: risks.length,
+            open: statusCounts['Open'],
+            extreme: levelCounts['Ekstrem'],
+            levelData: Object.entries(levelCounts).map(([name, value]) => ({ name, value })).reverse(),
+            statusData: Object.entries(statusCounts).map(([name, value]) => ({ name, value }))
+        };
+    }, [risks]);
+
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
             <h2 className="text-3xl font-bold tracking-tight">Register Risiko</h2>
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                 <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Risiko</CardTitle>
+                    <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                    <div className="text-2xl font-bold">{summary.total}</div>
+                    <p className="text-xs text-muted-foreground">Total risiko yang teridentifikasi</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Risiko Terbuka (Open)</CardTitle>
+                    <ListTodo className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                    <div className="text-2xl font-bold">{summary.open}</div>
+                    <p className="text-xs text-muted-foreground">Risiko baru yang butuh evaluasi</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Risiko Level Ekstrem</CardTitle>
+                    <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                    <div className="text-2xl font-bold">{summary.extreme}</div>
+                    <p className="text-xs text-muted-foreground">Risiko yang membutuhkan perhatian segera</p>
+                    </CardContent>
+                </Card>
+            </div>
+            
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                <Card className="lg:col-span-4">
+                     <CardHeader>
+                        <CardTitle>Distribusi Level Risiko</CardTitle>
+                        <CardDescription>Jumlah risiko berdasarkan tingkat bahayanya.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={summary.levelData} layout="vertical" margin={{ left: 10 }}>
+                                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                <XAxis type="number" allowDecimals={false} />
+                                <YAxis type="category" dataKey="name" width={80} />
+                                <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} />
+                                <Bar dataKey="value" name="Jumlah Risiko" barSize={40}>
+                                    {summary.levelData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[entry.name as RiskLevel]} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </CardContent>
+                </Card>
+                <Card className="lg:col-span-3">
+                     <CardHeader>
+                        <CardTitle>Status Penyelesaian</CardTitle>
+                        <CardDescription>Proporsi risiko berdasarkan status penanganannya.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ResponsiveContainer width="100%" height={300}>
+                            <PieChart>
+                                <Pie
+                                    data={summary.statusData}
+                                    cx="50%"
+                                    cy="50%"
+                                    labelLine={false}
+                                    outerRadius={80}
+                                    fill="#8884d8"
+                                    dataKey="value"
+                                    nameKey="name"
+                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                >
+                                    {summary.statusData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name as RiskStatus]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip />
+                                <Legend />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </CardContent>
+                </Card>
+            </div>
+
+
             <Card>
                 <CardHeader>
                     <div className="flex items-center justify-between">

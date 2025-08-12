@@ -60,6 +60,7 @@ const formSchema = z.object({
   evaluation: z.enum(["Mitigasi", "Transfer", "Diterima", "Dihindari"], {
     required_error: "Evaluasi risiko harus dipilih."
   }),
+  actionPlan: z.string().min(10, "Rencana aksi harus diisi (minimal 10 karakter).")
 });
 
 
@@ -85,6 +86,7 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
             unit: currentUser?.unit,
             description: "",
             cause: "",
+            actionPlan: "",
             consequence: 3,
             likelihood: 3,
             controllability: 3,
@@ -255,7 +257,7 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
                 />
                  <Separator />
                 
-                <h3 className="text-lg font-semibold text-primary">Evaluasi & Kategori</h3>
+                <h3 className="text-lg font-semibold text-primary">Evaluasi & Tindak Lanjut</h3>
                  <FormField
                     control={form.control}
                     name="evaluation"
@@ -294,6 +296,20 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
                                 </SelectContent>
                             </Select>
                             <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                 <FormField
+                    control={form.control}
+                    name="actionPlan"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Rencana Aksi & Tindak Lanjut</FormLabel>
+                        <FormControl>
+                            <Textarea placeholder="Jelaskan langkah-langkah yang akan diambil untuk menangani risiko ini..." {...field} />
+                        </FormControl>
+                        <FormMessage />
                         </FormItem>
                     )}
                 />

@@ -97,6 +97,11 @@ const columns: ColumnDef<Risk>[] = [
     header: "Deskripsi Risiko",
     cell: ({ row }) => <div className="text-sm">{row.getValue("description")}</div>
   },
+  {
+    accessorKey: "actionPlan",
+    header: "Rencana Aksi",
+    cell: ({ row }) => <div className="text-sm">{row.getValue("actionPlan")}</div>
+  },
    {
     accessorKey: "riskScore",
     header: () => <div className="text-center">Skor Risiko</div>,
@@ -130,18 +135,6 @@ const columns: ColumnDef<Risk>[] = [
         )
     },
     size: 100,
-  },
-  {
-    accessorKey: "ranking",
-    header: ({ column }) => (
-        <div className="text-center">
-            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-                Ranking <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-        </div>
-    ),
-    cell: ({ row }) => <div className="text-center font-bold text-lg text-primary">{row.getValue("ranking")}</div>,
-    size: 50,
   },
 //   {
 //     id: "actions",

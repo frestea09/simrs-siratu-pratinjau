@@ -51,6 +51,7 @@ const formSchema = z.object({
   }),
   consequence: z.number().min(1).max(5),
   likelihood: z.number().min(1).max(5),
+  controllability: z.number().min(1).max(5),
 });
 
 
@@ -60,6 +61,7 @@ type RiskFormProps = {
 }
 
 const ratingLabels = ["Sangat Rendah", "Rendah", "Sedang", "Tinggi", "Sangat Tinggi"];
+const controllabilityLabels = ["Sangat Sulit", "Sulit", "Sedang", "Mudah", "Sangat Mudah"];
 
 
 export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
@@ -77,11 +79,13 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
             cause: "",
             consequence: 3,
             likelihood: 3,
+            controllability: 3,
         },
     })
     
     const consequenceValue = form.watch("consequence");
     const likelihoodValue = form.watch("likelihood");
+    const controllabilityValue = form.watch("controllability");
 
     function onSubmit(values: z.infer<typeof formSchema>) {
         if (isEditMode && riskToEdit) {
@@ -210,6 +214,30 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
                                 </FormControl>
                                 <div className="w-40 text-center font-semibold text-primary">
                                     {likelihoodValue} - {ratingLabels[likelihoodValue - 1]}
+                                </div>
+                            </div>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="controllability"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Tingkat Kendali (Controllability)</FormLabel>
+                             <div className="flex items-center gap-4">
+                                <FormControl>
+                                    <Slider
+                                        min={1} max={5} step={1}
+                                        defaultValue={[field.value]}
+                                        onValueChange={(value) => field.onChange(value[0])}
+                                        className="flex-1"
+                                    />
+                                </FormControl>
+                                <div className="w-40 text-center font-semibold text-primary">
+                                    {controllabilityValue} - {controllabilityLabels[controllabilityValue - 1]}
                                 </div>
                             </div>
                             <FormMessage />

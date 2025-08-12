@@ -19,6 +19,7 @@ export type Risk = {
   // Risk Analysis
   consequence: number
   likelihood: number
+  controllability: number
   riskScore: number
   riskLevel: RiskLevel
 }
@@ -47,6 +48,7 @@ const initialRisks: Risk[] = [
         submissionDate: "2023-10-26",
         consequence: 4,
         likelihood: 3,
+        controllability: 2,
         riskScore: 12,
         riskLevel: "Tinggi",
     },
@@ -60,6 +62,7 @@ const initialRisks: Risk[] = [
         submissionDate: "2023-11-05",
         consequence: 3,
         likelihood: 2,
+        controllability: 4,
         riskScore: 6,
         riskLevel: "Moderat",
     }

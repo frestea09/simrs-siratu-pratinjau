@@ -104,6 +104,12 @@ const columns: ColumnDef<Risk>[] = [
     },
     size: 100,
   },
+  {
+    accessorKey: "controllability",
+    header: () => <div className="text-center">Kendali</div>,
+    cell: ({ row }) => <div className="text-center font-medium">{row.getValue("controllability")}</div>,
+    size: 50,
+  },
 //   {
 //     id: "actions",
 //     cell: ActionsCell,

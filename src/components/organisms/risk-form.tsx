@@ -35,11 +35,17 @@ const sourceOptions: { value: RiskSource, label: string }[] = [
     { value: "External Requirement", label: "7. External Requirement" },
 ];
 const categoryOptions: { value: RiskCategory, label: string }[] = [
-    { value: "Klinis", label: "Klinis" },
-    { value: "Non-Klinis", label: "Non-Klinis" },
+    { value: "Strategis", label: "Strategis" },
     { value: "Operasional", label: "Operasional" },
     { value: "Finansial", label: "Finansial" },
+    { value: "Compliance", label: "Compliance" },
     { value: "Reputasi", label: "Reputasi" },
+    { value: "Pelayanan Pasien", label: "Pelayanan Pasien" },
+    { value: "Bahaya Fisik", label: "Bahaya Fisik" },
+    { value: "Bahaya Kimia", label: "Bahaya Kimia" },
+    { value: "Bahaya Biologi", label: "Bahaya Biologi" },
+    { value: "Bahaya Ergonomi", label: "Bahaya Ergonomi" },
+    { value: "Bahaya Psikososial", label: "Bahaya Psikososial" },
 ];
 const unitOptions = HOSPITAL_UNITS.map(u => ({ value: u, label: u }));
 const evaluationOptions: { value: RiskEvaluation, label: string }[] = [
@@ -62,7 +68,7 @@ const formSchema = z.object({
   }),
   description: z.string().min(10, "Deskripsi risiko harus diisi (minimal 10 karakter)."),
   cause: z.string().min(10, "Penyebab (akar masalah) harus diisi (minimal 10 karakter)."),
-  category: z.enum(["Klinis", "Non-Klinis", "Operasional", "Finansial", "Reputasi"], {
+  category: z.enum(["Strategis", "Operasional", "Finansial", "Compliance", "Reputasi", "Pelayanan Pasien", "Bahaya Fisik", "Bahaya Kimia", "Bahaya Biologi", "Bahaya Ergonomi", "Bahaya Psikososial"], {
     required_error: "Kategori risiko harus dipilih."
   }),
   consequence: z.number().min(1).max(5),

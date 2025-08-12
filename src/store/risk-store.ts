@@ -4,7 +4,7 @@
 import { create } from 'zustand'
 
 export type RiskSource = "Laporan Insiden" | "Komplain" | "Survey/Ronde" | "Rapat/Brainstorming" | "Investigasi" | "Litigasi" | "External Requirement";
-export type RiskCategory = "Klinis" | "Non-Klinis" | "Operasional" | "Finansial" | "Reputasi";
+export type RiskCategory = "Strategis" | "Operasional" | "Finansial" | "Compliance" | "Reputasi" | "Pelayanan Pasien" | "Bahaya Fisik" | "Bahaya Kimia" | "Bahaya Biologi" | "Bahaya Ergonomi" | "Bahaya Psikososial";
 export type RiskLevel = "Rendah" | "Moderat" | "Tinggi" | "Ekstrem";
 export type RiskEvaluation = "Mitigasi" | "Transfer" | "Diterima" | "Dihindari";
 export type RiskStatus = "Open" | "In Progress" | "Closed";
@@ -59,7 +59,7 @@ const initialRisks: Risk[] = [
         source: "Laporan Insiden",
         description: "Pasien jatuh dari brankar saat menunggu triase.",
         cause: "Pengaman sisi brankar tidak dinaikkan oleh petugas.",
-        category: "Klinis",
+        category: "Pelayanan Pasien",
         submissionDate: "2023-10-26",
         consequence: 4,
         likelihood: 3,
@@ -79,7 +79,7 @@ const initialRisks: Risk[] = [
         source: "Komplain",
         description: "Salah memberikan obat kepada pasien rawat jalan.",
         cause: "Label obat tertukar karena nama pasien mirip (sound-alike).",
-        category: "Klinis",
+        category: "Pelayanan Pasien",
         submissionDate: "2023-11-05",
         consequence: 3,
         likelihood: 2,

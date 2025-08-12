@@ -78,7 +78,7 @@ const NavLink = ({ item, isSubItem }: Pick<NavItemProps, 'item' | 'isSubItem'>) 
     const commonProps = {
       isActive: item.href ? pathname.startsWith(item.href) : false,
       tooltip: item.label,
-      size: isSubItem ? 'default' : 'lg',
+      size: isSubItem ? 'default' : 'lg' as 'default' | 'sm' | 'lg' | null | undefined,
       onClick: item.onClick,
     };
     const children = (
@@ -90,7 +90,7 @@ const NavLink = ({ item, isSubItem }: Pick<NavItemProps, 'item' | 'isSubItem'>) 
 
     if (isSubItem) {
         return (
-            <SidebarMenuSubButton {...commonProps} asChild={!!item.href}>
+            <SidebarMenuSubButton {...commonProps} asChild={!!item.href} as={item.href ? 'a' : 'button'}>
               {item.href ? <Link href={item.href}>{children}</Link> : <button type="button">{children}</button>}
             </SidebarMenuSubButton>
         )

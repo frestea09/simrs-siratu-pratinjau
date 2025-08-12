@@ -11,6 +11,8 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 import { MoreHorizontal, ArrowUpDown } from "lucide-react"
+import { format, parseISO } from "date-fns"
+import { id as IndonesianLocale } from "date-fns/locale"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -124,17 +126,14 @@ const columns: ColumnDef<Risk>[] = [
     size: 100,
   },
   {
-    accessorKey: "evaluation",
-    header: () => <div className="text-center">Evaluasi Risiko</div>,
+    accessorKey: "dueDate",
+    header: () => <div className="text-center">Batas Waktu</div>,
     cell: ({ row }) => {
-        const evaluation = row.getValue("evaluation") as RiskEvaluation;
-        return (
-            <div className="text-center">
-                <Badge variant={getEvaluationVariant(evaluation)}>{evaluation}</Badge>
-            </div>
-        )
+        const dueDate = row.getValue("dueDate") as string;
+        if (!dueDate) return <div className="text-center">-</div>;
+        return <div className="text-center">{format(parseISO(dueDate), "dd MMM yyyy", { locale: IndonesianLocale })}</div>;
     },
-    size: 100,
+    size: 120,
   },
 //   {
 //     id: "actions",

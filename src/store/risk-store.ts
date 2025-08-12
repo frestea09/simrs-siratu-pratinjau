@@ -24,8 +24,10 @@ export type Risk = {
   riskScore: number
   riskLevel: RiskLevel
   ranking: number
+  // Evaluation
   evaluation: RiskEvaluation
   actionPlan: string
+  dueDate?: string
 }
 
 type RiskState = {
@@ -57,7 +59,8 @@ const initialRisks: Risk[] = [
         riskLevel: "Tinggi",
         ranking: 12,
         evaluation: "Mitigasi",
-        actionPlan: "Membuat SOP baru tentang kewajiban menaikkan pengaman brankar setiap saat."
+        actionPlan: "Membuat SOP baru tentang kewajiban menaikkan pengaman brankar setiap saat.",
+        dueDate: "2023-11-30"
     },
     {
         id: "RISK-002",
@@ -74,7 +77,8 @@ const initialRisks: Risk[] = [
         riskLevel: "Moderat",
         ranking: 6,
         evaluation: "Mitigasi",
-        actionPlan: "Menerapkan sistem double check dan konfirmasi tanggal lahir pasien sebelum menyerahkan obat."
+        actionPlan: "Menerapkan sistem double check dan konfirmasi tanggal lahir pasien sebelum menyerahkan obat.",
+        dueDate: "2023-12-15"
     }
 ];
 

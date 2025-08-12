@@ -5,6 +5,8 @@ import * as React from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
+import { format } from "date-fns"
+import { Calendar as CalendarIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -19,6 +21,9 @@ import { HOSPITAL_UNITS } from "@/lib/constants"
 import { Combobox } from "../ui/combobox"
 import { Slider } from "../ui/slider"
 import { Separator } from "../ui/separator"
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
+import { Calendar } from "../ui/calendar"
+import { cn } from "@/lib/utils"
 
 const sourceOptions: { value: RiskSource, label: string }[] = [
     { value: "Laporan Insiden", label: "1. Laporan Insiden" },
@@ -60,7 +65,8 @@ const formSchema = z.object({
   evaluation: z.enum(["Mitigasi", "Transfer", "Diterima", "Dihindari"], {
     required_error: "Evaluasi risiko harus dipilih."
   }),
-  actionPlan: z.string().min(10, "Rencana aksi harus diisi (minimal 10 karakter).")
+  actionPlan: z.string().min(10, "Rencana aksi harus diisi (minimal 10 karakter)."),
+  dueDate: z.date().optional(),
 });
 
 
@@ -82,7 +88,10 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
-        defaultValues: riskToEdit ? riskToEdit : {
+        defaultValues: riskToEdit ? {
+            ...riskToEdit,
+            dueDate: riskToEdit.dueDate ? new Date(riskToEdit.dueDate) : undefined,
+        } : {
             unit: currentUser?.unit,
             description: "",
             cause: "",
@@ -99,11 +108,16 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
     const controllabilityValue = form.watch("controllability");
 
     function onSubmit(values: z.infer<typeof formSchema>) {
+        const dataToSave = {
+            ...values,
+            dueDate: values.dueDate ? values.dueDate.toISOString() : undefined,
+        }
+
         if (isEditMode && riskToEdit) {
-            updateRisk(riskToEdit.id, values);
+            updateRisk(riskToEdit.id, dataToSave);
             toast({ title: "Risiko Diperbarui", description: "Data risiko telah berhasil diperbarui." });
         } else {
-            addRisk(values as any);
+            addRisk(dataToSave as any);
             toast({ title: "Risiko Baru Ditambahkan", description: "Risiko baru telah berhasil diidentifikasi dan ditambahkan ke register." });
         }
         setOpen(false)
@@ -313,6 +327,49 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
                         </FormItem>
                     )}
                 />
+
+                <FormField
+                    control={form.control}
+                    name="dueDate"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                            <FormLabel>Batas Waktu (Due Date)</FormLabel>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                <FormControl>
+                                    <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                        "w-full pl-3 text-left font-normal",
+                                        !field.value && "text-muted-foreground"
+                                    )}
+                                    >
+                                    {field.value ? (
+                                        format(field.value, "PPP")
+                                    ) : (
+                                        <span>Pilih tanggal</span>
+                                    )}
+                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                    mode="single"
+                                    selected={field.value}
+                                    onSelect={field.onChange}
+                                    disabled={(date) =>
+                                        date < new Date() || date < new Date("1900-01-01")
+                                    }
+                                    initialFocus
+                                />
+                                </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
 
                 <DialogFooter className="pt-4">
                     <Button type="submit">{isEditMode ? 'Simpan Perubahan' : 'Simpan Risiko'}</Button>

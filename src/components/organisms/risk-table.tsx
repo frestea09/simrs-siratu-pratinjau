@@ -121,13 +121,13 @@ const getStatusVariant = (status: RiskStatus): "default" | "secondary" | "destru
 
 const columns: ColumnDef<Risk>[] = [
   {
-    accessorKey: "ranking",
+    accessorKey: "riskScore",
     header: ({ column }) => (
         <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Skor Prioritas <ArrowUpDown className="ml-2 h-4 w-4" />
+            Skor Risiko <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
     ),
-    cell: ({ row }) => <div className="text-center font-bold text-lg">{row.original.ranking.toFixed(2)}</div>,
+    cell: ({ row }) => <div className="text-center font-bold text-lg">{row.original.riskScore}</div>,
     size: 50,
   },
   {
@@ -247,7 +247,7 @@ const statusOptions: RiskStatus[] = ["Open", "In Progress", "Closed"];
 
 export function RiskTable({ risks }: RiskTableProps) {
     const [sorting, setSorting] = React.useState<SortingState>([
-        { id: 'ranking', desc: true }
+        { id: 'riskScore', desc: true }
     ]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   

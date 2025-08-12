@@ -186,8 +186,7 @@ export default function SpmPage() {
           <CardContent className="pl-2">
             <ResponsiveContainer width="100%" height={350}>
               {chartData.length > 0 ? (
-                <div style={{ width: '100%', height: '100%' }}>
-                  {chartType === 'line' ? (
+                  chartType === 'line' ? (
                     <LineChart data={chartData}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} />
                       <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
@@ -212,8 +211,7 @@ export default function SpmPage() {
                         <LabelList dataKey="Capaian" position="top" />
                       </Bar>
                     </BarChart>
-                  )}
-                </div>
+                  )
               ) : (
                 <div className="flex items-center justify-center h-full text-muted-foreground">
                   Tidak cukup data untuk menampilkan grafik.
@@ -236,3 +234,5 @@ export default function SpmPage() {
     </div>
   )
 }
+
+    

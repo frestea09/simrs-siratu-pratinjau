@@ -32,6 +32,9 @@ type ReportPreviewDialogProps<TData> = {
   title: string
   description?: string
   children?: React.ReactNode // Allow custom content
+  lineChart?: React.ReactNode
+  barChart?: React.ReactNode
+  analysisTable?: React.ReactNode
 }
 
 export function ReportPreviewDialog<TData>({
@@ -41,7 +44,10 @@ export function ReportPreviewDialog<TData>({
   columns,
   title,
   description,
-  children
+  children,
+  lineChart,
+  barChart,
+  analysisTable,
 }: ReportPreviewDialogProps<TData>) {
   const reportRef = React.useRef<HTMLDivElement>(null)
 
@@ -122,12 +128,13 @@ export function ReportPreviewDialog<TData>({
     }
   }
   
-  const renderHeader = (pageTitle: string, isFirstPage: boolean = false) => (
+  const renderHeader = (isFirstPage: boolean = false) => (
     <header className="print-header">
        {isFirstPage && (
          <>
           <h1 className="text-2xl font-bold text-center">{title}</h1>
           <p className="text-center text-sm text-gray-600">RSUD Oto Iskandar Dinata</p>
+          {description && <p className="text-center text-sm text-gray-500 mt-1">{description}</p>}
          </>
        )}
     </header>
@@ -139,22 +146,84 @@ export function ReportPreviewDialog<TData>({
     </footer>
   )
 
+  const renderDefaultTable = () => (
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => {
+                return (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                )
+              })}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows?.length ? (
+            table.getRowModel().rows.map((row) => (
+              <TableRow key={row.id}>
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={columns?.length || 1} className="h-24 text-center">
+                Tidak ada data.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  )
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-7xl w-full">
         <DialogHeader>
           <DialogTitle>Pratinjau Laporan</DialogTitle>
           <DialogDescription>
-            {description || "Pratinjau laporan sebelum diunduh atau dicetak. Laporan akan dibagi menjadi beberapa halaman untuk kejelasan."}
+            Pratinjau laporan sebelum diunduh atau dicetak. Anda dapat menyalin konten ini dan menempelkannya ke Word atau Google Docs.
           </DialogDescription>
         </DialogHeader>
 
         <ScrollArea className="max-h-[70vh] bg-gray-200/50 p-4 rounded-md">
             <div ref={reportRef} className="p-4 bg-white text-black space-y-8">
-              {renderHeader(title, true)}
-              <div className="space-y-8">
-                {children}
-              </div>
+              {renderHeader(true)}
+              {children ? children : (
+                <>
+                  {lineChart && (
+                      <div className="print-page">
+                          <h3 className="text-lg font-semibold mb-4">Grafik Tren (Garis)</h3>
+                          {lineChart}
+                      </div>
+                  )}
+                  {barChart && (
+                      <div className="print-page">
+                          <h3 className="text-lg font-semibold mb-4">Grafik Tren (Batang)</h3>
+                          {barChart}
+                      </div>
+                  )}
+                   {analysisTable && (
+                      <div className="print-page">
+                          <h3 className="text-lg font-semibold mb-4">Analisis & Rencana Tindak Lanjut</h3>
+                          {analysisTable}
+                      </div>
+                  )}
+                  {columns && data && (
+                      <div className="print-page">
+                           <h3 className="text-lg font-semibold mb-4">Data Lengkap</h3>
+                          {renderDefaultTable()}
+                      </div>
+                  )}
+                </>
+              )}
               {renderFooter()}
             </div>
         </ScrollArea>

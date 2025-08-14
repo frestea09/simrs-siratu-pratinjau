@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { format, parseISO } from 'date-fns'
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { TimeRange, getStartDate } from "@/lib/indicator-utils"
+import { TimeRange, getStartDate, timeRangeToLabel } from "@/lib/indicator-utils"
 
 type ChartType = 'line' | 'bar';
 
@@ -42,7 +42,7 @@ export default function InmPage() {
 
     const getGroupKey = (date: Date) => {
         if (timeRange === '7d' || timeRange === '30d') return format(date, 'yyyy-MM-dd'); // Group by day
-        if (timeRange === '6m' || timeRange === '1y') return format(date, 'yyyy-MM'); // Group by month
+        if (timeRange === '3m' || timeRange === '6m' || timeRange === '1y') return format(date, 'yyyy-MM'); // Group by month
         return format(date, 'yyyy-MM-dd');
     };
 
@@ -65,7 +65,7 @@ export default function InmPage() {
       .map(d => ({
           ...d,
           Capaian: parseFloat((d.Capaian / d.count).toFixed(1)),
-          name: timeRange === '6m' || timeRange === '1y' ? format(d.date, 'MMM') : format(d.date, 'dd MMM'),
+          name: timeRange === '3m' || timeRange === '6m' || timeRange === '1y' ? format(d.date, 'MMM') : format(d.date, 'dd MMM'),
       }))
       .sort((a, b) => a.date.getTime() - b.date.getTime());
 
@@ -88,7 +88,7 @@ export default function InmPage() {
     if (active && payload && payload.length) {
         const data = payload[0].payload;
         const date = data.date;
-        const formattedDate = (timeRange === '6m' || timeRange === '1y') ? format(date, 'MMMM yyyy') : format(date, 'd MMMM yyyy');
+        const formattedDate = (timeRange === '3m' || timeRange === '6m' || timeRange === '1y') ? format(date, 'MMMM yyyy') : format(date, 'd MMMM yyyy');
       
         return (
             <div className="p-2 bg-background border rounded-md shadow-lg">
@@ -156,6 +156,7 @@ export default function InmPage() {
                         <SelectContent>
                             <SelectItem value="7d">7 Hari</SelectItem>
                             <SelectItem value="30d">30 Hari</SelectItem>
+                             <SelectItem value="3m">3 Bulan</SelectItem>
                             <SelectItem value="6m">6 Bulan</SelectItem>
                             <SelectItem value="1y">1 Tahun</SelectItem>
                         </SelectContent>
@@ -228,11 +229,10 @@ export default function InmPage() {
             showInputButton={true}
             chartData={chartData}
             chartDescription={getChartDescription()}
+            reportDescription={`Menampilkan data untuk filter: ${timeRangeToLabel(timeRange)}`}
             indicators={filteredIndicatorsForTable}
         />
       </div>
     </div>
   )
 }
-
-    

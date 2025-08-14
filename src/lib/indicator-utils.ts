@@ -1,8 +1,8 @@
 
-import { subDays, startOfMonth, startOfYear } from 'date-fns';
+import { subDays, startOfMonth, startOfYear, subMonths } from 'date-fns';
 import type { Indicator } from '@/store/indicator-store';
 
-export type TimeRange = '7d' | '30d' | '6m' | '1y';
+export type TimeRange = '7d' | '30d' | '3m' | '6m' | '1y';
 
 export const calculateRatio = (indicator: Omit<Indicator, 'id' | 'ratio' | 'status'>): string => {
     if (indicator.standardUnit === "menit") {
@@ -36,8 +36,20 @@ export const getStartDate = (range: TimeRange) => {
     switch (range) {
         case '7d': return subDays(now, 6);
         case '30d': return subDays(now, 29);
-        case '6m': return startOfMonth(subDays(now, 30 * 5)); // 5 months ago to include current month
+        case '3m': return subMonths(now, 2);
+        case '6m': return subMonths(now, 5);
         case '1y': return startOfYear(now);
-        default: return startOfMonth(subDays(now, 30 * 5));
+        default: return subMonths(now, 5);
+    }
+}
+
+export const timeRangeToLabel = (range: TimeRange): string => {
+    switch (range) {
+        case '7d': return '7 Hari Terakhir';
+        case '30d': return '30 Hari Terakhir';
+        case '3m': return '3 Bulan Terakhir';
+        case '6m': return '6 Bulan Terakhir';
+        case '1y': return '1 Tahun Ini';
+        default: return 'Data';
     }
 }

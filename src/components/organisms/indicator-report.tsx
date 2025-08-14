@@ -32,9 +32,10 @@ type IndicatorReportProps = {
     showInputButton?: boolean;
     chartData?: any[]; // Allow passing chart data
     chartDescription?: string;
+    reportDescription?: string;
 }
 
-export function IndicatorReport({ indicators, category, title, description, showInputButton = true, chartData, chartDescription }: IndicatorReportProps) {
+export function IndicatorReport({ indicators, category, title, description, showInputButton = true, chartData, chartDescription, reportDescription }: IndicatorReportProps) {
     const { submittedIndicators } = useIndicatorStore()
     const { currentUser } = useUserStore();
     const [reportTableData, setReportTableData] = React.useState<any[] | null>(null)
@@ -180,7 +181,7 @@ export function IndicatorReport({ indicators, category, title, description, show
                 data={reportTableData || []}
                 columns={reportColumns || []}
                 title={`Laporan Capaian ${title || `Indikator ${category}`}`}
-                description={chartDescription}
+                description={reportDescription}
                 lineChart={lineChartComponent}
                 barChart={barChartComponent}
                 analysisTable={<AnalysisTable data={reportTableData || []} />}

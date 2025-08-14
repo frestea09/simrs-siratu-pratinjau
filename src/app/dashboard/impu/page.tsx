@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { Line, LineChart, BarChart, Bar, CartesianGrid, ResponsiveContainer, XAxis, YAxis, Legend } from "recharts"
+import { Line, LineChart, BarChart, Bar, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, LabelList, Dot } from "recharts"
 import { IndicatorReport } from "@/components/organisms/indicator-report"
 import { useIndicatorStore } from "@/store/indicator-store"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,85 +12,8 @@ import { format, parseISO } from 'date-fns'
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { TimeRange, getStartDate, timeRangeToLabel } from "@/lib/indicator-utils"
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 
 type ChartType = 'line' | 'bar';
-
-const chartConfig = {
-  Capaian: {
-    label: "Capaian",
-    color: "hsl(var(--chart-1))",
-  },
-  Standar: {
-    label: "Standar",
-    color: "hsl(var(--chart-2))",
-  },
-} satisfies ChartConfig
-
-const CustomChart = ({ chartType, data, selectedIndicator }: { chartType: ChartType, data: any[], selectedIndicator: string }) => {
-    if (data.length === 0) return null;
-
-    const ChartComponent = chartType === 'line' ? LineChart : BarChart;
-
-    return (
-      <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-          <ChartComponent
-            accessibilityLayer
-            data={data}
-            margin={{
-              top: 20,
-              right: 12,
-              left: 12,
-              bottom: 5,
-            }}
-          >
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="name"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-            />
-             <YAxis
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-            />
-            <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
-            <Legend />
-            {chartType === 'line' ? (
-              <>
-                <Line
-                  dataKey="Capaian"
-                  type="monotone"
-                  stroke="var(--color-Capaian)"
-                  strokeWidth={2}
-                  dot={{
-                    fill: "var(--color-Capaian)",
-                    r: 4,
-                  }}
-                  activeDot={{
-                    r: 6,
-                  }}
-                />
-                {selectedIndicator !== 'Semua Indikator' && data.some(d => d.Standar) && (
-                  <Line
-                    dataKey="Standar"
-                    type="monotone"
-                    stroke="var(--color-Standar)"
-                    strokeWidth={2}
-                    strokeDasharray="5 5"
-                    dot={false}
-                  />
-                )}
-              </>
-            ) : (
-              <Bar dataKey="Capaian" fill="var(--color-Capaian)" radius={4} />
-            )}
-          </ChartComponent>
-        </ChartContainer>
-    );
-};
 
 export default function ImpuPage() {
   const { indicators } = useIndicatorStore();
@@ -119,7 +42,6 @@ export default function ImpuPage() {
   }, [selectedIndicatorData, timeRange]);
 
   const chartData = React.useMemo(() => {
-    // BUG FIX: Use filteredIndicatorsForTable which is already filtered by timeRange
     const dataForChart = filteredIndicatorsForTable;
 
     const getGroupKey = (date: Date) => {
@@ -153,13 +75,30 @@ export default function ImpuPage() {
 
   }, [filteredIndicatorsForTable, timeRange, selectedIndicator]);
   
-
   const getChartDescription = () => {
     if (selectedIndicator === 'Semua Indikator') {
         return 'Menampilkan rata-rata capaian semua indikator IMPU'
     }
     return `Menampilkan tren untuk: ${selectedIndicator}`
   }
+
+  const ChartTooltipContent = (props: any) => {
+    const { active, payload, label } = props;
+    if (active && payload && payload.length) {
+        const data = payload[0].payload;
+        const date = data.date;
+        const formattedDate = (timeRange === '3m' || timeRange === '6m' || timeRange === '1y') ? format(date, 'MMMM yyyy') : format(date, 'd MMMM yyyy');
+      
+        return (
+            <div className="p-2 bg-background border rounded-md shadow-lg">
+                <p className="font-bold text-foreground">{formattedDate}</p>
+                <p className="text-sm text-primary">{`Capaian: ${data.Capaian}`}</p>
+                {data.Standar && <p className="text-sm text-destructive">{`Standar: ${data.Standar}`}</p>}
+            </div>
+        );
+    }
+    return null;
+  };
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -245,13 +184,40 @@ export default function ImpuPage() {
              </div>
           </CardHeader>
           <CardContent className="pl-2">
-            {chartData.length === 0 ? (
-                <div className="flex items-center justify-center h-[350px] text-muted-foreground">
-                    Tidak cukup data untuk menampilkan grafik.
+            <ResponsiveContainer width="100%" height={350}>
+              {chartData.length > 0 ? (
+                  chartType === 'line' ? (
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                      <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                      <Tooltip content={<ChartTooltipContent />} />
+                      <Legend />
+                      <Line type="monotone" dataKey="Capaian" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} dot={<Dot r={4} />}>
+                        <LabelList dataKey="Capaian" position="top" />
+                      </Line>
+                      {selectedIndicator !== 'Semua Indikator' && chartData.some(d => d.Standar) && (
+                        <Line type="monotone" dataKey="Standar" stroke="hsl(var(--destructive))" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                      )}
+                    </LineChart>
+                  ) : (
+                    <BarChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                      <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                      <Tooltip content={<ChartTooltipContent />} />
+                      <Legend />
+                      <Bar dataKey="Capaian" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
+                        <LabelList dataKey="Capaian" position="top" />
+                      </Bar>
+                    </BarChart>
+                  )
+              ) : (
+                <div className="flex items-center justify-center h-full text-muted-foreground">
+                  Tidak cukup data untuk menampilkan grafik.
                 </div>
-            ) : (
-                <CustomChart chartType={chartType} data={chartData} selectedIndicator={selectedIndicator} />
-            )}
+              )}
+            </ResponsiveContainer>
           </CardContent>
         </Card>
         
@@ -269,6 +235,3 @@ export default function ImpuPage() {
     </div>
   )
 }
-    
-
-    

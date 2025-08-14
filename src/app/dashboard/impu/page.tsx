@@ -39,7 +39,6 @@ const CustomChart = ({ chartType, data, unit, selectedIndicator }: { chartType: 
     if (data.length === 0) return null;
 
     const ChartComponent = chartType === 'line' ? LineChart : BarChart;
-    const ChartElement = chartType === 'line' ? Line : Bar;
 
     return (
       <>
@@ -55,7 +54,7 @@ const CustomChart = ({ chartType, data, unit, selectedIndicator }: { chartType: 
               <Legend />
               {chartType === 'line' ? (
                 <>
-                    <Line type="monotone" dataKey="Capaian" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} dot={{ r: 4 }}>
+                    <Line type="monotone" dataKey="Capaian" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} dot={{ r: 4, fill: "hsl(var(--primary))" }}>
                         <LabelList dataKey="Capaian" position="top" />
                     </Line>
                     {selectedIndicator !== 'Semua Indikator' && data.some(d => d.Standar) && (

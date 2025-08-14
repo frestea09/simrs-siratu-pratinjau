@@ -60,14 +60,17 @@ interface TableFiltersProps<TData> {
   table: Table<TData>
   showCategoryFilter: boolean
   onExport: () => void
+  showDateFilter?: boolean
 }
 
-export function TableFilters<TData>({ table, showCategoryFilter, onExport }: TableFiltersProps<TData>) {
+export function TableFilters<TData>({ table, showCategoryFilter, onExport, showDateFilter = true }: TableFiltersProps<TData>) {
   const [date, setDate] = React.useState<DateRange | undefined>()
 
   React.useEffect(() => {
-    table.getColumn("period")?.setFilterValue(date ? [date.from, date.to] : undefined);
-  }, [date, table]);
+    if (showDateFilter) {
+        table.getColumn("period")?.setFilterValue(date ? [date.from, date.to] : undefined);
+    }
+  }, [date, table, showDateFilter]);
 
   return (
     <div className="flex items-center py-4 gap-2 flex-wrap">
@@ -77,31 +80,33 @@ export function TableFilters<TData>({ table, showCategoryFilter, onExport }: Tab
         onChange={(event) => table.getColumn("indicator")?.setFilterValue(event.target.value)}
         className="max-w-xs"
       />
-      <div className="relative">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              id="date"
-              variant={"outline"}
-              className={cn("w-[260px] justify-start text-left font-normal", !date && "text-muted-foreground")}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {date?.from ? (
-                date.to ? (<> {format(date.from, "d MMM yyyy")} - {format(date.to, "d MMM yyyy")} </>) 
-                : (format(date.from, "d MMM yyyy"))
-              ) : (<span>Pilih rentang tanggal</span>)}
+      {showDateFilter && (
+        <div className="relative">
+            <Popover>
+            <PopoverTrigger asChild>
+                <Button
+                id="date"
+                variant={"outline"}
+                className={cn("w-[260px] justify-start text-left font-normal", !date && "text-muted-foreground")}
+                >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date?.from ? (
+                    date.to ? (<> {format(date.from, "d MMM yyyy")} - {format(date.to, "d MMM yyyy")} </>) 
+                    : (format(date.from, "d MMM yyyy"))
+                ) : (<span>Pilih rentang tanggal</span>)}
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+                <Calendar initialFocus mode="range" defaultMonth={date?.from} selected={date} onSelect={setDate} numberOfMonths={2}/>
+            </PopoverContent>
+            </Popover>
+            {date && (
+            <Button variant="ghost" size="icon" className="h-7 w-7 absolute right-1 top-1/2 -translate-y-1/2" onClick={() => setDate(undefined)}>
+                <XIcon className="h-4 w-4 text-muted-foreground" />
             </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar initialFocus mode="range" defaultMonth={date?.from} selected={date} onSelect={setDate} numberOfMonths={2}/>
-          </PopoverContent>
-        </Popover>
-        {date && (
-          <Button variant="ghost" size="icon" className="h-7 w-7 absolute right-1 top-1/2 -translate-y-1/2" onClick={() => setDate(undefined)}>
-            <XIcon className="h-4 w-4 text-muted-foreground" />
-          </Button>
-        )}
-      </div>
+            )}
+        </div>
+      )}
       {showCategoryFilter && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

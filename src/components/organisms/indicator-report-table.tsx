@@ -28,7 +28,7 @@ import { Indicator } from "@/store/indicator-store"
 import { Badge } from "../ui/badge"
 import { ActionsCell } from "./indicator-report-table/actions-cell"
 import { TableFilters } from "./indicator-report-table/table-filters"
-import { dateRangeFilter, categoryFilter } from "./indicator-report-table/table-filters"
+import { categoryFilter } from "./indicator-report-table/table-filters"
 import { format, parseISO, isValid } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
 
@@ -71,7 +71,6 @@ export function IndicatorReportTable({ indicators, onExport, onEdit, showCategor
         }
         return <div>{format(parsedDate, "d MMMM yyyy", { locale: IndonesianLocale })}</div>
       },
-      filterFn: "dateRangeFilter",
     },
     {
       accessorKey: "ratio",
@@ -109,7 +108,7 @@ export function IndicatorReportTable({ indicators, onExport, onEdit, showCategor
   const table = useReactTable({
     data: indicators,
     columns,
-    filterFns: { dateRangeFilter, categoryFilter },
+    filterFns: { categoryFilter },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -130,6 +129,7 @@ export function IndicatorReportTable({ indicators, onExport, onEdit, showCategor
         table={table}
         showCategoryFilter={showCategoryFilter}
         onExport={() => onExport(table.getFilteredRowModel().rows.map(row => row.original), exportableColumns)}
+        showDateFilter={false}
       />
       <div className="rounded-md border">
         <Table>

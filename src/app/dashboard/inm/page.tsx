@@ -74,8 +74,7 @@ export default function InmPage() {
     React.useState<string>("Semua Indikator")
   const [chartType, setChartType] = React.useState<ChartType>("line")
 
-  // New filter states
-  const [filterType, setFilterType] = React.useState<FilterType>("monthly")
+  const [filterType, setFilterType] = React.useState<FilterType>("this_month")
   const [selectedDate, setSelectedDate] = React.useState<Date>(new Date())
 
   const selectedIndicatorData = React.useMemo(() => {
@@ -105,9 +104,20 @@ export default function InmPage() {
     const dataForChart = filteredIndicatorsForTable
 
     const getGroupKey = (date: Date) => {
-      if (filterType === "daily") return format(date, "HH:00") // Group by hour for daily view
-      if (filterType === "monthly") return format(date, "yyyy-MM-dd") // Group by day for monthly view
-      if (filterType === "yearly") return format(date, "yyyy-MM") // Group by month for yearly view
+      if (filterType === "daily") return format(date, "HH:00") // Group by hour
+      if (
+        filterType === "monthly" ||
+        filterType === "7d" ||
+        filterType === "30d"
+      )
+        return format(date, "yyyy-MM-dd") // Group by day
+      if (
+        filterType === "yearly" ||
+        filterType === "3m" ||
+        filterType === "6m" ||
+        filterType === "1y"
+      )
+        return format(date, "yyyy-MM") // Group by month
       return format(date, "yyyy-MM-dd")
     }
 
@@ -134,9 +144,12 @@ export default function InmPage() {
         name:
           filterType === "daily"
             ? format(d.date, "HH:mm")
-            : filterType === "yearly"
-              ? format(d.date, "MMM", { locale: IndonesianLocale })
-              : format(d.date, "dd MMM"),
+            : filterType === "yearly" ||
+              filterType === "3m" ||
+              filterType === "6m" ||
+              filterType === "1y"
+            ? format(d.date, "MMM", { locale: IndonesianLocale })
+            : format(d.date, "dd MMM"),
       }))
       .sort((a, b) => a.date.getTime() - b.date.getTime())
   }, [filteredIndicatorsForTable, filterType, selectedIndicator])
@@ -276,6 +289,10 @@ export default function InmPage() {
     return null
   }
 
+  const showCustomFilterInput = ["daily", "monthly", "yearly"].includes(
+    filterType
+  )
+
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
@@ -338,17 +355,23 @@ export default function InmPage() {
                   value={filterType}
                   onValueChange={v => setFilterType(v as FilterType)}
                 >
-                  <SelectTrigger className="w-full sm:w-[130px]">
+                  <SelectTrigger className="w-full sm:w-[180px]">
                     <SelectValue placeholder="Pilih rentang..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="daily">Harian</SelectItem>
-                    <SelectItem value="monthly">Bulanan</SelectItem>
-                    <SelectItem value="yearly">Tahunan</SelectItem>
+                    <SelectItem value="this_month">Bulan Ini</SelectItem>
+                    <SelectItem value="7d">7 Hari Terakhir</SelectItem>
+                    <SelectItem value="30d">30 Hari Terakhir</SelectItem>
+                    <SelectItem value="3m">3 Bulan Terakhir</SelectItem>
+                    <SelectItem value="6m">6 Bulan Terakhir</SelectItem>
+                    <SelectItem value="1y">1 Tahun Terakhir</SelectItem>
+                    <SelectItem value="daily">Harian (Custom)</SelectItem>
+                    <SelectItem value="monthly">Bulanan (Custom)</SelectItem>
+                    <SelectItem value="yearly">Tahunan (Custom)</SelectItem>
                   </SelectContent>
                 </Select>
 
-                {renderFilterInput()}
+                {showCustomFilterInput && renderFilterInput()}
 
                 {uniqueIndicatorNames.length > 1 && (
                   <Select

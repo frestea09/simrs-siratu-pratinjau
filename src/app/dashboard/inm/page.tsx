@@ -112,14 +112,14 @@ export default function InmPage() {
               acc[key] = {
                   date: parseISO(curr.period),
                   Capaian: 0,
-                  Standar: curr.standard,
+                  Standar: selectedIndicator !== 'Semua Indikator' ? curr.standard : undefined,
                   count: 0
               };
           }
           acc[key].Capaian += parseFloat(curr.ratio);
           acc[key].count += 1;
           return acc;
-      }, {} as Record<string, { date: Date, Capaian: number, Standar: number, count: number }>);
+      }, {} as Record<string, { date: Date, Capaian: number, Standar?: number, count: number }>);
       
       return Object.values(groupedData)
         .map(d => ({
@@ -134,7 +134,7 @@ export default function InmPage() {
       chartData: processData('%'),
       chartDataMinutes: processData('menit')
     };
-  }, [selectedIndicatorData, timeRange]);
+  }, [selectedIndicatorData, timeRange, selectedIndicator]);
 
   const filteredIndicatorsForTable = React.useMemo(() => {
     const startDate = getStartDate(timeRange);

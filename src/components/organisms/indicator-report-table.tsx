@@ -167,3 +167,5 @@ export function IndicatorReportTable({ indicators, onExport, onEdit, showCategor
     </div>
   )
 }
+
+    

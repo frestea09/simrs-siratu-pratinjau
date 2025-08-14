@@ -55,23 +55,48 @@ import {
 } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { id as IndonesianLocale } from "date-fns/locale"
+import { useUserStore } from "@/store/user-store.tsx"
+import { HOSPITAL_UNITS } from "@/lib/constants"
+import { ArrowUpDown } from "lucide-react"
 
 type ChartType = "line" | "bar"
 
+const centralRoles = [
+  "Admin Sistem",
+  "Direktur",
+  "Sub. Komite Peningkatan Mutu",
+  "Sub. Komite Keselamatan Pasien",
+  "Sub. Komite Manajemen Risiko",
+]
+
 export default function ImpRsPage() {
   const { indicators } = useIndicatorStore()
+  const { currentUser } = useUserStore()
+  const userIsCentral = currentUser && centralRoles.includes(currentUser.role)
 
-  const impRsIndicators = React.useMemo(
-    () => indicators.filter(i => i.category === "IMP-RS"),
-    [indicators]
-  )
+  const impRsIndicators = React.useMemo(() => {
+    const filteredByCategory = indicators.filter(i => i.category === "IMP-RS")
+    if (userIsCentral) {
+      return filteredByCategory
+    }
+    return filteredByCategory.filter(i => i.unit === currentUser?.unit)
+  }, [indicators, currentUser, userIsCentral])
+
+  const [selectedUnit, setSelectedUnit] = React.useState<string>("Semua Unit")
+
+  const indicatorsForUnit = React.useMemo(() => {
+    if (selectedUnit === "Semua Unit") {
+      return impRsIndicators
+    }
+    return impRsIndicators.filter(i => i.unit === selectedUnit)
+  }, [impRsIndicators, selectedUnit])
 
   const uniqueIndicatorNames = React.useMemo(() => {
     return [
       "Semua Indikator",
-      ...new Set(impRsIndicators.map(i => i.indicator)),
+      ...new Set(indicatorsForUnit.map(i => i.indicator)),
     ]
-  }, [impRsIndicators])
+  }, [indicatorsForUnit])
 
   const [selectedIndicator, setSelectedIndicator] =
     React.useState<string>("Semua Indikator")
@@ -81,12 +106,11 @@ export default function ImpRsPage() {
   const [selectedDate, setSelectedDate] = React.useState<Date>(new Date())
 
   const selectedIndicatorData = React.useMemo(() => {
-    return impRsIndicators.filter(
+    return indicatorsForUnit.filter(
       i =>
-        selectedIndicator === "Semua Indikator" ||
-        i.indicator === selectedIndicator
+        selectedIndicator === "Semua Indikator" || i.indicator === selectedIndicator
     )
-  }, [impRsIndicators, selectedIndicator])
+  }, [indicatorsForUnit, selectedIndicator])
 
   const totalIndicators = impRsIndicators.length
   const meetingStandard = impRsIndicators.filter(
@@ -127,21 +151,29 @@ export default function ImpRsPage() {
       return format(date, "yyyy-MM-dd")
     }
 
-    const groupedData = dataForChart.reduce((acc, curr) => {
-      const key = getGroupKey(parseISO(curr.period))
-      if (!acc[key]) {
-        acc[key] = {
-          date: parseISO(curr.period),
-          Capaian: 0,
-          Standar:
-            selectedIndicator !== "Semua Indikator" ? curr.standard : undefined,
-          count: 0,
+    const groupedData = dataForChart.reduce(
+      (acc, curr) => {
+        const key = getGroupKey(parseISO(curr.period))
+        if (!acc[key]) {
+          acc[key] = {
+            date: parseISO(curr.period),
+            Capaian: 0,
+            Standar:
+              selectedIndicator !== "Semua Indikator"
+                ? curr.standard
+                : undefined,
+            count: 0,
+          }
         }
-      }
-      acc[key].Capaian += parseFloat(curr.ratio)
-      acc[key].count += 1
-      return acc
-    }, {} as Record<string, { date: Date; Capaian: number; Standar?: number; count: number }>)
+        acc[key].Capaian += parseFloat(curr.ratio)
+        acc[key].count += 1
+        return acc
+      },
+      {} as Record<
+        string,
+        { date: Date; Capaian: number; Standar?: number; count: number }
+      >
+    )
 
     return Object.values(groupedData)
       .map(d => ({
@@ -229,6 +261,7 @@ export default function ImpRsPage() {
               selected={selectedDate}
               onSelect={date => date && setSelectedDate(date)}
               initialFocus
+              disabled={{ after: new Date() }}
             />
           </PopoverContent>
         </Popover>
@@ -382,6 +415,22 @@ export default function ImpRsPage() {
 
                 {showCustomFilterInput && renderFilterInput()}
 
+                {userIsCentral && (
+                  <Select value={selectedUnit} onValueChange={setSelectedUnit}>
+                    <SelectTrigger className="w-full sm:w-[200px]">
+                      <SelectValue placeholder="Pilih unit..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Semua Unit">Semua Unit</SelectItem>
+                      {HOSPITAL_UNITS.map(unit => (
+                        <SelectItem key={unit} value={unit}>
+                          {unit}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+
                 {uniqueIndicatorNames.length > 1 && (
                   <Select
                     value={selectedIndicator}
@@ -518,3 +567,5 @@ export default function ImpRsPage() {
     </div>
   )
 }
+
+    

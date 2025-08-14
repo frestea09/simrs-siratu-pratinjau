@@ -55,20 +55,48 @@ import {
 } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { id as IndonesianLocale } from "date-fns/locale"
+import { useUserStore } from "@/store/user-store.tsx"
+import { HOSPITAL_UNITS } from "@/lib/constants"
+import { ArrowUpDown } from "lucide-react"
 
 type ChartType = "line" | "bar"
 
+const centralRoles = [
+  "Admin Sistem",
+  "Direktur",
+  "Sub. Komite Peningkatan Mutu",
+  "Sub. Komite Keselamatan Pasien",
+  "Sub. Komite Manajemen Risiko",
+]
+
 export default function SpmPage() {
   const { indicators } = useIndicatorStore()
+  const { currentUser } = useUserStore()
+  const userIsCentral = currentUser && centralRoles.includes(currentUser.role)
 
-  const spmIndicators = React.useMemo(
-    () => indicators.filter(i => i.category === "SPM"),
-    [indicators]
-  )
+  const spmIndicators = React.useMemo(() => {
+    const filteredByCategory = indicators.filter(i => i.category === "SPM")
+    if (userIsCentral) {
+      return filteredByCategory
+    }
+    return filteredByCategory.filter(i => i.unit === currentUser?.unit)
+  }, [indicators, currentUser, userIsCentral])
+
+  const [selectedUnit, setSelectedUnit] = React.useState<string>("Semua Unit")
+
+  const indicatorsForUnit = React.useMemo(() => {
+    if (selectedUnit === "Semua Unit") {
+      return spmIndicators
+    }
+    return spmIndicators.filter(i => i.unit === selectedUnit)
+  }, [spmIndicators, selectedUnit])
 
   const uniqueIndicatorNames = React.useMemo(() => {
-    return ["Semua Indikator", ...new Set(spmIndicators.map(i => i.indicator))]
-  }, [spmIndicators])
+    return [
+      "Semua Indikator",
+      ...new Set(indicatorsForUnit.map(i => i.indicator)),
+    ]
+  }, [indicatorsForUnit])
 
   const [selectedIndicator, setSelectedIndicator] =
     React.useState<string>("Semua Indikator")
@@ -78,12 +106,11 @@ export default function SpmPage() {
   const [selectedDate, setSelectedDate] = React.useState<Date>(new Date())
 
   const selectedIndicatorData = React.useMemo(() => {
-    return spmIndicators.filter(
+    return indicatorsForUnit.filter(
       i =>
-        selectedIndicator === "Semua Indikator" ||
-        i.indicator === selectedIndicator
+        selectedIndicator === "Semua Indikator" || i.indicator === selectedIndicator
     )
-  }, [spmIndicators, selectedIndicator])
+  }, [indicatorsForUnit, selectedIndicator])
 
   const totalIndicators = spmIndicators.length
   const meetingStandard = spmIndicators.filter(
@@ -124,21 +151,29 @@ export default function SpmPage() {
       return format(date, "yyyy-MM-dd")
     }
 
-    const groupedData = dataForChart.reduce((acc, curr) => {
-      const key = getGroupKey(parseISO(curr.period))
-      if (!acc[key]) {
-        acc[key] = {
-          date: parseISO(curr.period),
-          Capaian: 0,
-          Standar:
-            selectedIndicator !== "Semua Indikator" ? curr.standard : undefined,
-          count: 0,
+    const groupedData = dataForChart.reduce(
+      (acc, curr) => {
+        const key = getGroupKey(parseISO(curr.period))
+        if (!acc[key]) {
+          acc[key] = {
+            date: parseISO(curr.period),
+            Capaian: 0,
+            Standar:
+              selectedIndicator !== "Semua Indikator"
+                ? curr.standard
+                : undefined,
+            count: 0,
+          }
         }
-      }
-      acc[key].Capaian += parseFloat(curr.ratio)
-      acc[key].count += 1
-      return acc
-    }, {} as Record<string, { date: Date; Capaian: number; Standar?: number; count: number }>)
+        acc[key].Capaian += parseFloat(curr.ratio)
+        acc[key].count += 1
+        return acc
+      },
+      {} as Record<
+        string,
+        { date: Date; Capaian: number; Standar?: number; count: number }
+      >
+    )
 
     return Object.values(groupedData)
       .map(d => ({
@@ -226,6 +261,7 @@ export default function SpmPage() {
               selected={selectedDate}
               onSelect={date => date && setSelectedDate(date)}
               initialFocus
+              disabled={{ after: new Date() }}
             />
           </PopoverContent>
         </Popover>
@@ -379,6 +415,22 @@ export default function SpmPage() {
 
                 {showCustomFilterInput && renderFilterInput()}
 
+                {userIsCentral && (
+                  <Select value={selectedUnit} onValueChange={setSelectedUnit}>
+                    <SelectTrigger className="w-full sm:w-[200px]">
+                      <SelectValue placeholder="Pilih unit..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Semua Unit">Semua Unit</SelectItem>
+                      {HOSPITAL_UNITS.map(unit => (
+                        <SelectItem key={unit} value={unit}>
+                          {unit}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+
                 {uniqueIndicatorNames.length > 1 && (
                   <Select
                     value={selectedIndicator}
@@ -515,3 +567,5 @@ export default function SpmPage() {
     </div>
   )
 }
+
+    

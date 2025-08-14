@@ -178,49 +178,51 @@ export default function RisksPage() {
                 title="Laporan Register Risiko"
                 data={[]}
             >
-                <div className="grid grid-cols-1 lg:grid-cols-7 gap-6 print-page">
-                    <div className="lg:col-span-4">
-                        <h3 className="text-lg font-semibold mb-2">Distribusi Level Risiko</h3>
-                        <div className="h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                             <BarChart data={summary.levelData} layout="vertical" margin={{ left: 10 }}>
-                                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                                <XAxis type="number" allowDecimals={false} />
-                                <YAxis type="category" dataKey="name" width={80} />
-                                <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} />
-                                <Bar dataKey="value" name="Jumlah Risiko" barSize={30}>
-                                    {summary.levelData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[entry.name as RiskLevel]} />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
+                <div className="print-page">
+                    <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
+                        <div className="lg:col-span-4">
+                            <h3 className="text-lg font-semibold mb-2">Distribusi Level Risiko</h3>
+                            <div className="h-[300px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={summary.levelData} layout="vertical" margin={{ left: 10 }}>
+                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                    <XAxis type="number" allowDecimals={false} />
+                                    <YAxis type="category" dataKey="name" width={80} />
+                                    <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} />
+                                    <Bar dataKey="value" name="Jumlah Risiko" barSize={30}>
+                                        {summary.levelData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={COLORS[entry.name as RiskLevel]} />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                            </div>
                         </div>
-                    </div>
-                     <div className="lg:col-span-3">
-                         <h3 className="text-lg font-semibold mb-2">Status Penyelesaian Risiko</h3>
-                         <div className="h-[300px]">
-                         <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie
-                                    data={summary.statusData}
-                                    cx="50%"
-                                    cy="50%"
-                                    labelLine={false}
-                                    outerRadius={80}
-                                    fill="#8884d8"
-                                    dataKey="value"
-                                    nameKey="name"
-                                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                                >
-                                    {summary.statusData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name as RiskStatus]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip />
-                                <Legend />
-                            </PieChart>
-                        </ResponsiveContainer>
+                        <div className="lg:col-span-3">
+                            <h3 className="text-lg font-semibold mb-2">Status Penyelesaian Risiko</h3>
+                            <div className="h-[300px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={summary.statusData}
+                                        cx="50%"
+                                        cy="50%"
+                                        labelLine={false}
+                                        outerRadius={80}
+                                        fill="#8884d8"
+                                        dataKey="value"
+                                        nameKey="name"
+                                        label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                                    >
+                                        {summary.statusData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name as RiskStatus]} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip />
+                                    <Legend />
+                                </PieChart>
+                            </ResponsiveContainer>
+                            </div>
                         </div>
                     </div>
                 </div>

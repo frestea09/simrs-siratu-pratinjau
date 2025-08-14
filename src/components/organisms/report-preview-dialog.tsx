@@ -70,6 +70,7 @@ export function ReportPreviewDialog<TData>({
             font-family: 'Inter', sans-serif; 
             -webkit-print-color-adjust: exact !important; 
             print-color-adjust: exact !important;
+            color: #000;
           }
           @page { 
             size: landscape; 
@@ -100,9 +101,10 @@ export function ReportPreviewDialog<TData>({
               padding-bottom: 1rem;
           }
           table { width: 100%; border-collapse: collapse; }
-          th, td { border: 1px solid black; padding: 4px; text-align: left; vertical-align: top; font-size: 10px; }
-          th { background-color: #f2f2f2; font-weight: bold; text-align: center; vertical-align: middle; }
-          h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; }
+          th, td { border: 1px solid #ccc; padding: 8px; text-align: left; vertical-align: top; font-size: 11px; }
+          th { background-color: #f2f2f2 !important; font-weight: bold; text-align: center; vertical-align: middle; }
+          tbody tr:nth-child(even) { background-color: #f9f9f9 !important; }
+          h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; border-bottom: 2px solid #eee; padding-bottom: 0.5rem; }
           .chart-description { font-size: 0.8rem; color: #6B7280; margin-top: -0.5rem; margin-bottom: 1rem;}
         `);
         printWindow.document.write('</style>');

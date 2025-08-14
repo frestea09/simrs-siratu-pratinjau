@@ -54,7 +54,14 @@ const CustomChart = ({ chartType, data, unit, selectedIndicator }: { chartType: 
               <Legend />
               {chartType === 'line' ? (
                 <>
-                    <Line type="monotone" dataKey="Capaian" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} dot={<Dot r={4} fill="hsl(var(--primary))" />}>
+                    <Line 
+                        type="monotone" 
+                        dataKey="Capaian" 
+                        stroke="hsl(var(--primary))" 
+                        strokeWidth={2} 
+                        activeDot={<Dot r={6} fill="hsl(var(--primary))" />}
+                        dot={<Dot r={4} fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth={2} />}
+                    >
                         <LabelList dataKey="Capaian" position="top" />
                     </Line>
                     {selectedIndicator !== 'Semua Indikator' && data.some(d => d.Standar) && (

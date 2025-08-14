@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { format, parseISO } from 'date-fns'
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { TimeRange, getStartDate, timeRangeToLabel } from "@/lib/indicator-utils"
+import { TimeRange, getStartDate, getTimeRangeDescription } from "@/lib/indicator-utils"
 
 type ChartType = 'line' | 'bar';
 
@@ -78,9 +78,9 @@ export default function ImpRsPage() {
 
   const getChartDescription = () => {
     if (selectedIndicator === 'Semua Indikator') {
-        return 'Menampilkan rata-rata capaian semua indikator IMP-RS'
+        return `Menampilkan rata-rata capaian semua indikator IMP-RS. ${getTimeRangeDescription(timeRange)}`
     }
-    return `Menampilkan tren untuk: ${selectedIndicator}`
+    return `Menampilkan tren untuk: ${selectedIndicator}. ${getTimeRangeDescription(timeRange)}`
   }
   
   const ChartTooltipContent = (props: any) => {
@@ -148,7 +148,7 @@ export default function ImpRsPage() {
                     <CardTitle>Capaian Indikator Terkini</CardTitle>
                     <CardDescription>{getChartDescription()}</CardDescription>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap items-center justify-end gap-2">
                      <Select value={timeRange} onValueChange={(v) => setTimeRange(v as TimeRange)}>
                         <SelectTrigger className="w-full sm:w-[150px]">
                             <SelectValue placeholder="Pilih rentang..." />
@@ -229,7 +229,7 @@ export default function ImpRsPage() {
             showInputButton={true}
             chartData={chartData}
             chartDescription={getChartDescription()}
-            reportDescription={`Menampilkan data untuk filter: ${timeRangeToLabel(timeRange)}`}
+            reportDescription={getTimeRangeDescription(timeRange)}
             indicators={filteredIndicatorsForTable}
           />
       </div>

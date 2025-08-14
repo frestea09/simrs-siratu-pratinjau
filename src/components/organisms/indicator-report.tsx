@@ -13,7 +13,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { ReportPreviewDialog } from "./report-preview-dialog"
 import { useUserStore } from "@/store/user-store.tsx"
 import { CartesianGrid, LabelList, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis, LineChart, Line, Legend, Dot, BarChart, Bar } from "recharts"
-import { format } from "date-fns"
+import { format, parseISO } from "date-fns"
 import { AnalysisTable } from "./analysis-table"
 
 const centralRoles = [
@@ -80,7 +80,7 @@ export function IndicatorReport({ indicators, category, title, description, show
         const { active, payload } = props;
         if (active && payload && payload.length) {
             const data = payload[0].payload;
-            const date = data.date;
+            const date = parseISO(data.period);
             const timeRange = chartData && chartData.length > 30 ? '1y' : '30d'; // A simple heuristic
             const formattedDate = (timeRange === '6m' || timeRange === '1y') ? format(date, 'MMMM yyyy') : format(date, 'd MMMM yyyy');
           
@@ -104,7 +104,7 @@ export function IndicatorReport({ indicators, category, title, description, show
                     <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
                     <RechartsTooltip content={<ChartTooltipContent />} />
                     <Legend />
-                    <Line type="monotone" dataKey="Capaian" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} dot={<Dot r={4} fill="hsl(var(--primary))" />}>
+                    <Line type="monotone" dataKey="Capaian" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} dot={<Dot r={4} fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth={2} />}>
                         <LabelList dataKey="Capaian" position="top" className="text-xs" fill="hsl(var(--foreground))" />
                     </Line>
                      {chartData.some(d => d.Standar) && (

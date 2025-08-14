@@ -35,6 +35,7 @@ type ReportPreviewDialogProps<TData> = {
   lineChart?: React.ReactNode
   barChart?: React.ReactNode
   analysisTable?: React.ReactNode
+  chartDescription?: string
 }
 
 export function ReportPreviewDialog<TData>({
@@ -48,6 +49,7 @@ export function ReportPreviewDialog<TData>({
   lineChart,
   barChart,
   analysisTable,
+  chartDescription,
 }: ReportPreviewDialogProps<TData>) {
   const reportRef = React.useRef<HTMLDivElement>(null)
 
@@ -101,6 +103,7 @@ export function ReportPreviewDialog<TData>({
           th, td { border: 1px solid black; padding: 4px; text-align: left; vertical-align: top; font-size: 10px; }
           th { background-color: #f2f2f2; font-weight: bold; text-align: center; vertical-align: middle; }
           h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; }
+          .chart-description { font-size: 0.8rem; color: #6B7280; margin-top: -0.5rem; margin-bottom: 1rem;}
         `);
         printWindow.document.write('</style>');
         printWindow.document.write('</head><body class="bg-white">');
@@ -189,7 +192,7 @@ export function ReportPreviewDialog<TData>({
         <DialogHeader>
           <DialogTitle>Pratinjau Laporan</DialogTitle>
           <DialogDescription>
-            Pratinjau laporan sebelum dicetak. Untuk menyalin ke Word/Google Docs, klik di dalam area laporan di bawah, tekan Ctrl+A (atau Cmd+A) untuk memilih semua, lalu Ctrl+C untuk menyalin.
+            Untuk menyalin ke Word/Google Docs, klik di dalam area laporan di bawah, tekan Ctrl+A (atau Cmd+A) untuk memilih semua, lalu Ctrl+C untuk menyalin.
           </DialogDescription>
         </DialogHeader>
 
@@ -198,17 +201,13 @@ export function ReportPreviewDialog<TData>({
               {renderHeader(true)}
               {children ? children : (
                 <>
-                  {lineChart && (
-                      <div className="print-page">
-                          <h3 className="text-lg font-semibold mb-4">Grafik Tren (Garis)</h3>
-                          {lineChart}
-                      </div>
-                  )}
-                  {barChart && (
-                      <div className="print-page">
-                          <h3 className="text-lg font-semibold mb-4">Grafik Tren (Batang)</h3>
-                          {barChart}
-                      </div>
+                  {(lineChart || barChart) && (
+                    <div className="print-page">
+                        <h3 className="text-lg font-semibold mb-4">Analisis Tren Capaian</h3>
+                        {chartDescription && <p className="chart-description">{chartDescription}</p>}
+                        {lineChart}
+                        {barChart}
+                    </div>
                   )}
                    {analysisTable && (
                       <div className="print-page">

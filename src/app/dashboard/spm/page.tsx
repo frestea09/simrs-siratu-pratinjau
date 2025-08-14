@@ -197,7 +197,7 @@ export default function SpmPage() {
                       <Line type="monotone" dataKey="Capaian" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} dot={<Dot r={4} />}>
                         <LabelList dataKey="Capaian" position="top" />
                       </Line>
-                      {selectedIndicator !== 'Semua Indikator' && (
+                      {selectedIndicator !== 'Semua Indikator' && chartData.some(d => d.Standar) && (
                         <Line type="monotone" dataKey="Standar" stroke="hsl(var(--destructive))" strokeWidth={2} strokeDasharray="5 5" dot={false} />
                       )}
                     </LineChart>

@@ -62,7 +62,11 @@ export function IndicatorReportTable({ indicators, onExport, onEdit, showCategor
     },
     {
       accessorKey: "period",
-      header: "Periode",
+      header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          Periode <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
       cell: ({ row }) => {
         const dateValue = row.getValue("period") as string;
         const parsedDate = parseISO(dateValue);

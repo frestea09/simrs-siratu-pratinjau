@@ -82,7 +82,9 @@ export default function ImpRsPage() {
 
   const selectedIndicatorData = React.useMemo(() => {
     return impRsIndicators.filter(
-      i => selectedIndicator === "Semua Indikator" || i.indicator === i.indicator
+      i =>
+        selectedIndicator === "Semua Indikator" ||
+        i.indicator === selectedIndicator
     )
   }, [impRsIndicators, selectedIndicator])
 
@@ -111,7 +113,8 @@ export default function ImpRsPage() {
       if (
         filterType === "monthly" ||
         filterType === "7d" ||
-        filterType === "30d"
+        filterType === "30d" ||
+        filterType === "this_month"
       )
         return format(date, "yyyy-MM-dd") // Group by day
       if (
@@ -171,7 +174,10 @@ export default function ImpRsPage() {
       const data = payload[0].payload
       const date = data.date
       const formattedDate =
-        filterType === "yearly"
+        filterType === "yearly" ||
+        filterType === "1y" ||
+        filterType === "6m" ||
+        filterType === "3m"
           ? format(date, "MMMM yyyy", { locale: IndonesianLocale })
           : format(date, "d MMMM yyyy, HH:mm", { locale: IndonesianLocale })
 

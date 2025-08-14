@@ -79,7 +79,9 @@ export default function SpmPage() {
 
   const selectedIndicatorData = React.useMemo(() => {
     return spmIndicators.filter(
-      i => selectedIndicator === "Semua Indikator" || i.indicator === i.indicator
+      i =>
+        selectedIndicator === "Semua Indikator" ||
+        i.indicator === selectedIndicator
     )
   }, [spmIndicators, selectedIndicator])
 
@@ -108,7 +110,8 @@ export default function SpmPage() {
       if (
         filterType === "monthly" ||
         filterType === "7d" ||
-        filterType === "30d"
+        filterType === "30d" ||
+        filterType === "this_month"
       )
         return format(date, "yyyy-MM-dd") // Group by day
       if (
@@ -168,7 +171,10 @@ export default function SpmPage() {
       const data = payload[0].payload
       const date = data.date
       const formattedDate =
-        filterType === "yearly"
+        filterType === "yearly" ||
+        filterType === "1y" ||
+        filterType === "6m" ||
+        filterType === "3m"
           ? format(date, "MMMM yyyy", { locale: IndonesianLocale })
           : format(date, "d MMMM yyyy, HH:mm", { locale: IndonesianLocale })
 

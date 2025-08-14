@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { Line, LineChart, BarChart, Bar, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, LabelList, Dot } from "recharts"
+import { Line, LineChart, BarChart, Bar, CartesianGrid, ResponsiveContainer, XAxis, YAxis, Legend } from "recharts"
 import { IndicatorReport } from "@/components/organisms/indicator-report"
 import { useIndicatorStore } from "@/store/indicator-store"
 import { Target, ThumbsUp, ThumbsDown, LineChart as LineChartIcon, BarChart as BarChartIcon } from "lucide-react"
@@ -12,28 +12,20 @@ import { format, parseISO } from 'date-fns'
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { TimeRange, getStartDate, timeRangeToLabel } from "@/lib/indicator-utils"
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 
 type ChartType = 'line' | 'bar';
 
-const ChartTooltipContent = (props: any) => {
-    const { active, payload, label } = props;
-    if (active && payload && payload.length) {
-        const data = payload[0].payload;
-        const date = data.date;
-        // Simple heuristic to determine date format
-        const isMonthly = data.name.length === 3;
-        const formattedDate = isMonthly ? format(date, 'MMMM yyyy') : format(date, 'd MMMM yyyy');
-      
-        return (
-            <div className="p-2 bg-background border rounded-md shadow-lg">
-                <p className="font-bold text-foreground">{formattedDate}</p>
-                <p className="text-sm text-primary">{`Capaian: ${data.Capaian}`}</p>
-                {data.Standar && <p className="text-sm text-destructive">{`Standar: ${data.Standar}`}</p>}
-            </div>
-        );
-    }
-    return null;
-};
+const chartConfig = {
+  Capaian: {
+    label: "Capaian",
+    color: "hsl(var(--chart-1))",
+  },
+  Standar: {
+    label: "Standar",
+    color: "hsl(var(--chart-2))",
+  },
+} satisfies ChartConfig
 
 const CustomChart = ({ chartType, data, selectedIndicator }: { chartType: ChartType, data: any[], selectedIndicator: string }) => {
     if (data.length === 0) return null;
@@ -41,36 +33,62 @@ const CustomChart = ({ chartType, data, selectedIndicator }: { chartType: ChartT
     const ChartComponent = chartType === 'line' ? LineChart : BarChart;
 
     return (
-      <ResponsiveContainer width="100%" height={350}>
-          <ChartComponent data={data} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-            <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-            <Tooltip content={<ChartTooltipContent />} />
+      <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+          <ChartComponent
+            accessibilityLayer
+            data={data}
+            margin={{
+              top: 20,
+              right: 12,
+              left: 12,
+              bottom: 5,
+            }}
+          >
+            <CartesianGrid vertical={false} />
+            <XAxis
+              dataKey="name"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+            />
+             <YAxis
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+            />
+            <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
             <Legend />
             {chartType === 'line' ? (
               <>
-                  <Line 
-                      type="monotone" 
-                      dataKey="Capaian" 
-                      stroke="hsl(var(--primary))" 
-                      strokeWidth={2} 
-                      activeDot={<Dot r={6} fill="hsl(var(--primary))" />}
-                      dot={<Dot r={4} fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth={2} />}
-                  >
-                      <LabelList dataKey="Capaian" position="top" />
-                  </Line>
-                  {selectedIndicator !== 'Semua Indikator' && data.some(d => d.Standar) && (
-                      <Line type="monotone" dataKey="Standar" stroke="hsl(var(--destructive))" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-                  )}
+                <Line
+                  dataKey="Capaian"
+                  type="monotone"
+                  stroke="var(--color-Capaian)"
+                  strokeWidth={2}
+                  dot={{
+                    fill: "var(--color-Capaian)",
+                    r: 4,
+                  }}
+                  activeDot={{
+                    r: 6,
+                  }}
+                />
+                {selectedIndicator !== 'Semua Indikator' && data.some(d => d.Standar) && (
+                  <Line
+                    dataKey="Standar"
+                    type="monotone"
+                    stroke="var(--color-Standar)"
+                    strokeWidth={2}
+                    strokeDasharray="5 5"
+                    dot={false}
+                  />
+                )}
               </>
             ) : (
-               <Bar dataKey="Capaian" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
-                  <LabelList dataKey="Capaian" position="top" />
-                </Bar>
+              <Bar dataKey="Capaian" fill="var(--color-Capaian)" radius={4} />
             )}
           </ChartComponent>
-      </ResponsiveContainer>
+        </ChartContainer>
     );
 };
 
@@ -251,5 +269,6 @@ export default function InmPage() {
     </div>
   )
 }
+    
 
     

@@ -58,6 +58,7 @@ import { id as IndonesianLocale } from "date-fns/locale"
 import { useUserStore } from "@/store/user-store.tsx"
 import { HOSPITAL_UNITS } from "@/lib/constants"
 import { ArrowUpDown } from "lucide-react"
+import { Combobox } from "@/components/ui/combobox"
 
 type ChartType = "line" | "bar"
 
@@ -68,6 +69,8 @@ const centralRoles = [
   "Sub. Komite Keselamatan Pasien",
   "Sub. Komite Manajemen Risiko",
 ]
+
+const unitOptions = [{ value: "Semua Unit", label: "Semua Unit" }, ...HOSPITAL_UNITS.map(u => ({ value: u, label: u }))];
 
 export default function ImpuPage() {
   const { indicators } = useIndicatorStore()
@@ -92,9 +95,10 @@ export default function ImpuPage() {
   }, [impuIndicators, selectedUnit])
 
   const uniqueIndicatorNames = React.useMemo(() => {
+    const names = new Set(indicatorsForUnit.map(i => i.indicator));
     return [
-      "Semua Indikator",
-      ...new Set(indicatorsForUnit.map(i => i.indicator)),
+        { value: "Semua Indikator", label: "Semua Indikator" },
+        ...Array.from(names).map(name => ({ value: name, label: name }))
     ]
   }, [indicatorsForUnit])
 
@@ -120,12 +124,9 @@ export default function ImpuPage() {
 
   const filteredIndicatorsForTable = React.useMemo(() => {
     const { start, end } = getFilterRange(filterType, selectedDate)
-    const startDate = new Date(start.setHours(0, 0, 0, 0))
-    const endDate = new Date(end.setHours(23, 59, 59, 999))
-
     return selectedIndicatorData.filter(d => {
       const periodDate = parseISO(d.period)
-      return periodDate >= startDate && periodDate <= endDate
+      return periodDate >= start && periodDate <= end
     })
   }, [selectedIndicatorData, filterType, selectedDate])
 
@@ -416,37 +417,27 @@ export default function ImpuPage() {
                 {showCustomFilterInput && renderFilterInput()}
 
                 {userIsCentral && (
-                  <Select value={selectedUnit} onValueChange={setSelectedUnit}>
-                    <SelectTrigger className="w-full sm:w-[200px]">
-                      <SelectValue placeholder="Pilih unit..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Semua Unit">Semua Unit</SelectItem>
-                      {HOSPITAL_UNITS.map(unit => (
-                        <SelectItem key={unit} value={unit}>
-                          {unit}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="w-full sm:w-[200px]">
+                    <Combobox
+                        options={unitOptions}
+                        value={selectedUnit}
+                        onSelect={setSelectedUnit}
+                        placeholder="Pilih unit..."
+                        searchPlaceholder="Cari unit..."
+                    />
+                  </div>
                 )}
 
                 {uniqueIndicatorNames.length > 1 && (
-                  <Select
-                    value={selectedIndicator}
-                    onValueChange={setSelectedIndicator}
-                  >
-                    <SelectTrigger className="w-full sm:w-[300px]">
-                      <SelectValue placeholder="Pilih indikator..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {uniqueIndicatorNames.map(name => (
-                        <SelectItem key={name} value={name}>
-                          {name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                   <div className="w-full sm:w-[300px]">
+                    <Combobox
+                        options={uniqueIndicatorNames}
+                        value={selectedIndicator}
+                        onSelect={setSelectedIndicator}
+                        placeholder="Pilih indikator..."
+                        searchPlaceholder="Cari indikator..."
+                    />
+                   </div>
                 )}
                 <div className="flex items-center rounded-md border p-1">
                   <Button
@@ -567,5 +558,3 @@ export default function ImpuPage() {
     </div>
   )
 }
-
-    

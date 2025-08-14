@@ -31,11 +31,10 @@ type IndicatorReportProps = {
     description?: string;
     showInputButton?: boolean;
     chartData?: any[]; // Allow passing chart data
-    chartDescription?: string;
     reportDescription?: string;
 }
 
-export function IndicatorReport({ indicators, category, title, description, showInputButton = true, chartData, chartDescription, reportDescription }: IndicatorReportProps) {
+export function IndicatorReport({ indicators, category, title, description, showInputButton = true, chartData, reportDescription }: IndicatorReportProps) {
     const { submittedIndicators } = useIndicatorStore()
     const { currentUser } = useUserStore();
     const [reportTableData, setReportTableData] = React.useState<any[] | null>(null)
@@ -70,18 +69,11 @@ export function IndicatorReport({ indicators, category, title, description, show
         setEditingIndicator(undefined);
         setIsInputOpen(true);
     }
-    
-    const userIndicators = React.useMemo(() => {
-        if(userCanSeeAll || !currentUser?.unit) return indicators;
-        return indicators.filter(i => i.unit === currentUser.unit);
-    }, [indicators, currentUser, userCanSeeAll]);
 
     const ChartTooltipContent = (props: any) => {
         const { active, payload } = props;
         if (active && payload && payload.length) {
             const data = payload[0].payload;
-            // The data object from the chart might not have the 'period' property directly.
-            // It has 'date' from the chartData mapping.
             if (!data.date) return null;
 
             const date = data.date;
@@ -176,7 +168,7 @@ export function IndicatorReport({ indicators, category, title, description, show
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <IndicatorReportTable indicators={userIndicators} onExport={handleExport} onEdit={handleEdit}/>
+                    <IndicatorReportTable indicators={indicators} onExport={handleExport} onEdit={handleEdit}/>
                 </CardContent>
             </Card>
             <ReportPreviewDialog

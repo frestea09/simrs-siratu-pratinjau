@@ -230,7 +230,6 @@ export default function ImpuPage() {
             description="Riwayat data Indikator Mutu Prioritas Unit (IMPU) yang telah diinput."
             showInputButton={true}
             chartData={chartData}
-            chartDescription={getChartDescription()}
             reportDescription={getTimeRangeDescription(timeRange)}
             indicators={filteredIndicatorsForTable}
         />

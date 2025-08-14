@@ -230,7 +230,6 @@ export default function SpmPage() {
             description="Riwayat data Standar Pelayanan Minimal (SPM) yang telah diinput."
             showInputButton={true}
             chartData={chartData}
-            chartDescription={getChartDescription()}
             reportDescription={getTimeRangeDescription(timeRange)}
             indicators={filteredIndicatorsForTable}
         />

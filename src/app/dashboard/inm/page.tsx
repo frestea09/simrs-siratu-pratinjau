@@ -231,7 +231,6 @@ export default function InmPage() {
             description="Riwayat data Indikator Nasional Mutu (INM) yang telah diinput."
             showInputButton={true}
             chartData={chartData}
-            chartDescription={getChartDescription()}
             reportDescription={getTimeRangeDescription(timeRange)}
             indicators={filteredIndicatorsForTable}
         />

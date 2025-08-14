@@ -231,7 +231,6 @@ export default function ImpRsPage() {
             description="Riwayat data Indikator Mutu Prioritas Rumah Sakit (IMP-RS) yang telah diinput."
             showInputButton={true}
             chartData={chartData}
-            chartDescription={getChartDescription()}
             reportDescription={getTimeRangeDescription(timeRange)}
             indicators={filteredIndicatorsForTable}
           />

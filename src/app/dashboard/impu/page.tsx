@@ -32,6 +32,7 @@ import {
   LineChart as LineChartIcon,
   BarChart as BarChartIcon,
   Calendar as CalendarIcon,
+  Filter,
 } from "lucide-react"
 import {
   Select,
@@ -57,8 +58,8 @@ import { Calendar } from "@/components/ui/calendar"
 import { id as IndonesianLocale } from "date-fns/locale"
 import { useUserStore } from "@/store/user-store.tsx"
 import { HOSPITAL_UNITS } from "@/lib/constants"
-import { ArrowUpDown } from "lucide-react"
 import { Combobox } from "@/components/ui/combobox"
+import { Label } from "@/components/ui/label"
 
 type ChartType = "line" | "bar"
 
@@ -388,83 +389,97 @@ export default function ImpuPage() {
       <div className="space-y-4">
         <Card>
           <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <CardTitle>Capaian Indikator Terkini</CardTitle>
-                <CardDescription>{getChartDescription()}</CardDescription>
-              </div>
-              <div className="flex flex-wrap items-center justify-end gap-2">
-                <Select
-                  value={filterType}
-                  onValueChange={v => setFilterType(v as FilterType)}
-                >
-                  <SelectTrigger className="w-full sm:w-[180px]">
-                    <SelectValue placeholder="Pilih rentang..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="this_month">Bulan Ini</SelectItem>
-                    <SelectItem value="7d">7 Hari Terakhir</SelectItem>
-                    <SelectItem value="30d">30 Hari Terakhir</SelectItem>
-                    <SelectItem value="3m">3 Bulan Terakhir</SelectItem>
-                    <SelectItem value="6m">6 Bulan Terakhir</SelectItem>
-                    <SelectItem value="1y">1 Tahun Terakhir</SelectItem>
-                    <SelectItem value="daily">Harian (Custom)</SelectItem>
-                    <SelectItem value="monthly">Bulanan (Custom)</SelectItem>
-                    <SelectItem value="yearly">Tahunan (Custom)</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {showCustomFilterInput && renderFilterInput()}
-
-                {userIsCentral && (
-                  <div className="w-full sm:w-[200px]">
-                    <Combobox
-                        options={unitOptions}
-                        value={selectedUnit}
-                        onSelect={setSelectedUnit}
-                        placeholder="Pilih unit..."
-                        searchPlaceholder="Cari unit..."
-                    />
-                  </div>
-                )}
-
-                {uniqueIndicatorNames.length > 1 && (
-                   <div className="w-full sm:w-[300px]">
-                    <Combobox
-                        options={uniqueIndicatorNames}
-                        value={selectedIndicator}
-                        onSelect={setSelectedIndicator}
-                        placeholder="Pilih indikator..."
-                        searchPlaceholder="Cari indikator..."
-                    />
-                   </div>
-                )}
-                <div className="flex items-center rounded-md border p-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setChartType("line")}
-                    className={cn(
-                      "h-8 w-8",
-                      chartType === "line" && "bg-muted"
+             <CardTitle>
+                <Filter className="mr-2 h-5 w-5 inline-block" />
+                Filter & Tampilan Data
+              </CardTitle>
+            <CardDescription>Gunakan filter di bawah untuk menampilkan data yang lebih spesifik.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                 <div className="space-y-2">
+                     <Label>Filter Data</Label>
+                    <div className="space-y-2">
+                         {userIsCentral && (
+                             <Combobox
+                                options={unitOptions}
+                                value={selectedUnit}
+                                onSelect={setSelectedUnit}
+                                placeholder="Pilih unit..."
+                                searchPlaceholder="Cari unit..."
+                            />
+                        )}
+                        {uniqueIndicatorNames.length > 1 && (
+                            <Combobox
+                                options={uniqueIndicatorNames}
+                                value={selectedIndicator}
+                                onSelect={setSelectedIndicator}
+                                placeholder="Pilih indikator..."
+                                searchPlaceholder="Cari indikator..."
+                            />
+                        )}
+                    </div>
+                </div>
+                 <div className="space-y-2">
+                     <Label>Tampilan & Rentang Waktu</Label>
+                     <div className="flex flex-col sm:flex-row gap-2">
+                         <div className="flex-grow">
+                             <Select
+                                value={filterType}
+                                onValueChange={v => setFilterType(v as FilterType)}
+                                >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Pilih rentang..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="this_month">Bulan Ini</SelectItem>
+                                    <SelectItem value="7d">7 Hari Terakhir</SelectItem>
+                                    <SelectItem value="30d">30 Hari Terakhir</SelectItem>
+                                    <SelectItem value="3m">3 Bulan Terakhir</SelectItem>
+                                    <SelectItem value="6m">6 Bulan Terakhir</SelectItem>
+                                    <SelectItem value="1y">1 Tahun Terakhir</SelectItem>
+                                    <SelectItem value="daily">Harian (Custom)</SelectItem>
+                                    <SelectItem value="monthly">Bulanan (Custom)</SelectItem>
+                                    <SelectItem value="yearly">Tahunan (Custom)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="flex items-center rounded-md border p-1 w-fit self-end">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setChartType("line")}
+                                className={cn("h-8 w-8", chartType === "line" && "bg-muted")}
+                                >
+                                <LineChartIcon className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setChartType("bar")}
+                                className={cn("h-8 w-8", chartType === "bar" && "bg-muted")}
+                                >
+                                <BarChartIcon className="h-4 w-4" />
+                            </Button>
+                        </div>
+                     </div>
+                </div>
+                 <div className="space-y-2">
+                    {showCustomFilterInput && (
+                      <>
+                        <Label>Filter Kustom</Label>
+                        <div>{renderFilterInput()}</div>
+                      </>
                     )}
-                  >
-                    <LineChartIcon className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setChartType("bar")}
-                    className={cn(
-                      "h-8 w-8",
-                      chartType === "bar" && "bg-muted"
-                    )}
-                  >
-                    <BarChartIcon className="h-4 w-4" />
-                  </Button>
                 </div>
               </div>
-            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Capaian Indikator Terkini</CardTitle>
+            <CardDescription>{getChartDescription()}</CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
             <ResponsiveContainer width="100%" height={350}>

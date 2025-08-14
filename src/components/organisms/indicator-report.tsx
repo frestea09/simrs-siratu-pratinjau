@@ -144,7 +144,7 @@ export function IndicatorReport({ indicators, category, title, description, show
                         {showInputButton && (
                              <div className="flex items-center gap-2">
                                 {hasVerifiedIndicators ? (
-                                    <Button onClick={handleAddNew}>
+                                    <Button onClick={handleAddNew} size="lg">
                                         <PlusCircle className="mr-2 h-4 w-4" />
                                         Input Data Capaian
                                     </Button>
@@ -152,7 +152,7 @@ export function IndicatorReport({ indicators, category, title, description, show
                                     <Tooltip>
                                         <TooltipTrigger asChild>
                                             <span tabIndex={0}>
-                                                <Button disabled>
+                                                <Button disabled size="lg">
                                                     <PlusCircle className="mr-2 h-4 w-4" />
                                                     Input Data Capaian
                                                 </Button>

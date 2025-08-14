@@ -189,7 +189,7 @@ export function ReportPreviewDialog<TData>({
         <DialogHeader>
           <DialogTitle>Pratinjau Laporan</DialogTitle>
           <DialogDescription>
-            Pratinjau laporan sebelum diunduh atau dicetak. Anda dapat menyalin konten ini dan menempelkannya ke Word atau Google Docs.
+            Pratinjau laporan sebelum dicetak. Untuk menyalin ke Word/Google Docs, klik di dalam area laporan di bawah, tekan Ctrl+A (atau Cmd+A) untuk memilih semua, lalu Ctrl+C untuk menyalin.
           </DialogDescription>
         </DialogHeader>
 

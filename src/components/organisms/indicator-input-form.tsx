@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import React from "react"
@@ -34,7 +35,7 @@ type IndicatorInputFormProps = {
 
 export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: IndicatorInputFormProps) {
   const { toast } = useToast()
-  const { addIndicator, updateIndicator, submittedIndicators } = useIndicatorStore()
+  const { addIndicator, updateIndicator, submittedIndicators, indicators } = useIndicatorStore()
   const { currentUser } = useUserStore()
   const { addLog } = useLogStore()
 
@@ -84,7 +85,13 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
       }
       return allVerified.filter(indicator => indicator.unit === currentUser.unit);
   }, [submittedIndicators, currentUser, userCanSeeAll, category]);
-
+  
+  const filledDates = React.useMemo(() => {
+    if (!selectedSubmittedIndicator) return [];
+    return indicators
+        .filter(i => i.indicator === selectedSubmittedIndicator.name)
+        .map(i => new Date(i.period));
+  }, [indicators, selectedSubmittedIndicator]);
 
   const handleSubmit = () => {
     if (!selectedSubmittedIndicator || !date || !numerator || !denominator) {
@@ -177,7 +184,31 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
-              <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
+              <Calendar 
+                mode="single" 
+                selected={date} 
+                onSelect={setDate} 
+                disabled={{ after: new Date() }}
+                initialFocus 
+                modifiers={{ filled: filledDates }}
+                modifiersStyles={{
+                    filled: { 
+                        position: 'relative',
+                        '::after': {
+                            content: '""',
+                            display: 'block',
+                            position: 'absolute',
+                            bottom: '4px',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            width: '4px',
+                            height: '4px',
+                            borderRadius: '50%',
+                            backgroundColor: 'hsl(var(--primary))'
+                        }
+                    }
+                }}
+              />
             </PopoverContent>
           </Popover>
         </div>
@@ -242,5 +273,3 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
     </div>
   )
 }
-
-    

@@ -95,9 +95,14 @@ export default function SpmPage() {
   const meetingStandard = spmIndicators.filter(i => i.status === 'Memenuhi Standar').length;
   const notMeetingStandard = totalIndicators - meetingStandard;
   
-  const chartData = React.useMemo(() => {
+  const filteredIndicatorsForTable = React.useMemo(() => {
     const startDate = getStartDate(timeRange);
-    const filtered = selectedIndicatorData.filter(d => parseISO(d.period) >= startDate);
+    return selectedIndicatorData.filter(d => parseISO(d.period) >= startDate);
+  }, [selectedIndicatorData, timeRange]);
+
+  const chartData = React.useMemo(() => {
+    // BUG FIX: Use filteredIndicatorsForTable which is already filtered by timeRange
+    const dataForChart = filteredIndicatorsForTable;
 
     const getGroupKey = (date: Date) => {
         if (timeRange === '7d' || timeRange === '30d') return format(date, 'yyyy-MM-dd');
@@ -105,7 +110,7 @@ export default function SpmPage() {
         return format(date, 'yyyy-MM-dd');
     };
 
-    const groupedData = filtered.reduce((acc, curr) => {
+    const groupedData = dataForChart.reduce((acc, curr) => {
         const key = getGroupKey(parseISO(curr.period));
         if (!acc[key]) {
             acc[key] = {
@@ -128,12 +133,8 @@ export default function SpmPage() {
       }))
       .sort((a, b) => a.date.getTime() - b.date.getTime());
 
-  }, [selectedIndicatorData, timeRange, selectedIndicator]);
+  }, [filteredIndicatorsForTable, timeRange, selectedIndicator]);
   
-  const filteredIndicatorsForTable = React.useMemo(() => {
-    const startDate = getStartDate(timeRange);
-    return selectedIndicatorData.filter(d => parseISO(d.period) >= startDate);
-  }, [selectedIndicatorData, timeRange]);
 
   const getChartDescription = () => {
     if (selectedIndicator === 'Semua Indikator') {
@@ -250,3 +251,5 @@ export default function SpmPage() {
     </div>
   )
 }
+
+    

@@ -35,8 +35,8 @@ export const calculateStatus = (indicator: Omit<Indicator, 'id' |'ratio' | 'stat
 export const getStartDate = (range: TimeRange) => {
     const now = new Date();
     switch (range) {
-        case '7d': return subDays(now, 7);
-        case '30d': return subDays(now, 30);
+        case '7d': return subDays(now, 6);
+        case '30d': return subDays(now, 29);
         case 'monthly': return startOfMonth(now);
         case '3m': return startOfMonth(subMonths(now, 2));
         case '6m': return startOfMonth(subMonths(now, 5));

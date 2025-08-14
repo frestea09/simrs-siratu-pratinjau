@@ -80,7 +80,11 @@ export function IndicatorReport({ indicators, category, title, description, show
         const { active, payload } = props;
         if (active && payload && payload.length) {
             const data = payload[0].payload;
-            const date = parseISO(data.period);
+            // The data object from the chart might not have the 'period' property directly.
+            // It has 'date' from the chartData mapping.
+            if (!data.date) return null;
+
+            const date = data.date;
             const timeRange = chartData && chartData.length > 30 ? '1y' : '30d'; // A simple heuristic
             const formattedDate = (timeRange === '6m' || timeRange === '1y') ? format(date, 'MMMM yyyy') : format(date, 'd MMMM yyyy');
           

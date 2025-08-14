@@ -35,47 +35,42 @@ const ChartTooltipContent = (props: any) => {
     return null;
 };
 
-const CustomChart = ({ chartType, data, unit, selectedIndicator }: { chartType: ChartType, data: any[], unit: string, selectedIndicator: string }) => {
+const CustomChart = ({ chartType, data, selectedIndicator }: { chartType: ChartType, data: any[], selectedIndicator: string }) => {
     if (data.length === 0) return null;
 
     const ChartComponent = chartType === 'line' ? LineChart : BarChart;
 
     return (
-      <>
-        <CardTitle className="px-6 pt-4 text-lg">
-          Rata-rata Capaian Indikator ({unit})
-        </CardTitle>
-        <ResponsiveContainer width="100%" height={350}>
-            <ChartComponent data={data} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-              <Tooltip content={<ChartTooltipContent />} />
-              <Legend />
-              {chartType === 'line' ? (
-                <>
-                    <Line 
-                        type="monotone" 
-                        dataKey="Capaian" 
-                        stroke="hsl(var(--primary))" 
-                        strokeWidth={2} 
-                        activeDot={<Dot r={6} fill="hsl(var(--primary))" />}
-                        dot={<Dot r={4} fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth={2} />}
-                    >
-                        <LabelList dataKey="Capaian" position="top" />
-                    </Line>
-                    {selectedIndicator !== 'Semua Indikator' && data.some(d => d.Standar) && (
-                        <Line type="monotone" dataKey="Standar" stroke="hsl(var(--destructive))" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-                    )}
-                </>
-              ) : (
-                 <Bar dataKey="Capaian" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
-                    <LabelList dataKey="Capaian" position="top" />
-                  </Bar>
-              )}
-            </ChartComponent>
-        </ResponsiveContainer>
-      </>
+      <ResponsiveContainer width="100%" height={350}>
+          <ChartComponent data={data} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+            <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+            <Tooltip content={<ChartTooltipContent />} />
+            <Legend />
+            {chartType === 'line' ? (
+              <>
+                  <Line 
+                      type="monotone" 
+                      dataKey="Capaian" 
+                      stroke="hsl(var(--primary))" 
+                      strokeWidth={2} 
+                      activeDot={<Dot r={6} fill="hsl(var(--primary))" />}
+                      dot={<Dot r={4} fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth={2} />}
+                  >
+                      <LabelList dataKey="Capaian" position="top" />
+                  </Line>
+                  {selectedIndicator !== 'Semua Indikator' && data.some(d => d.Standar) && (
+                      <Line type="monotone" dataKey="Standar" stroke="hsl(var(--destructive))" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                  )}
+              </>
+            ) : (
+               <Bar dataKey="Capaian" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
+                  <LabelList dataKey="Capaian" position="top" />
+                </Bar>
+            )}
+          </ChartComponent>
+      </ResponsiveContainer>
     );
 };
 
@@ -100,7 +95,7 @@ export default function ImpuPage() {
   const meetingStandard = impuIndicators.filter(i => i.status === 'Memenuhi Standar').length;
   const notMeetingStandard = totalIndicators - meetingStandard;
 
-  const { chartData, chartDataMinutes } = React.useMemo(() => {
+  const chartData = React.useMemo(() => {
     const startDate = getStartDate(timeRange);
     const filtered = selectedIndicatorData.filter(d => parseISO(d.period) >= startDate);
 
@@ -109,37 +104,30 @@ export default function ImpuPage() {
         if (timeRange === '3m' || timeRange === '6m' || timeRange === '1y') return format(date, 'yyyy-MM');
         return format(date, 'yyyy-MM-dd');
     };
+    
+    const groupedData = filtered.reduce((acc, curr) => {
+        const key = getGroupKey(parseISO(curr.period));
+        if (!acc[key]) {
+            acc[key] = {
+                date: parseISO(curr.period),
+                Capaian: 0,
+                Standar: selectedIndicator !== 'Semua Indikator' ? curr.standard : undefined,
+                count: 0
+            };
+        }
+        acc[key].Capaian += parseFloat(curr.ratio);
+        acc[key].count += 1;
+        return acc;
+    }, {} as Record<string, { date: Date, Capaian: number, Standar?: number, count: number }>);
+    
+    return Object.values(groupedData)
+      .map(d => ({
+          ...d,
+          Capaian: parseFloat((d.Capaian / d.count).toFixed(1)),
+          name: timeRange === '3m' || timeRange === '6m' || timeRange === '1y' ? format(d.date, 'MMM') : format(d.date, 'dd MMM'),
+      }))
+      .sort((a, b) => a.date.getTime() - b.date.getTime());
 
-    const processData = (unit: '%' | 'menit') => {
-      const unitFiltered = filtered.filter(i => i.standardUnit === unit);
-      const groupedData = unitFiltered.reduce((acc, curr) => {
-          const key = getGroupKey(parseISO(curr.period));
-          if (!acc[key]) {
-              acc[key] = {
-                  date: parseISO(curr.period),
-                  Capaian: 0,
-                  Standar: selectedIndicator !== 'Semua Indikator' ? curr.standard : undefined,
-                  count: 0
-              };
-          }
-          acc[key].Capaian += parseFloat(curr.ratio);
-          acc[key].count += 1;
-          return acc;
-      }, {} as Record<string, { date: Date, Capaian: number, Standar?: number, count: number }>);
-      
-      return Object.values(groupedData)
-        .map(d => ({
-            ...d,
-            Capaian: parseFloat((d.Capaian / d.count).toFixed(1)),
-            name: timeRange === '3m' || timeRange === '6m' || timeRange === '1y' ? format(d.date, 'MMM') : format(d.date, 'dd MMM'),
-        }))
-        .sort((a, b) => a.date.getTime() - b.date.getTime());
-    };
-
-    return {
-      chartData: processData('%'),
-      chartDataMinutes: processData('menit')
-    };
   }, [selectedIndicatorData, timeRange, selectedIndicator]);
   
   const filteredIndicatorsForTable = React.useMemo(() => {
@@ -238,15 +226,12 @@ export default function ImpuPage() {
              </div>
           </CardHeader>
           <CardContent className="pl-2">
-            {chartData.length === 0 && chartDataMinutes.length === 0 ? (
+            {chartData.length === 0 ? (
                 <div className="flex items-center justify-center h-[350px] text-muted-foreground">
                     Tidak cukup data untuk menampilkan grafik.
                 </div>
             ) : (
-                <>
-                    <CustomChart chartType={chartType} data={chartData} unit="%" selectedIndicator={selectedIndicator} />
-                    <CustomChart chartType={chartType} data={chartDataMinutes} unit="Menit" selectedIndicator={selectedIndicator} />
-                </>
+                <CustomChart chartType={chartType} data={chartData} selectedIndicator={selectedIndicator} />
             )}
           </CardContent>
         </Card>
@@ -256,7 +241,7 @@ export default function ImpuPage() {
             title="Laporan Indikator Mutu Prioritas Unit"
             description="Riwayat data Indikator Mutu Prioritas Unit (IMPU) yang telah diinput."
             showInputButton={true}
-            chartData={chartData.length > 0 ? chartData : chartDataMinutes}
+            chartData={chartData}
             chartDescription={getChartDescription()}
             reportDescription={`Menampilkan data untuk filter: ${timeRangeToLabel(timeRange)}`}
             indicators={filteredIndicatorsForTable}

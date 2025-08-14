@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -24,7 +25,7 @@ export default function SpmPage() {
   }, [spmIndicators])
 
   const [selectedIndicator, setSelectedIndicator] = React.useState<string>("Semua Indikator");
-  const [timeRange, setTimeRange] = React.useState<TimeRange>('6m');
+  const [timeRange, setTimeRange] = React.useState<TimeRange>('monthly');
   const [chartType, setChartType] = React.useState<ChartType>('line');
 
   const selectedIndicatorData = React.useMemo(() => {
@@ -47,7 +48,7 @@ export default function SpmPage() {
     const dataForChart = filteredIndicatorsForTable;
 
     const getGroupKey = (date: Date) => {
-        if (timeRange === '7d' || timeRange === '30d') return format(date, 'yyyy-MM-dd');
+        if (timeRange === '7d' || timeRange === '30d' || timeRange === 'monthly') return format(date, 'yyyy-MM-dd');
         if (timeRange === '3m' || timeRange === '6m' || timeRange === '1y') return format(date, 'yyyy-MM');
         return format(date, 'yyyy-MM-dd');
     };
@@ -157,6 +158,7 @@ export default function SpmPage() {
                         <SelectContent>
                             <SelectItem value="7d">7 Hari</SelectItem>
                             <SelectItem value="30d">30 Hari</SelectItem>
+                            <SelectItem value="monthly">Bulan Ini</SelectItem>
                             <SelectItem value="3m">3 Bulan</SelectItem>
                             <SelectItem value="6m">6 Bulan</SelectItem>
                             <SelectItem value="1y">1 Tahun</SelectItem>

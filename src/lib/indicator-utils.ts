@@ -1,9 +1,9 @@
 
-import { subDays, startOfMonth, startOfYear, subMonths, format } from 'date-fns';
+import { subDays, startOfMonth, startOfYear, subMonths, format, endOfMonth } from 'date-fns';
 import { id as IndonesianLocale } from 'date-fns/locale';
 import type { Indicator } from '@/store/indicator-store';
 
-export type TimeRange = '7d' | '30d' | '3m' | '6m' | '1y';
+export type TimeRange = '7d' | '30d' | 'monthly' | '3m' | '6m' | '1y';
 
 export const calculateRatio = (indicator: Omit<Indicator, 'id' | 'ratio' | 'status'>): string => {
     if (indicator.standardUnit === "menit") {
@@ -35,12 +35,13 @@ export const calculateStatus = (indicator: Omit<Indicator, 'id' |'ratio' | 'stat
 export const getStartDate = (range: TimeRange) => {
     const now = new Date();
     switch (range) {
-        case '7d': return subDays(now, 6);
-        case '30d': return subDays(now, 29);
+        case '7d': return subDays(now, 7);
+        case '30d': return subDays(now, 30);
+        case 'monthly': return startOfMonth(now);
         case '3m': return startOfMonth(subMonths(now, 2));
         case '6m': return startOfMonth(subMonths(now, 5));
         case '1y': return startOfYear(now);
-        default: return startOfMonth(subMonths(now, 5));
+        default: return startOfMonth(now);
     }
 }
 
@@ -48,6 +49,7 @@ export const timeRangeToLabel = (range: TimeRange): string => {
     switch (range) {
         case '7d': return '7 Hari Terakhir';
         case '30d': return '30 Hari Terakhir';
+        case 'monthly': return 'Bulan Ini';
         case '3m': return '3 Bulan Terakhir';
         case '6m': return '6 Bulan Terakhir';
         case '1y': return 'Tahun Ini';
@@ -58,8 +60,12 @@ export const timeRangeToLabel = (range: TimeRange): string => {
 export const getTimeRangeDescription = (range: TimeRange): string => {
     const now = new Date();
     const startDate = getStartDate(range);
-    const endDate = now;
+    let endDate = now;
 
+    if (range === 'monthly') {
+        endDate = endOfMonth(now);
+    }
+    
     const formattedStartDate = format(startDate, 'd MMM yyyy', { locale: IndonesianLocale });
     const formattedEndDate = format(endDate, 'd MMM yyyy', { locale: IndonesianLocale });
     

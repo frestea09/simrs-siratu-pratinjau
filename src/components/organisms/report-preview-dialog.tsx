@@ -201,11 +201,17 @@ export function ReportPreviewDialog<TData>({
               {renderHeader(true)}
               {children ? children : (
                 <>
-                  {(lineChart || barChart) && (
-                    <div className="print-page">
-                        <h3 className="text-lg font-semibold mb-4">Analisis Tren Capaian</h3>
+                  {lineChart && (
+                     <div className="print-page">
+                        <h3 className="text-lg font-semibold mb-4">Grafik Tren (Garis)</h3>
                         {chartDescription && <p className="chart-description">{chartDescription}</p>}
                         {lineChart}
+                    </div>
+                  )}
+                   {barChart && (
+                     <div className="print-page">
+                        <h3 className="text-lg font-semibold mb-4">Grafik Tren (Batang)</h3>
+                        {chartDescription && <p className="chart-description">{chartDescription}</p>}
                         {barChart}
                     </div>
                   )}

@@ -98,14 +98,14 @@ export function IndicatorReport({ indicators, category, title, description, show
     const lineChartComponent = chartData && (
         <div style={{ width: '100%', height: 350 }}>
             <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                <LineChart data={chartData} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
                     <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
                     <RechartsTooltip content={<ChartTooltipContent />} />
                     <Legend />
-                    <Line type="monotone" dataKey="Capaian" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} dot={<Dot r={4} />}>
-                        <LabelList dataKey="Capaian" position="top" />
+                    <Line type="monotone" dataKey="Capaian" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} dot={<Dot r={4} fill="hsl(var(--primary))" />}>
+                        <LabelList dataKey="Capaian" position="top" className="text-xs" fill="hsl(var(--foreground))" />
                     </Line>
                      {chartData.some(d => d.Standar) && (
                         <Line type="monotone" dataKey="Standar" stroke="hsl(var(--destructive))" strokeWidth={2} strokeDasharray="5 5" dot={false} />

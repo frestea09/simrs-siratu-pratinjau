@@ -37,10 +37,9 @@ export default function ImpRsPage() {
   
   const filteredIndicatorsForTable = React.useMemo(() => {
     const startDate = getStartDate(timeRange);
-    const endDate = new Date();
     return selectedIndicatorData.filter(d => {
         const periodDate = parseISO(d.period);
-        return periodDate >= startDate && periodDate <= endDate;
+        return periodDate >= startDate;
     });
   }, [selectedIndicatorData, timeRange]);
 

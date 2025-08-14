@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -38,7 +37,11 @@ export default function ImpuPage() {
 
   const filteredIndicatorsForTable = React.useMemo(() => {
     const startDate = getStartDate(timeRange);
-    return selectedIndicatorData.filter(d => parseISO(d.period) >= startDate);
+    const endDate = new Date();
+    return selectedIndicatorData.filter(d => {
+        const periodDate = parseISO(d.period);
+        return periodDate >= startDate && periodDate <= endDate;
+    });
   }, [selectedIndicatorData, timeRange]);
 
   const chartData = React.useMemo(() => {
@@ -76,10 +79,10 @@ export default function ImpuPage() {
   }, [filteredIndicatorsForTable, timeRange, selectedIndicator]);
   
   const getChartDescription = () => {
-    if (selectedIndicator === 'Semua Indikator') {
-        return `Menampilkan rata-rata capaian semua indikator IMPU. ${getTimeRangeDescription(timeRange)}`
-    }
-    return `Menampilkan tren untuk: ${selectedIndicator}. ${getTimeRangeDescription(timeRange)}`
+    const baseDescription = selectedIndicator === 'Semua Indikator' 
+        ? 'Menampilkan rata-rata capaian semua indikator IMPU.' 
+        : `Menampilkan tren untuk: ${selectedIndicator}.`;
+    return `${baseDescription} ${getTimeRangeDescription(timeRange)}`;
   }
 
   const ChartTooltipContent = (props: any) => {

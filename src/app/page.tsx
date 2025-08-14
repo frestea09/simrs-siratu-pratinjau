@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -19,6 +19,8 @@ import { Hospital, Users, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useUserStore } from "@/store/user-store"
 import { useLogStore } from "@/store/log-store"
+import Image from "next/image";
+import favicon from "@/app/favicon.ico";
 
 export default function LoginPage() {
   const router = useRouter()
@@ -72,8 +74,8 @@ export default function LoginPage() {
       <Card className="mx-auto max-w-sm w-full">
         <CardHeader>
           <div className="flex items-center justify-center mb-4">
-            <Hospital className="h-8 w-8 mr-2 text-primary" />
-            <CardTitle className="text-2xl">SIRATU</CardTitle>
+              <Image className="h-8 w-8 text-primary"  src={favicon} alt="logorsud" />
+              <CardTitle className="text-2xl">SIRATU</CardTitle>
           </div>
           <CardDescription>
             Sistem Informasi Rapor Mutu - RSUD Oto Iskandar Dinata

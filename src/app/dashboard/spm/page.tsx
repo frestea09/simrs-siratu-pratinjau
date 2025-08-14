@@ -46,7 +46,7 @@ const CustomChart = ({ chartType, data, unit, selectedIndicator }: { chartType: 
           Rata-rata Capaian Indikator ({unit})
         </CardTitle>
         <ResponsiveContainer width="100%" height={350}>
-            <ChartComponent data={data}>
+            <ChartComponent data={data} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
               <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
@@ -54,7 +54,7 @@ const CustomChart = ({ chartType, data, unit, selectedIndicator }: { chartType: 
               <Legend />
               {chartType === 'line' ? (
                 <>
-                    <Line type="monotone" dataKey="Capaian" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} dot={{ r: 4, fill: "hsl(var(--primary))" }}>
+                    <Line type="monotone" dataKey="Capaian" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} dot={<Dot r={4} fill="hsl(var(--primary))" />}>
                         <LabelList dataKey="Capaian" position="top" />
                     </Line>
                     {selectedIndicator !== 'Semua Indikator' && data.some(d => d.Standar) && (

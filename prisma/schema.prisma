@@ -100,6 +100,13 @@ enum RiskCategory {
   BAHAYA_PSIKOSOSIAL
 }
 
+enum RiskLevel {
+  Rendah
+  Moderat
+  Tinggi
+  Ekstrem
+}
+
 enum RiskEvaluation {
   MITIGASI
   TRANSFER
@@ -147,27 +154,27 @@ model IndicatorSubmission {
 }
 
 model Indicator {
-  id             String          @id @default(cuid())
-  indicator      String
-  category       IndicatorCategory
-  unit           String
-  period         DateTime
-  frequency      IndicatorFrequency
-  numerator      Float
-  denominator    Float
-  standard       Float
-  standardUnit   StandardUnit
-  analysisNotes  String?         @db.Text
-  followUpPlan   String?         @db.Text
-  ratio          String
-  status         IndicatorStatus
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id            String             @id @default(cuid())
+  indicator     String
+  category      IndicatorCategory
+  unit          String
+  period        DateTime
+  frequency     IndicatorFrequency
+  numerator     Float
+  denominator   Float
+  standard      Float
+  standardUnit  StandardUnit
+  analysisNotes String?            @db.Text
+  followUpPlan  String?            @db.Text
+  ratio         String
+  status        IndicatorStatus
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
 }
 
 model Incident {
-  id                  String         @id @default(cuid())
-  date                DateTime       @default(now())
+  id                  String           @id @default(cuid())
+  date                DateTime         @default(now())
   status              IncidentStatus
   patientName         String?
   medicalRecordNumber String?
@@ -179,20 +186,20 @@ model Incident {
   entryTime           String?
   incidentDate        DateTime?
   incidentTime        String?
-  chronology          String?        @db.Text
+  chronology          String?          @db.Text
   type                IncidentType
   incidentSubject     String?
   incidentLocation    String?
   relatedUnit         String?
-  firstAction         String?        @db.Text
+  firstAction         String?          @db.Text
   firstActionBy       String?
   hasHappenedBefore   String?
   severity            IncidentSeverity
   patientImpact       String?
-  analysisNotes       String?        @db.Text
-  followUpPlan        String?        @db.Text
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
+  analysisNotes       String?          @db.Text
+  followUpPlan        String?          @db.Text
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
 }
 
 model Risk {

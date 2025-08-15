@@ -1,21 +1,20 @@
-
-import type { Metadata } from "next";
-import "./globals.css";
-import { Toaster } from "@/components/ui/toaster";
-import { UserStoreProvider } from "@/store/user-store.tsx";
-import { LogStoreProvider } from "@/store/log-store.tsx";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { NotificationStoreProvider } from "@/store/notification-store.tsx";
+import type { Metadata } from "next"
+import "./globals.css"
+import { Toaster } from "@/components/ui/toaster"
+import { UserStoreProvider } from "@/store/user-store"
+import { LogStoreProvider } from "@/store/log-store.tsx"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { NotificationStoreProvider } from "@/store/notification-store.tsx"
 
 export const metadata: Metadata = {
   title: "SIRATU",
   description: "Sistem Informasi Rapor Mutu RSUD Oto Iskandar Dinata",
-};
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -44,5 +43,5 @@ export default function RootLayout({
         </UserStoreProvider>
       </body>
     </html>
-  );
+  )
 }

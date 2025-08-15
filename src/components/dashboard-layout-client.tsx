@@ -185,7 +185,6 @@ export default function DashboardClientLayout({
   const [openMenus, setOpenMenus] = React.useState<{ [key: string]: boolean }>(
     {}
   );
-
   return (
     <>
       <LoadingOverlay isLoading={isLoading} />
@@ -224,7 +223,7 @@ export default function DashboardClientLayout({
               ))}
             </SidebarMenu>
 
-            {currentUser?.role === "Admin Sistem" && (
+            {currentUser?.name === "Admin Sistem" && (
               <SidebarMenu className="mt-4 pt-2 border-t border-sidebar-border/50">
                 {adminNavItems.map((item, index) => (
                   <NavItem

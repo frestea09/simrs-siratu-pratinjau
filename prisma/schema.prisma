@@ -10,42 +10,42 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// --- ENUMS ---
+// ENUMS
 
 enum UserRole {
-  AdminSistem
-  PICMutu
-  PJRuangan
-  KepalaUnitInstalasi
-  Direktur
-  SubKomitePeningkatanMutu
-  SubKomiteKeselamatanPasien
-  SubKomiteManajemenRisiko
+  ADMIN_SISTEM
+  PIC_MUTU
+  PJ_RUANGAN
+  KEPALA_UNIT_INSTALASI
+  DIREKTUR
+  SUB_KOMITE_PENINGKATAN_MUTU
+  SUB_KOMITE_KESELAMATAN_PASIEN
+  SUB_KOMITE_MANAJEMEN_RISIKO
 }
 
 enum IndicatorCategory {
   INM
-  IMPRS
+  IMP_RS
   IMPU
   SPM
 }
 
 enum IndicatorFrequency {
-  Harian
-  Mingguan
-  Bulanan
-  Tahunan
+  HARIAN
+  MINGGUAN
+  BULANAN
+  TAHUNAN
 }
 
-enum IndicatorSubmissionStatus {
-  MenungguPersetujuan
-  Diverifikasi
-  Ditolak
+enum SubmissionStatus {
+  MENUNGGU_PERSETUJUAN
+  DIVERIFIKASI
+  DITOLAK
 }
 
-enum IndicatorStandardUnit {
-  persen
-  menit
+enum StandardUnit {
+  PERSEN
+  MENIT
 }
 
 enum IncidentType {
@@ -53,192 +53,209 @@ enum IncidentType {
   KNC
   KTC
   KTD
-  Sentinel
-}
-
-enum IncidentSeverity {
-  biru
-  hijau
-  kuning
-  merah
+  SENTINEL
 }
 
 enum IncidentStatus {
-  Investigasi
-  Selesai
+  INVESTIGASI
+  SELESAI
 }
 
 enum RiskSource {
-  LaporanInsiden
-  Komplain
-  SurveyRonde
-  RapatBrainstorming
-  Investigasi
-  Litigasi
-  ExternalRequirement
+  LAPORAN_INSIDEN
+  KOMPLAIN
+  SURVEY_RONDE
+  RAPAT_BRAINSTORMING
+  INVESTIGASI
+  LITIGASI
+  EXTERNAL_REQUIREMENT
 }
 
 enum RiskCategory {
-  Strategis
-  Operasional
-  Finansial
-  Compliance
-  Reputasi
-  PelayananPasien
-  BahayaFisik
-  BahayaKimia
-  BahayaBiologi
-  BahayaErgonomi
-  BahayaPsikososial
+  STRATEGIS
+  OPERASIONAL
+  FINANSIAL
+  COMPLIANCE
+  REPUTASI
+  PELAYANAN_PASIEN
+  BAHAYA_FISIK
+  BAHAYA_KIMIA
+  BAHAYA_BIOLOGI
+  BAHAYA_ERGONOMI
+  BAHAYA_PSIKOSOSIAL
 }
 
 enum RiskEvaluation {
-  Mitigasi
-  Transfer
-  Diterima
-  Dihindari
+  MITIGASI
+  TRANSFER
+  DITERIMA
+  DIHINDARI
 }
 
 enum RiskStatus {
-  Open
-  InProgress
-  Closed
+  OPEN
+  IN_PROGRESS
+  CLOSED
 }
 
-// --- MODELS ---
+// MODELS
 
 model User {
-  id                      String    @id @default(cuid())
+  id                      String                  @id @default(cuid())
   name                    String
-  email                   String    @unique
+  email                   String                  @unique
   password                String
   role                    UserRole
   unit                    String?
-  submittedIndicators     IndicatorSubmission[] @relation("SubmittedBy")
-  riskPIC                 Risk[]                @relation("ManagedBy")
-  createdNotifications    Notification[]        @relation("CreatedBy")
-  receivedNotifications   Notification[]        @relation("ReceivedBy")
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
+
+  submittedIndicators     IndicatorSubmission[]   @relation("SubmittedByUser")
+  indicatorDataEntries    IndicatorData[]         @relation("EnteredByUser")
+  incidentsReported       Incident[]              @relation("ReportedByUser")
+  risksPic                Risk[]                  @relation("PicForRisk")
+  notifications           Notification[]
+  logs                    SystemLog[]
 
   @@map("users")
 }
 
 model IndicatorSubmission {
-  id              String                    @id @default(cuid())
-  name            String
-  category        IndicatorCategory
-  description     String
-  unit            String
-  frequency       IndicatorFrequency
-  status          IndicatorSubmissionStatus @default(MenungguPersetujuan)
-  submissionDate  DateTime                  @default(now())
-  standard        Float
-  standardUnit    IndicatorStandardUnit
-  rejectionReason String?
+  id                String            @id @default(cuid())
+  name              String
+  category          IndicatorCategory
+  description       String            @db.Text
+  unit              String
+  frequency         IndicatorFrequency
+  status            SubmissionStatus  @default(MENUNGGU_PERSETUJUAN)
+  submissionDate    DateTime          @default(now())
+  standard          Float
+  standardUnit      StandardUnit
+  rejectionReason   String?           @db.Text
 
-  submittedById String
-  submittedBy   User   @relation("SubmittedBy", fields: [submittedById], references: [id])
+  submittedById     String
+  submittedBy       User              @relation("SubmittedByUser", fields: [submittedById], references: [id])
+  
+  data              IndicatorData[]
 
-  dataPoints IndicatorData[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 
   @@map("indicator_submissions")
 }
 
 model IndicatorData {
-  id             String             @id @default(cuid())
-  period         DateTime
-  numerator      Float
-  denominator    Float
-  analysisNotes  String?
-  followUpPlan   String?
+  id                String            @id @default(cuid())
+  period            DateTime
+  numerator         Float
+  denominator       Float
 
-  submissionId   String
-  submission     IndicatorSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  analysisNotes     String?           @db.Text
+  followUpPlan      String?           @db.Text
+
+  submissionId      String
+  submission        IndicatorSubmission @relation(fields: [submissionId], references: [id])
+
+  enteredById       String
+  enteredBy         User              @relation("EnteredByUser", fields: [enteredById], references: [id])
+
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 
   @@map("indicator_data")
 }
 
 model Incident {
-  id                    String         @id @default(cuid())
-  reportedAt            DateTime       @default(now())
-  status                IncidentStatus @default(Investigasi)
-  patientName           String?
-  medicalRecordNumber   String?
-  careRoom              String?
-  ageGroup              String?
-  gender                String?
-  payer                 String?
-  entryDate             DateTime?
-  entryTime             String?
-  incidentDate          DateTime?
-  incidentTime          String?
-  chronology            String?
-  type                  IncidentType
-  incidentSubject       String?
-  incidentLocation      String?
-  relatedUnit           String?
-  firstAction           String?
-  firstActionBy         String?
-  hasHappenedBefore     String?
-  severity              IncidentSeverity
-  patientImpact         String?
-  analysisNotes         String?
-  followUpPlan          String?
+  id                      String          @id @default(cuid())
+  date                    DateTime        @default(now())
+  status                  IncidentStatus  @default(INVESTIGASI)
+
+  patientName             String?
+  medicalRecordNumber     String?
+  careRoom                String?
+  ageGroup                String?
+  gender                  String?
+  payer                   String?
+  entryDate               DateTime?
+  entryTime               String?
+
+  incidentDate            DateTime?
+  incidentTime            String?
+  chronology              String?         @db.Text
+  type                    IncidentType
+  incidentSubject         String?
+  incidentLocation        String?
+  relatedUnit             String?
+
+  firstAction             String?         @db.Text
+  firstActionBy           String?
+  hasHappenedBefore       String?
+  severity                String // biru, hijau, kuning, merah
+  patientImpact           String?
+  analysisNotes           String?         @db.Text
+  followUpPlan            String?         @db.Text
+
+  reportedById            String?
+  reportedBy              User?           @relation("ReportedByUser", fields: [reportedById], references: [id])
+
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
 
   @@map("incidents")
 }
 
 model Risk {
-  id                    String        @id @default(cuid())
+  id                    String          @id @default(cuid())
   unit                  String
   source                RiskSource
-  description           String
-  cause                 String
+  description           String          @db.Text
+  cause                 String          @db.Text
   category              RiskCategory
-  submissionDate        DateTime      @default(now())
+  submissionDate        DateTime        @default(now())
+
   consequence           Int
   likelihood            Int
   controllability       Int
   evaluation            RiskEvaluation
-  actionPlan            String
+  actionPlan            String          @db.Text
   dueDate               DateTime?
-  status                RiskStatus    @default(Open)
+  status                RiskStatus      @default(OPEN)
+
   residualConsequence   Int?
   residualLikelihood    Int?
-  reportNotes           String?
+  reportNotes           String?         @db.Text
 
   picId                 String?
-  pic                   User?         @relation("ManagedBy", fields: [picId], references: [id])
+  pic                   User?           @relation("PicForRisk", fields: [picId], references: [id])
+
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
 
   @@map("risks")
 }
 
 model Notification {
-  id             String    @id @default(cuid())
-  timestamp      DateTime  @default(now())
-  title          String
-  description    String
-  link           String?
-  isRead         Boolean   @default(false)
-  
-  // Who created it
-  createdById    String?
-  createdBy      User?     @relation("CreatedBy", fields: [createdById], references: [id])
+  id                String    @id @default(cuid())
+  timestamp         DateTime  @default(now())
+  title             String
+  description       String
+  isRead            Boolean   @default(false)
+  link              String?
 
-  // Who it is for
-  recipientId    String?
-  recipient      User?     @relation("ReceivedBy", fields: [recipientId], references: [id])
-  recipientRole  UserRole?
-  recipientUnit  String?
+  recipientId       String
+  recipient         User      @relation(fields: [recipientId], references: [id])
 
   @@map("notifications")
 }
 
 model SystemLog {
-  id         String   @id @default(cuid())
-  timestamp  DateTime @default(now())
-  user       String
-  action     String
-  details    String
+  id          String   @id @default(cuid())
+  timestamp   DateTime @default(now())
+  action      String
+  details     String   @db.Text
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
 
   @@map("system_logs")
 }

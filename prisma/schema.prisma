@@ -1,0 +1,244 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- ENUMS ---
+
+enum UserRole {
+  AdminSistem
+  PICMutu
+  PJRuangan
+  KepalaUnitInstalasi
+  Direktur
+  SubKomitePeningkatanMutu
+  SubKomiteKeselamatanPasien
+  SubKomiteManajemenRisiko
+}
+
+enum IndicatorCategory {
+  INM
+  IMPRS
+  IMPU
+  SPM
+}
+
+enum IndicatorFrequency {
+  Harian
+  Mingguan
+  Bulanan
+  Tahunan
+}
+
+enum IndicatorSubmissionStatus {
+  MenungguPersetujuan
+  Diverifikasi
+  Ditolak
+}
+
+enum IndicatorStandardUnit {
+  persen
+  menit
+}
+
+enum IncidentType {
+  KPC
+  KNC
+  KTC
+  KTD
+  Sentinel
+}
+
+enum IncidentSeverity {
+  biru
+  hijau
+  kuning
+  merah
+}
+
+enum IncidentStatus {
+  Investigasi
+  Selesai
+}
+
+enum RiskSource {
+  LaporanInsiden
+  Komplain
+  SurveyRonde
+  RapatBrainstorming
+  Investigasi
+  Litigasi
+  ExternalRequirement
+}
+
+enum RiskCategory {
+  Strategis
+  Operasional
+  Finansial
+  Compliance
+  Reputasi
+  PelayananPasien
+  BahayaFisik
+  BahayaKimia
+  BahayaBiologi
+  BahayaErgonomi
+  BahayaPsikososial
+}
+
+enum RiskEvaluation {
+  Mitigasi
+  Transfer
+  Diterima
+  Dihindari
+}
+
+enum RiskStatus {
+  Open
+  InProgress
+  Closed
+}
+
+// --- MODELS ---
+
+model User {
+  id                      String    @id @default(cuid())
+  name                    String
+  email                   String    @unique
+  password                String
+  role                    UserRole
+  unit                    String?
+  submittedIndicators     IndicatorSubmission[] @relation("SubmittedBy")
+  riskPIC                 Risk[]                @relation("ManagedBy")
+  createdNotifications    Notification[]        @relation("CreatedBy")
+  receivedNotifications   Notification[]        @relation("ReceivedBy")
+
+  @@map("users")
+}
+
+model IndicatorSubmission {
+  id              String                    @id @default(cuid())
+  name            String
+  category        IndicatorCategory
+  description     String
+  unit            String
+  frequency       IndicatorFrequency
+  status          IndicatorSubmissionStatus @default(MenungguPersetujuan)
+  submissionDate  DateTime                  @default(now())
+  standard        Float
+  standardUnit    IndicatorStandardUnit
+  rejectionReason String?
+
+  submittedById String
+  submittedBy   User   @relation("SubmittedBy", fields: [submittedById], references: [id])
+
+  dataPoints IndicatorData[]
+
+  @@map("indicator_submissions")
+}
+
+model IndicatorData {
+  id             String             @id @default(cuid())
+  period         DateTime
+  numerator      Float
+  denominator    Float
+  analysisNotes  String?
+  followUpPlan   String?
+
+  submissionId   String
+  submission     IndicatorSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@map("indicator_data")
+}
+
+model Incident {
+  id                    String         @id @default(cuid())
+  reportedAt            DateTime       @default(now())
+  status                IncidentStatus @default(Investigasi)
+  patientName           String?
+  medicalRecordNumber   String?
+  careRoom              String?
+  ageGroup              String?
+  gender                String?
+  payer                 String?
+  entryDate             DateTime?
+  entryTime             String?
+  incidentDate          DateTime?
+  incidentTime          String?
+  chronology            String?
+  type                  IncidentType
+  incidentSubject       String?
+  incidentLocation      String?
+  relatedUnit           String?
+  firstAction           String?
+  firstActionBy         String?
+  hasHappenedBefore     String?
+  severity              IncidentSeverity
+  patientImpact         String?
+  analysisNotes         String?
+  followUpPlan          String?
+
+  @@map("incidents")
+}
+
+model Risk {
+  id                    String        @id @default(cuid())
+  unit                  String
+  source                RiskSource
+  description           String
+  cause                 String
+  category              RiskCategory
+  submissionDate        DateTime      @default(now())
+  consequence           Int
+  likelihood            Int
+  controllability       Int
+  evaluation            RiskEvaluation
+  actionPlan            String
+  dueDate               DateTime?
+  status                RiskStatus    @default(Open)
+  residualConsequence   Int?
+  residualLikelihood    Int?
+  reportNotes           String?
+
+  picId                 String?
+  pic                   User?         @relation("ManagedBy", fields: [picId], references: [id])
+
+  @@map("risks")
+}
+
+model Notification {
+  id             String    @id @default(cuid())
+  timestamp      DateTime  @default(now())
+  title          String
+  description    String
+  link           String?
+  isRead         Boolean   @default(false)
+  
+  // Who created it
+  createdById    String?
+  createdBy      User?     @relation("CreatedBy", fields: [createdById], references: [id])
+
+  // Who it is for
+  recipientId    String?
+  recipient      User?     @relation("ReceivedBy", fields: [recipientId], references: [id])
+  recipientRole  UserRole?
+  recipientUnit  String?
+
+  @@map("notifications")
+}
+
+model SystemLog {
+  id         String   @id @default(cuid())
+  timestamp  DateTime @default(now())
+  user       String
+  action     String
+  details    String
+
+  @@map("system_logs")
+}

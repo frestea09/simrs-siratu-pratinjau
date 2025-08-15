@@ -1,9 +1,11 @@
 
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useFormState, useFormStatus } from "react-dom"
+
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -17,57 +19,43 @@ import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { Hospital, Users, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { useUserStore } from "@/store/user-store"
-import { useLogStore } from "@/store/log-store"
 import Image from "next/image";
 import favicon from "@/app/favicon.ico";
+import { login } from "@/lib/actions/auth"
+import { AlertCircle } from "lucide-react"
+
+function LoginButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" className="w-full" disabled={pending}>
+      {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      {pending ? 'Memproses...' : 'Login'}
+    </Button>
+  )
+}
 
 export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const { users, setCurrentUser } = useUserStore()
-  const { addLog } = useLogStore()
+  const [state, formAction] = useFormState(login, undefined);
 
-  const handleLogin = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsLoading(true);
-
-    const formData = new FormData(event.currentTarget);
-    const username = formData.get("username") as string;
-    const password = formData.get("password") as string;
-    
-    // Simulate network delay
-    setTimeout(() => {
-      // Trim any whitespace from the input
-      const trimmedUsername = username.trim();
-
-      const user = users.find(u => u.email === trimmedUsername);
-      
-      if (user && user.password === password) {
-        setCurrentUser(user);
-        addLog({
-          user: user.name,
-          action: "LOGIN_SUCCESS",
-          details: `Pengguna ${user.name} berhasil login.`,
-        })
-        router.push("/dashboard/overview")
-      } else {
-        addLog({
-          user: trimmedUsername,
-          action: "LOGIN_FAIL",
-          details: `Percobaan login gagal untuk username: ${trimmedUsername}.`,
-        })
-        toast({
+  useEffect(() => {
+    if(state?.error) {
+       toast({
           variant: "destructive",
           title: "Login Gagal",
-          description: "Username atau password salah. Silakan coba lagi.",
+          description: state.error,
         })
-        setIsLoading(false);
-      }
-    }, 500) // 0.5 second delay
-  }
+    }
+    if (state?.success) {
+      toast({
+        title: "Login Berhasil",
+        description: "Selamat datang kembali!",
+      });
+      router.push("/dashboard/overview")
+    }
+  }, [state, router, toast]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
@@ -82,16 +70,24 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="grid gap-4">
+          <form action={formAction} className="grid gap-4">
+            {state?.error && (
+                 <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>
+                        {state.error}
+                    </AlertDescription>
+                </Alert>
+            )}
             <div className="grid gap-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
-                id="username"
-                name="username"
-                type="text"
+                id="email"
+                name="email"
+                type="email"
                 placeholder="email@sim.rs"
                 required
-                disabled={isLoading}
               />
             </div>
             <div className="grid gap-2">
@@ -111,33 +107,24 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   required
                   className="pr-10"
-                  disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
-                   disabled={isLoading}
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   <span className="sr-only">{showPassword ? 'Sembunyikan password' : 'Tampilkan password'}</span>
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isLoading ? 'Memproses...' : 'Login'}
-            </Button>
+            <LoginButton />
           </form>
           <Alert className="mt-4">
             <Users className="h-4 w-4" />
             <AlertTitle>Akun Demo</AlertTitle>
             <AlertDescription>
-              <ul className="list-disc pl-5 text-xs space-y-1 mt-2">
-                {users.map((user) => (
-                    <li key={user.email}><b>{user.email}</b> ({user.name})</li>
-                ))}
-              </ul>
+               <p className="text-xs mt-2">Gunakan akun yang disediakan untuk mencoba berbagai peran.</p>
                <p className="text-xs mt-2">Password untuk semua akun: <b>123456</b></p>
             </AlertDescription>
           </Alert>

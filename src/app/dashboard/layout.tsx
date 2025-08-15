@@ -1,14 +1,20 @@
 
 import DashboardClientLayout from '@/components/dashboard-layout-client';
-import { NavItem } from '@/types/nav';
+import { getCurrentUser } from '@/lib/actions/auth';
+import { redirect } from 'next/navigation';
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect('/');
+  }
 
   return (
-    <DashboardClientLayout>{children}</DashboardClientLayout>
+    <DashboardClientLayout user={user}>{children}</DashboardClientLayout>
   );
 }

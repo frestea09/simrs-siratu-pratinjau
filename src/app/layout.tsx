@@ -2,10 +2,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
-import { UserStoreProvider } from "@/store/user-store.tsx";
-import { LogStoreProvider } from "@/store/log-store.tsx";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { NotificationStoreProvider } from "@/store/notification-store.tsx";
 
 export const metadata: Metadata = {
   title: "SIRATU",
@@ -32,16 +29,10 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <UserStoreProvider>
-          <LogStoreProvider>
-            <NotificationStoreProvider>
-              <TooltipProvider>
-                {children}
-                <Toaster />
-              </TooltipProvider>
-            </NotificationStoreProvider>
-          </LogStoreProvider>
-        </UserStoreProvider>
+        <TooltipProvider>
+            {children}
+            <Toaster />
+        </TooltipProvider>
       </body>
     </html>
   );

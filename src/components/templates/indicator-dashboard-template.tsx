@@ -4,7 +4,6 @@
 import * as React from "react"
 import { parseISO } from "date-fns"
 
-import { useIndicatorStore, IndicatorCategory } from "@/store/indicator-store"
 import { useUserStore } from "@/store/user-store.tsx"
 import { getFilterRange, getFilterDescription } from "@/lib/indicator-utils"
 import type { FilterType } from "@/lib/indicator-utils"
@@ -13,16 +12,23 @@ import { IndicatorFilterCard } from "@/components/organisms/indicator-filter-car
 import { IndicatorChartCard } from "@/components/organisms/indicator-chart-card"
 import { IndicatorReport } from "@/components/organisms/indicator-report"
 import { IndicatorStatCards } from "@/components/organisms/indicator-stat-cards"
+import { Indicator, IndicatorCategory as PrismaIndicatorCategory } from "@prisma/client"
+import { getCurrentUser } from "@/lib/actions/auth"
 
 type IndicatorDashboardTemplateProps = {
-  category: IndicatorCategory
+  category: PrismaIndicatorCategory
   pageTitle: string
+  indicators: Indicator[]
 }
 
-export function IndicatorDashboardTemplate({ category, pageTitle }: IndicatorDashboardTemplateProps) {
-  const { indicators } = useIndicatorStore()
-  const { currentUser } = useUserStore()
-  const userIsCentral = currentUser && ["Admin Sistem", "Direktur", "Sub. Komite Peningkatan Mutu", "Sub. Komite Keselamatan Pasien", "Sub. Komite Manajemen Risiko"].includes(currentUser.role)
+export function IndicatorDashboardTemplate({ category, pageTitle, indicators }: IndicatorDashboardTemplateProps) {
+  const [currentUser, setCurrentUser] = React.useState<any>(null)
+  
+  React.useEffect(() => {
+    getCurrentUser().then(setCurrentUser)
+  }, [])
+  
+  const userIsCentral = currentUser && ["Admin", "Director", "QualityImprovementCommittee", "PatientSafetyCommittee", "RiskManagementCommittee"].includes(currentUser.role)
 
   const categoryIndicators = React.useMemo(() => {
     const filteredByCategory = indicators.filter(i => i.category === category)

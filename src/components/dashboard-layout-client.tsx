@@ -40,14 +40,14 @@ import { usePathname, useRouter } from "next/navigation";
 import { UserNav } from "@/components/user-nav";
 import React from "react";
 import { Breadcrumb } from "@/components/molecules/breadcrumb";
-import { useUserStore } from "@/store/user-store.tsx";
-import { useLogStore } from "@/store/log-store.tsx";
 import { NavItem as NavItemType } from "@/types/nav";
 import { NavItem } from "./molecules/nav-item";
 import { cn } from "@/lib/utils";
 import { NotificationPopover } from "./organisms/notification-popover";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { logout } from "@/lib/actions/auth";
+import type { User } from "@prisma/client";
 
 const LoadingOverlay = ({ isLoading }: { isLoading: boolean }) => (
   <div
@@ -120,15 +120,16 @@ const adminNavItems: NavItemType[] = [
   },
 ];
 
+type DashboardClientLayoutProps = {
+  children: React.ReactNode;
+  user: User | null;
+}
+
 export default function DashboardClientLayout({
   children,
-}: {
-  children: React.ReactNode;
-}) {
+  user
+}: DashboardClientLayoutProps) {
   const pathname = usePathname();
-  const router = useRouter();
-  const { currentUser, clearCurrentUser } = useUserStore();
-  const { addLog } = useLogStore();
   const [isLoading, setIsLoading] = React.useState(false);
   const [previousPath, setPreviousPath] = React.useState(pathname);
 
@@ -144,16 +145,9 @@ export default function DashboardClientLayout({
     }
   }, [pathname, previousPath]);
 
-  const handleLogout = () => {
-    if (currentUser) {
-      addLog({
-        user: currentUser.name,
-        action: "LOGOUT",
-        details: "Pengguna berhasil logout.",
-      });
-    }
-    clearCurrentUser();
-    router.push("/");
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = '/';
   };
 
   const findPath = (items: any[], currentPath: string): any[] => {
@@ -224,7 +218,7 @@ export default function DashboardClientLayout({
               ))}
             </SidebarMenu>
 
-            {currentUser?.role === "Admin Sistem" && (
+            {user?.role === "Admin" && (
               <SidebarMenu className="mt-4 pt-2 border-t border-sidebar-border/50">
                 {adminNavItems.map((item, index) => (
                   <NavItem
@@ -263,7 +257,7 @@ export default function DashboardClientLayout({
               </h1>
               <div className="ml-auto flex items-center gap-2">
                 <NotificationPopover />
-                <UserNav />
+                <UserNav user={user} />
               </div>
             </div>
             <div className="pb-3">

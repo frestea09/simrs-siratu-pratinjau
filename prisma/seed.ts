@@ -9,14 +9,14 @@ async function main() {
 
   // Seed Users
   const usersData = [
-    { id: 'user-1', name: 'Admin Sistem', email: 'admin@sim.rs', password: '123456', role: 'Admin Sistem' as UserRole },
-    { id: 'user-2', name: 'Delina (PIC Mutu)', email: 'delina@sim.rs', password: '123456', role: 'PIC Mutu' as UserRole, unit: 'PPI' },
-    { id: 'user-3', name: 'Deti (PJ Ruangan)', email: 'deti@sim.rs', password: '123456', role: 'PJ Ruangan' as UserRole, unit: 'RANAP' },
-    { id: 'user-4', name: 'Devin (Keselamatan Pasien)', email: 'devin@sim.rs', password: '123456', role: 'Sub. Komite Keselamatan Pasien' as UserRole },
-    { id: 'user-5', name: 'Deka (Kepala Unit)', email: 'deka@sim.rs', password: '123456', role: 'Kepala Unit/Instalasi' as UserRole, unit: 'IGD' },
-    { id: 'user-6', name: 'Dr. Direktur', email: 'dir@sim.rs', password: '123456', role: 'Direktur' as UserRole },
-    { id: 'user-7', name: 'Dion (Peningkatan Mutu)', email: 'dion@sim.rs', password: '123456', role: 'Sub. Komite Peningkatan Mutu' as UserRole },
-    { id: 'user-8', name: 'Dara (Manajemen Risiko)', email: 'dara@sim.rs', password: '123456', role: 'Sub. Komite Manajemen Risiko' as UserRole },
+    { id: 'user-1', name: 'Admin Sistem', email: 'admin@sim.rs', password: '123456', role: 'Admin' as UserRole },
+    { id: 'user-2', name: 'Delina (PIC Mutu)', email: 'delina@sim.rs', password: '123456', role: 'PicMutu' as UserRole, unit: 'PPI' },
+    { id: 'user-3', name: 'Deti (PJ Ruangan)', email: 'deti@sim.rs', password: '123456', role: 'PjRuangan' as UserRole, unit: 'RANAP' },
+    { id: 'user-4', name: 'Devin (Keselamatan Pasien)', email: 'devin@sim.rs', password: '123456', role: 'PatientSafetyCommittee' as UserRole },
+    { id: 'user-5', name: 'Deka (Kepala Unit)', email: 'deka@sim.rs', password: '123456', role: 'UnitHead' as UserRole, unit: 'IGD' },
+    { id: 'user-6', name: 'Dr. Direktur', email: 'dir@sim.rs', password: '123456', role: 'Director' as UserRole },
+    { id: 'user-7', name: 'Dion (Peningkatan Mutu)', email: 'dion@sim.rs', password: '123456', role: 'QualityImprovementCommittee' as UserRole },
+    { id: 'user-8', name: 'Dara (Manajemen Risiko)', email: 'dara@sim.rs', password: '123456', role: 'RiskManagementCommittee' as UserRole },
   ]
   for (const u of usersData) {
     await prisma.user.upsert({
@@ -33,8 +33,8 @@ async function main() {
     { id: 'sub-2', name: 'Kepatuhan Penggunaan APD', category: 'INM' as IndicatorCategory, unit: 'PPI', frequency: 'Bulanan', description: 'Persentase kepatuhan petugas dalam menggunakan Alat Pelindung Diri (APD) sesuai indikasi.', standard: 100, standardUnit: '%', status: 'Diverifikasi' },
     { id: 'sub-3', name: 'Waktu Tunggu Rawat Jalan', category: 'INM' as IndicatorCategory, unit: 'RAJAL', frequency: 'Bulanan', description: 'Rata-rata waktu tunggu pasien rawat jalan mulai dari pendaftaran hingga mendapat pelayanan dokter.', standard: 60, standardUnit: 'menit', status: 'Ditolak', rejectionReason: 'Definisi operasional kurang jelas, harap diperbaiki.' },
     // IMP-RS
-    { id: 'sub-4', name: 'Angka Kejadian Pasien Jatuh', category: 'IMP-RS' as IndicatorCategory, unit: 'RANAP', frequency: 'Bulanan', description: 'Jumlah kejadian pasien jatuh di lingkungan rumah sakit per 1000 hari rawat.', standard: 0, standardUnit: '%', status: 'Diverifikasi' },
-    { id: 'sub-5', name: 'Kecepatan Respon time Komplain', category: 'IMP-RS' as IndicatorCategory, unit: 'HUMAS', frequency: 'Bulanan', description: 'Waktu yang dibutuhkan untuk merespon komplain pelanggan.', standard: 90, standardUnit: '%', status: 'Menunggu Persetujuan' },
+    { id: 'sub-4', name: 'Angka Kejadian Pasien Jatuh', category: 'IMPRS' as IndicatorCategory, unit: 'RANAP', frequency: 'Bulanan', description: 'Jumlah kejadian pasien jatuh di lingkungan rumah sakit per 1000 hari rawat.', standard: 0, standardUnit: '%', status: 'Diverifikasi' },
+    { id: 'sub-5', name: 'Kecepatan Respon time Komplain', category: 'IMPRS' as IndicatorCategory, unit: 'HUMAS', frequency: 'Bulanan', description: 'Waktu yang dibutuhkan untuk merespon komplain pelanggan.', standard: 90, standardUnit: '%', status: 'Menunggu Persetujuan' },
     // IMPU
     { id: 'sub-6', name: 'Waktu Lapor Hasil Kritis Laboratorium', category: 'IMPU' as IndicatorCategory, unit: 'LABORATORIUM', frequency: 'Bulanan', description: 'Waktu yang dibutuhkan sejak hasil kritis keluar hingga dilaporkan ke DPJP.', standard: 30, standardUnit: 'menit', status: 'Diverifikasi' },
     { id: 'sub-7', name: 'Kepatuhan Identifikasi Pasien', category: 'IMPU' as IndicatorCategory, unit: 'IGD', frequency: 'Bulanan', description: 'Kepatuhan petugas IGD dalam melakukan identifikasi pasien sebelum tindakan.', standard: 100, standardUnit: '%', status: 'Diverifikasi' },
@@ -115,8 +115,8 @@ async function main() {
 
   // Seed Risks
   const risksData = [
-    { id: 'risk-1', unit: 'IT', source: 'Rapat/Brainstorming', description: 'Kegagalan sistem server utama SIM-RS', cause: 'Hardware sudah tua dan tidak ada redudansi.', category: 'Operasional', consequence: 5, likelihood: 2, controllability: 3, evaluation: 'Mitigasi', actionPlan: 'Pengadaan server baru dengan sistem high-availability', dueDate: new Date(today.getFullYear(), today.getMonth() + 3, 1).toISOString(), pic: 'Admin Sistem', status: 'In Progress' as RiskStatus },
-    { id: 'risk-2', unit: 'IGD', source: 'Laporan Insiden', description: 'Risiko pasien jatuh di area IGD', cause: 'Lantai licin dan kurangnya penanda.', category: 'Pelayanan Pasien', consequence: 3, likelihood: 4, controllability: 4, evaluation: 'Mitigasi', actionPlan: 'Pemasangan rambu lantai licin dan rubber mat di area basah.', dueDate: new Date(today.getFullYear(), today.getMonth() + 1, 1).toISOString(), pic: 'Deka (Kepala Unit)', status: 'Closed' as RiskStatus, residualConsequence: 2, residualLikelihood: 1, reportNotes: 'Rambu dan rubber mat sudah terpasang. Kejadian tidak terulang.' },
+    { id: 'risk-1', unit: 'IT', source: 'RapatBrainstorming', description: 'Kegagalan sistem server utama SIM-RS', cause: 'Hardware sudah tua dan tidak ada redudansi.', category: 'Operasional', consequence: 5, likelihood: 2, controllability: 3, evaluation: 'Mitigasi', actionPlan: 'Pengadaan server baru dengan sistem high-availability', dueDate: new Date(today.getFullYear(), today.getMonth() + 3, 1).toISOString(), pic: 'Admin Sistem', status: 'InProgress' as RiskStatus },
+    { id: 'risk-2', unit: 'IGD', source: 'LaporanInsiden', description: 'Risiko pasien jatuh di area IGD', cause: 'Lantai licin dan kurangnya penanda.', category: 'PelayananPasien', consequence: 3, likelihood: 4, controllability: 4, evaluation: 'Mitigasi', actionPlan: 'Pemasangan rambu lantai licin dan rubber mat di area basah.', dueDate: new Date(today.getFullYear(), today.getMonth() + 1, 1).toISOString(), pic: 'Deka (Kepala Unit)', status: 'Closed' as RiskStatus, residualConsequence: 2, residualLikelihood: 1, reportNotes: 'Rambu dan rubber mat sudah terpasang. Kejadian tidak terulang.' },
   ];
    for (const r of risksData) {
     await prisma.risk.upsert({

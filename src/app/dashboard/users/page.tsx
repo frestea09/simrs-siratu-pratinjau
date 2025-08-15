@@ -5,7 +5,7 @@ import * as React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { UserDialog } from "@/components/organisms/user-dialog"
 import { UserTable } from "@/components/organisms/user-table"
-import { useUserStore } from "@/store/user-store"
+import { useUserStore } from "@/store/user-store.ts"
 import { Button } from "@/components/ui/button"
 import { PlusCircle } from "lucide-react"
 

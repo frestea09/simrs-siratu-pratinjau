@@ -5,7 +5,7 @@ import React from "react"
 import { useRouter } from "next/navigation"
 import { Bell, CheckCheck, Trash2 } from "lucide-react"
 
-import { useNotificationStore, Notification } from "@/store/notification-store.tsx"
+import { useNotificationStore, Notification } from "@/store/notification-store.ts"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"

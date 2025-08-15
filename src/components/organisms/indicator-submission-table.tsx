@@ -32,7 +32,7 @@ import { TableFilters, dateRangeFilter, categoryFilter, statusFilter, getStatusV
 export const statusOptions: SubmittedIndicator['status'][] = ['Menunggu Persetujuan', 'Diverifikasi', 'Ditolak'];
 export const categoryOptions: {value: IndicatorCategory, label: string}[] = [
     { value: 'INM', label: 'INM'},
-    { value: 'IMP-RS', label: 'IMP-RS'},
+    { value: 'IMP_RS', label: 'IMP-RS'},
     { value: 'IMPU', label: 'IMPU'},
     { value: 'SPM', label: 'SPM'},
 ]

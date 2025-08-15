@@ -16,7 +16,7 @@ import { useIndicatorStore, Indicator, SubmittedIndicator, IndicatorCategory } f
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "../ui/textarea"
 import { DialogFooter } from "../ui/dialog"
-import { useUserStore } from "@/store/user-store"
+import { useUserStore } from "@/store/user-store.ts"
 import { useLogStore } from "@/store/log-store"
 
 const centralRoles = [

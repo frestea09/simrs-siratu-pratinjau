@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -10,7 +11,7 @@ import {
 import { IndicatorSubmissionDialog } from "@/components/organisms/indicator-submission-dialog";
 import { IndicatorSubmissionTable } from "@/components/organisms/indicator-submission-table";
 import { useIndicatorStore } from "@/store/indicator-store";
-import { useUserStore } from "@/store/user-store.tsx";
+import { useUserStore } from "@/store/user-store.ts";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";

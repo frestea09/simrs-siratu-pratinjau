@@ -31,7 +31,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { useIndicatorStore } from "@/store/indicator-store"
 import { useIncidentStore } from "@/store/incident-store"
-import { useUserStore } from "@/store/user-store"
+import { useUserStore } from "@/store/user-store.ts"
 import { useLogStore } from "@/store/log-store"
 import { format } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"

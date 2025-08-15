@@ -19,7 +19,7 @@ type YearlyReportData = {
 
 const categoryLabels: Record<IndicatorCategory, string> = {
   INM: "Indikator Nasional Mutu",
-  'IMP-RS': "Indikator Mutu Prioritas RS",
+  'IMP_RS': "Indikator Mutu Prioritas RS",
   IMPU: "Indikator Mutu Prioritas Unit",
   SPM: "Standar Pelayanan Minimal"
 }

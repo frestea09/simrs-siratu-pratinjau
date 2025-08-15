@@ -31,7 +31,7 @@ type UserState = {
   addUser: (user: Omit<User, 'id'>) => string;
   updateUser: (id: string, data: Partial<Omit<User, 'id'>>) => void;
   removeUser: (id: string) => void;
-  setCurrentUser: (user: User) => void;
+  setCurrentUser: (user: User | null) => void;
   clearCurrentUser: () => void;
 }
 
@@ -46,7 +46,7 @@ const initialUsers: User[] = [
     { id: 'user-8', name: 'Dara (Manajemen Risiko)', email: 'dara@sim.rs', password: '123456', role: 'Sub. Komite Manajemen Risiko' },
 ]
 
-const createUserStore = () => create<UserState>()(
+export const useUserStore = create<UserState>()(
   persist(
     (set, get) => ({
       users: initialUsers,
@@ -74,25 +74,3 @@ const createUserStore = () => create<UserState>()(
     }
   )
 );
-
-const UserStoreContext = createContext<ReturnType<typeof createUserStore> | null>(null);
-
-export const UserStoreProvider = ({ children }: { children: React.ReactNode }) => {
-  const storeRef = useRef<ReturnType<typeof createUserStore>>();
-  if (!storeRef.current) {
-    storeRef.current = createUserStore();
-  }
-  return (
-    <UserStoreContext.Provider value={storeRef.current}>
-      {children}
-    </UserStoreContext.Provider>
-  );
-};
-
-export const useUserStore = (): UserState => {
-  const store = useContext(UserStoreContext);
-  if (!store) {
-    throw new Error('useUserStore must be used within a UserStoreProvider');
-  }
-  return store();
-};

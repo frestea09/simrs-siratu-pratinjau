@@ -29,7 +29,7 @@ import { DialogFooter } from "../ui/dialog"
 import { SubmittedIndicator, useIndicatorStore, IndicatorCategory } from "@/store/indicator-store"
 import { useToast } from "@/hooks/use-toast"
 import { HOSPITAL_UNITS } from "@/lib/constants"
-import { useUserStore } from "@/store/user-store"
+import { useUserStore } from "@/store/user-store.ts"
 import { useLogStore } from "@/store/log-store"
 import { Combobox } from "../ui/combobox"
 import { useNotificationStore } from "@/store/notification-store"
@@ -39,7 +39,7 @@ const formSchema = z.object({
   name: z.string().min(5, {
     message: "Nama indikator harus memiliki setidaknya 5 karakter.",
   }),
-  category: z.enum(['INM', 'IMP-RS', 'IMPU', 'SPM'], {
+  category: z.enum(['INM', 'IMP_RS', 'IMPU', 'SPM'], {
     required_error: "Anda harus memilih kategori indikator.",
   }),
   unit: z.string({ required_error: "Anda harus memilih unit." }),
@@ -65,7 +65,7 @@ type IndicatorSubmissionFormProps = {
 
 const categoryOptions: {value: IndicatorCategory, label: string}[] = [
     { value: 'INM', label: 'Indikator Nasional Mutu (INM)'},
-    { value: 'IMP-RS', label: 'Indikator Mutu Prioritas RS (IMP-RS)'},
+    { value: 'IMP_RS', label: 'Indikator Mutu Prioritas RS (IMP-RS)'},
     { value: 'IMPU', label: 'Indikator Mutu Prioritas Unit (IMPU)'},
     { value: 'SPM', label: 'Standar Pelayanan Minimal (SPM)'},
 ]
@@ -112,7 +112,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
 
   const adoptableIndicators = React.useMemo(() => {
     return submittedIndicators.filter(ind => 
-        ind.status === 'Diverifikasi' && ['INM', 'IMP-RS', 'SPM'].includes(ind.category)
+        ind.status === 'Diverifikasi' && ['INM', 'IMP_RS', 'SPM'].includes(ind.category)
     ).map(ind => ({ value: ind.id, label: `${ind.category} - ${ind.name}` }));
   }, [submittedIndicators]);
 

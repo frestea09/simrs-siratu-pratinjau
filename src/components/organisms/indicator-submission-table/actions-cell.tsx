@@ -18,7 +18,7 @@ import {
   DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu"
 import { SubmittedIndicator } from "@/store/indicator-store"
-import { useUserStore } from "@/store/user-store"
+import { useUserStore } from "@/store/user-store.ts"
 import { useLogStore } from "@/store/log-store"
 import { useNotificationStore } from "@/store/notification-store"
 import { useIndicatorStore } from "@/store/indicator-store"

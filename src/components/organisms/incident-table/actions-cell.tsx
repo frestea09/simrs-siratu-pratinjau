@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Incident, IncidentStatus, useIncidentStore } from "@/store/incident-store"
 import { IncidentReportDialog } from "../incident-report-dialog"
-import { useUserStore } from "@/store/user-store"
+import { useUserStore } from "@/store/user-store.ts"
 import { useLogStore } from "@/store/log-store"
 
 type ActionsCellProps = {

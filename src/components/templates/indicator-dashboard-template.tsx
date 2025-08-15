@@ -4,7 +4,7 @@
 import * as React from "react"
 import { parseISO } from "date-fns"
 
-import { useUserStore } from "@/store/user-store"
+import { useUserStore } from "@/store/user-store.ts"
 import { getFilterRange, getFilterDescription } from "@/lib/indicator-utils"
 import type { FilterType } from "@/lib/indicator-utils"
 import { useIndicatorData } from "@/hooks/use-indicator-data"
@@ -12,7 +12,7 @@ import { IndicatorFilterCard } from "@/components/organisms/indicator-filter-car
 import { IndicatorChartCard } from "@/components/organisms/indicator-chart-card"
 import { IndicatorReport } from "@/components/organisms/indicator-report"
 import { IndicatorStatCards } from "@/components/organisms/indicator-stat-cards"
-import { Indicator, IndicatorCategory } from "@/store/indicator-store"
+import { Indicator, IndicatorCategory, useIndicatorStore } from "@/store/indicator-store"
 
 type IndicatorDashboardTemplateProps = {
   category: IndicatorCategory

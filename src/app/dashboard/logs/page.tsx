@@ -1,9 +1,10 @@
+
 "use client"
 
 import * as React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { LogTable } from "@/components/organisms/log-table"
-import { useLogStore } from "@/store/log-store.tsx"
+import { useLogStore } from "@/store/log-store.ts"
 
 export default function LogsPage() {
   const logs = useLogStore((state) => state.logs)

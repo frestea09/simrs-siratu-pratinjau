@@ -1,6 +1,4 @@
 
-"use client"
-
 import React from "react"
 import {
   Activity,
@@ -29,12 +27,11 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { useIndicatorStore } from "@/store/indicator-store"
-import { useIncidentStore } from "@/store/incident-store"
-import { useUserStore } from "@/store/user-store.ts"
-import { useLogStore } from "@/store/log-store"
 import { format } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
+import type { Indicator, IndicatorSubmission, SystemLog, User, Incident } from "@prisma/client"
+import { getCurrentUser } from "@/lib/actions/auth"
+import prisma from "@/lib/prisma"
 
 const centralRoles = [
   'Admin Sistem',
@@ -44,14 +41,24 @@ const centralRoles = [
   'Sub. Komite Manajemen Risiko'
 ];
 
-export default function OverviewPage() {
-  const { indicators, submittedIndicators } = useIndicatorStore()
-  const { incidents } = useIncidentStore()
-  const { users, currentUser } = useUserStore()
-  const { logs } = useLogStore()
+async function getOverviewData() {
+    const indicators = await prisma.indicator.findMany();
+    const submittedIndicators = await prisma.indicatorSubmission.findMany();
+    const incidents = await prisma.incident.findMany();
+    const users = await prisma.user.findMany();
+    const logs = await prisma.systemLog.findMany({
+        orderBy: { timestamp: 'desc' },
+        take: 5
+    });
+    return { indicators, submittedIndicators, incidents, users, logs };
+}
+
+export default async function OverviewPage() {
+    const currentUser = await getCurrentUser();
+    const { indicators, submittedIndicators, incidents, users, logs } = await getOverviewData();
 
   const userIsCentral = currentUser && centralRoles.includes(currentUser.role);
-  const canViewIncidentData = currentUser && (currentUser.role === 'Admin Sistem' || currentUser.role === 'Sub. Komite Keselamatan Pasien');
+  const canViewIncidentData = currentUser && (currentUser.role === 'Admin Sistem' || currentUser.role === 'SUB_KOMITE_KESELAMATAN_PASIEN');
 
   // Filter data based on role
   const relevantIndicators = React.useMemo(() => {
@@ -94,7 +101,7 @@ export default function OverviewPage() {
     
     indicatorsForChart.forEach(i => {
       const month = format(new Date(i.period), 'MMM', { locale: IndonesianLocale });
-      monthlyAverages[month].total += parseFloat(i.ratio);
+      monthlyAverages[month].total += i.ratio;
       monthlyAverages[month].count += 1;
     });
 
@@ -260,3 +267,4 @@ export default function OverviewPage() {
     </div>
   )
 }
+    

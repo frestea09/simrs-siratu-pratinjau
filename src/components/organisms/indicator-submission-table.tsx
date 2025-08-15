@@ -24,12 +24,13 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { SubmittedIndicator, IndicatorCategory } from "@/store/indicator-store"
 import { useTableState } from "@/hooks/use-table-state"
 import { ActionsCell } from "./indicator-submission-table/actions-cell"
 import { TableFilters, dateRangeFilter, categoryFilter, statusFilter, getStatusVariant } from "./indicator-submission-table/table-filters"
+import type { IndicatorSubmission, IndicatorCategory, User } from "@prisma/client"
 
-export const statusOptions: SubmittedIndicator['status'][] = ['Menunggu Persetujuan', 'Diverifikasi', 'Ditolak'];
+
+export const statusOptions: IndicatorSubmission['status'][] = ['Menunggu Persetujuan', 'Diverifikasi', 'Ditolak'];
 export const categoryOptions: {value: IndicatorCategory, label: string}[] = [
     { value: 'INM', label: 'INM'},
     { value: 'IMP_RS', label: 'IMP-RS'},
@@ -38,15 +39,16 @@ export const categoryOptions: {value: IndicatorCategory, label: string}[] = [
 ]
 
 type IndicatorSubmissionTableProps = {
-  indicators: SubmittedIndicator[]
+  indicators: IndicatorSubmission[]
+  currentUser: User | null
 }
 
-export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTableProps) {
+export function IndicatorSubmissionTable({ indicators, currentUser }: IndicatorSubmissionTableProps) {
   const { tableState, setTableState } = useTableState({
     columnVisibility: { id: false },
   });
 
-  const columns: ColumnDef<SubmittedIndicator>[] = React.useMemo(() => [
+  const columns: ColumnDef<IndicatorSubmission>[] = React.useMemo(() => [
     {
       accessorKey: "name",
       header: ({ column }) => (
@@ -84,9 +86,9 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
     {
       id: "actions",
       enableHiding: false,
-      cell: ({row}) => <ActionsCell row={row} />,
+      cell: ({row}) => <ActionsCell row={row} currentUser={currentUser} />,
     },
-  ], []);
+  ], [currentUser]);
 
   const table = useReactTable({
     data: indicators,
@@ -123,15 +125,11 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-                  ))}
+                  {row.getVisibleCells().map((cell) => (<TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>))}
                 </TableRow>
               ))
             ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">Tidak ada hasil.</TableCell>
-              </TableRow>
+              <TableRow><TableCell colSpan={columns.length} className="h-24 text-center">Tidak ada hasil.</TableCell></TableRow>
             )}
           </TableBody>
         </Table>

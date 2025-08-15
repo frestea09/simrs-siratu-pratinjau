@@ -1,6 +1,11 @@
 
-"use client";
+"use server";
 
+import React from "react";
+import prisma from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/actions/auth";
+import { IndicatorSubmissionTable } from "@/components/organisms/indicator-submission-table";
+import { IndicatorSubmissionDialog } from "@/components/organisms/indicator-submission-dialog";
 import {
   Card,
   CardContent,
@@ -8,72 +13,42 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { IndicatorSubmissionDialog } from "@/components/organisms/indicator-submission-dialog";
-import { IndicatorSubmissionTable } from "@/components/organisms/indicator-submission-table";
-import { useIndicatorStore } from "@/store/indicator-store";
-import { useUserStore } from "@/store/user-store.ts";
-import React from "react";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
+import { IndicatorsPageClient } from "./page-client";
 
-const centralRoles = [
-  "Admin Sistem",
-  "Direktur",
-  "Sub. Komite Peningkatan Mutu",
-  "Sub. Komite Keselamatan Pasien",
-  "Sub. Komite Manajemen Risiko",
-];
 
-export default function IndicatorsPage() {
-  const { submittedIndicators } = useIndicatorStore();
-  const { currentUser } = useUserStore();
-  const [isNewDialogOpen, setIsNewDialogOpen] = React.useState(false);
+async function getData(userId?: string, unit?: string, role?: string) {
+  const centralRoles = [
+    "Admin Sistem",
+    "Direktur",
+    "Sub. Komite Peningkatan Mutu",
+    "Sub. Komite Keselamatan Pasien",
+    "Sub. Komite Manajemen Risiko",
+  ];
+  
+  const userCanSeeAll = role && centralRoles.includes(role);
 
-  const userCanSeeAll = currentUser && centralRoles.includes(currentUser.role);
+  const whereClause = userCanSeeAll ? {} : { unit: unit };
 
-  const filteredSubmittedIndicators = React.useMemo(() => {
-    if (userCanSeeAll || !currentUser?.unit) {
-      return submittedIndicators;
+  const submittedIndicators = await prisma.indicatorSubmission.findMany({
+    where: whereClause,
+    orderBy: {
+      submissionDate: 'desc'
     }
-    return submittedIndicators.filter(
-      (indicator) => indicator.unit === currentUser.unit
-    );
-  }, [submittedIndicators, currentUser, userCanSeeAll]);
+  });
+
+  return { submittedIndicators };
+}
+
+export default async function IndicatorsPage() {
+  const currentUser = await getCurrentUser();
+  const { submittedIndicators } = await getData(currentUser?.id, currentUser?.unit || undefined, currentUser?.role);
 
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">
-          Manajemen Indikator
-        </h2>
-      </div>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Pengajuan Indikator (INM, IMP-RS, IMPU, SPM)</CardTitle>
-              <CardDescription>
-                Daftar semua indikator yang telah diajukan beserta status
-                verifikasinya.
-                {currentUser?.unit &&
-                  !userCanSeeAll &&
-                  ` (Hanya menampilkan untuk Unit: ${currentUser.unit})`}
-              </CardDescription>
-            </div>
-            <Button size="lg" onClick={() => setIsNewDialogOpen(true)}>
-              <PlusCircle className="mr-2 h-5 w-5" />
-              Ajukan Indikator Baru
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <IndicatorSubmissionTable indicators={filteredSubmittedIndicators} />
-        </CardContent>
-      </Card>
-      <IndicatorSubmissionDialog
-        open={isNewDialogOpen}
-        setOpen={setIsNewDialogOpen}
-      />
-    </div>
+    <IndicatorsPageClient 
+        submittedIndicators={submittedIndicators}
+        currentUser={currentUser}
+    />
   );
 }

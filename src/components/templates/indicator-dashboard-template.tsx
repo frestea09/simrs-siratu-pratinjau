@@ -4,7 +4,6 @@
 import * as React from "react"
 import { parseISO } from "date-fns"
 
-import { useUserStore } from "@/store/user-store.ts"
 import { getFilterRange, getFilterDescription } from "@/lib/indicator-utils"
 import type { FilterType } from "@/lib/indicator-utils"
 import { useIndicatorData } from "@/hooks/use-indicator-data"
@@ -12,17 +11,17 @@ import { IndicatorFilterCard } from "@/components/organisms/indicator-filter-car
 import { IndicatorChartCard } from "@/components/organisms/indicator-chart-card"
 import { IndicatorReport } from "@/components/organisms/indicator-report"
 import { IndicatorStatCards } from "@/components/organisms/indicator-stat-cards"
-import { Indicator, IndicatorCategory, useIndicatorStore } from "@/store/indicator-store"
+import type { Indicator, IndicatorCategory } from "@prisma/client"
+import type { User } from "@prisma/client"
 
 type IndicatorDashboardTemplateProps = {
   category: IndicatorCategory
   pageTitle: string
+  indicators: Indicator[]
+  currentUser: User | null
 }
 
-export function IndicatorDashboardTemplate({ category, pageTitle }: IndicatorDashboardTemplateProps) {
-  const { currentUser } = useUserStore()
-  const { indicators } = useIndicatorStore()
-
+export function IndicatorDashboardTemplate({ category, pageTitle, indicators, currentUser }: IndicatorDashboardTemplateProps) {
   const userIsCentral = currentUser && ["Admin Sistem", "Direktur", "Sub. Komite Peningkatan Mutu", "Sub. Komite Keselamatan Pasien", "Sub. Komite Manajemen Risiko"].includes(currentUser.role)
 
   const categoryIndicators = React.useMemo(() => {
@@ -101,8 +100,11 @@ export function IndicatorDashboardTemplate({ category, pageTitle }: IndicatorDas
           chartData={chartData}
           reportDescription={getFilterDescription(filterType, selectedDate)}
           indicators={filteredIndicatorsForTable}
+          currentUser={currentUser}
         />
       </div>
     </div>
   )
 }
+
+    

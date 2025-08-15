@@ -5,7 +5,7 @@ import React from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
-import { Incident } from "@/store/incident-store"
+import type { Incident, IncidentType, IncidentSeverity } from "@prisma/client"
 
 const DetailSection = ({ title, children }: { title: string, children: React.ReactNode }) => (
     <div className="space-y-2">
@@ -34,6 +34,21 @@ type IncidentDetailDialogProps = {
     onOpenChange: (open: boolean) => void
 }
 
+const incidentTypeMap: Record<IncidentType, string> = {
+    KPC: 'Kondisi Potensial Cedera (KPC)',
+    KNC: 'Kejadian Nyaris Cedera (KNC)',
+    KTC: 'Kejadian Tidak Cedera (KTC)',
+    KTD: 'Kejadian Tidak Diharapkan (KTD)',
+    Sentinel: 'Kejadian Sentinel',
+};
+
+const severityMap: Record<IncidentSeverity, string> = {
+    BIRU: "BIRU (Rendah)",
+    HIJAU: "HIJAU (Sedang)",
+    KUNING: "KUNING (Tinggi)",
+    MERAH: "MERAH (Sangat Tinggi)",
+};
+
 export const IncidentDetailDialog = ({ incident, open, onOpenChange }: IncidentDetailDialogProps) => {
     if (!incident) return null;
 
@@ -54,14 +69,14 @@ export const IncidentDetailDialog = ({ incident, open, onOpenChange }: IncidentD
                         <DetailItem label="Kelompok Umur" value={incident.ageGroup} />
                         <DetailItem label="Jenis Kelamin" value={incident.gender} />
                         <DetailItem label="Penanggung Biaya" value={incident.payer} />
-                        <DetailItem label="Tanggal Masuk RS" value={new Date(incident.entryDate || Date.now()).toLocaleDateString('id-ID')} />
+                        <DetailItem label="Tanggal Masuk RS" value={incident.entryDate ? new Date(incident.entryDate).toLocaleDateString('id-ID') : '-'} />
                         <DetailItem label="Jam Masuk RS" value={incident.entryTime} />
                     </DetailSection>
                     <Separator />
                     <DetailSection title="Rincian Kejadian">
-                         <DetailItem label="Tanggal Insiden" value={new Date(incident.incidentDate || Date.now()).toLocaleDateString('id-ID')} />
+                         <DetailItem label="Tanggal Insiden" value={new Date(incident.incidentDate).toLocaleDateString('id-ID')} />
                          <DetailItem label="Jam Insiden" value={incident.incidentTime} />
-                         <DetailItem label="Jenis Insiden" value={incident.type} />
+                         <DetailItem label="Jenis Insiden" value={incidentTypeMap[incident.type]} />
                          <DetailItem label="Insiden Mengenai" value={incident.incidentSubject} />
                          <DetailItem label="Lokasi Insiden" value={incident.incidentLocation} />
                          <DetailItem label="Unit Terkait" value={incident.relatedUnit} />
@@ -72,8 +87,8 @@ export const IncidentDetailDialog = ({ incident, open, onOpenChange }: IncidentD
                          <FullWidthDetailItem label="Tindakan Segera" value={incident.firstAction} />
                          <DetailItem label="Tindakan Dilakukan Oleh" value={incident.firstActionBy} />
                          <DetailItem label="Akibat Insiden Terhadap Pasien" value={incident.patientImpact} />
-                         <DetailItem label="Pernah Terjadi di Unit Lain?" value={incident.hasHappenedBefore} />
-                         <DetailItem label="Grading Risiko" value={incident.severity} />
+                         <DetailItem label="Pernah Terjadi di Unit Lain?" value={incident.hasHappenedBefore ? 'Ya' : 'Tidak'} />
+                         <DetailItem label="Grading Risiko" value={severityMap[incident.severity]} />
                          <FullWidthDetailItem label="Catatan Analisis (oleh Komite)" value={incident.analysisNotes} />
                          <FullWidthDetailItem label="Rencana Tindak Lanjut (oleh Komite)" value={incident.followUpPlan} />
                     </DetailSection>

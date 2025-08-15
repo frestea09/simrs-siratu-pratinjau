@@ -26,19 +26,20 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Incident, IncidentStatus } from "@/store/incident-store"
 import { IncidentDetailDialog } from "./incident-detail-dialog"
 import { ActionsCell } from "./incident-table/actions-cell"
 import { cn } from "@/lib/utils"
 import { ReportPreviewDialog } from "./report-preview-dialog"
 import { IncidentAnalysisTable } from "./incident-analysis-table"
+import type { Incident, IncidentSeverity, IncidentStatus, User } from "@prisma/client"
 
 type IncidentTableProps = {
   incidents: Incident[];
   onExport: (data: Incident[], columns: ColumnDef<Incident>[]) => void;
+  currentUser: User | null;
 }
 
-export function IncidentTable({ incidents, onExport }: IncidentTableProps) {
+export function IncidentTable({ incidents, onExport, currentUser }: IncidentTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [selectedIncident, setSelectedIncident] = React.useState<Incident | null>(null);
@@ -77,18 +78,18 @@ export function IncidentTable({ incidents, onExport }: IncidentTableProps) {
       accessorKey: "severity",
       header: "Tingkat Risiko",
        cell: ({ row }) => {
-        const severity = row.getValue("severity") as Incident['severity']
-        const severityMap: Record<Incident['severity'], string> = {
-            biru: "BIRU (Rendah)",
-            hijau: "HIJAU (Sedang)",
-            kuning: "KUNING (Tinggi)",
-            merah: "MERAH (Sangat Tinggi)",
+        const severity = row.getValue("severity") as IncidentSeverity
+        const severityMap: Record<IncidentSeverity, string> = {
+            BIRU: "BIRU (Rendah)",
+            HIJAU: "HIJAU (Sedang)",
+            KUNING: "KUNING (Tinggi)",
+            MERAH: "MERAH (Sangat Tinggi)",
         }
-        const variantMap: Record<Incident['severity'], "default" | "secondary" | "destructive" | "outline"> = {
-            biru: "secondary",
-            hijau: "default",
-            kuning: "outline",
-            merah: "destructive"
+        const variantMap: Record<IncidentSeverity, "default" | "secondary" | "destructive" | "outline"> = {
+            BIRU: "secondary",
+            HIJAU: "default",
+            KUNING: "outline",
+            MERAH: "destructive"
         }
         return <Badge variant={variantMap[severity]}>{severityMap[severity]}</Badge>
       },
@@ -104,9 +105,9 @@ export function IncidentTable({ incidents, onExport }: IncidentTableProps) {
     },
     {
       id: "actions",
-      cell: ({ row }) => <ActionsCell row={row} onViewDetails={handleViewDetails} />,
+      cell: ({ row }) => <ActionsCell row={row} onViewDetails={handleViewDetails} currentUser={currentUser} />,
     },
-  ], []);
+  ], [currentUser]);
 
   const table = useReactTable({
     data: incidents,

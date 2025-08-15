@@ -7,7 +7,7 @@ import { Incident } from "@/store/incident-store"
 import { FormInputTextarea } from "@/components/molecules/form-input-textarea"
 import { FormInputRadio } from "@/components/molecules/form-input-radio"
 import { HOSPITAL_UNITS } from "@/lib/constants"
-import { useUserStore } from "@/store/user-store.tsx"
+import { useUserStore } from "@/store/user-store"
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
     <h3 className="font-semibold text-lg text-primary">{children}</h3>

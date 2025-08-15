@@ -26,8 +26,8 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
-import { useUserStore } from "@/store/user-store.tsx"
-import { useLogStore } from "@/store/log-store.tsx"
+import { useUserStore } from "@/store/user-store"
+import { useLogStore } from "@/store/log-store"
 
 // Skema validasi untuk form profil
 const profileFormSchema = z.object({

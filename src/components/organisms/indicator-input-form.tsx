@@ -16,8 +16,8 @@ import { useIndicatorStore, Indicator, SubmittedIndicator, IndicatorCategory } f
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "../ui/textarea"
 import { DialogFooter } from "../ui/dialog"
-import { useUserStore } from "@/store/user-store.tsx"
-import { useLogStore } from "@/store/log-store.tsx"
+import { useUserStore } from "@/store/user-store"
+import { useLogStore } from "@/store/log-store"
 
 const centralRoles = [
   'Admin Sistem',

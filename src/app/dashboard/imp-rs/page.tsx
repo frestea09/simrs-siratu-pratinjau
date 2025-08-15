@@ -3,26 +3,12 @@
 
 import * as React from "react"
 import { IndicatorDashboardTemplate } from "@/components/templates/indicator-dashboard-template"
-import { getIndicators } from "@/lib/actions/indicators"
-import { Indicator } from "@prisma/client"
 
 export default function ImpRsPage() {
-  const [indicators, setIndicators] = React.useState<Indicator[]>([]);
-
-  React.useEffect(() => {
-    async function fetchData() {
-        const data = await getIndicators("IMP-RS");
-        setIndicators(data);
-    }
-    fetchData();
-  }, [])
-
-
   return (
     <IndicatorDashboardTemplate
-      category="IMP-RS"
+      category="IMP_RS"
       pageTitle="Indikator Mutu Prioritas RS (IMP-RS)"
-      indicators={indicators}
     />
   )
 }

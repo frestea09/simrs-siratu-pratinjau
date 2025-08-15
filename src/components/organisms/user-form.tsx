@@ -17,9 +17,9 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { DialogFooter } from "../ui/dialog"
-import { User, useUserStore, UserRole } from "@/store/user-store.tsx"
+import { User, useUserStore, UserRole } from "@/store/user-store"
 import { useToast } from "@/hooks/use-toast"
-import { useLogStore } from "@/store/log-store.tsx"
+import { useLogStore } from "@/store/log-store"
 import { HOSPITAL_UNITS } from "@/lib/constants"
 import { Combobox } from "../ui/combobox"
 

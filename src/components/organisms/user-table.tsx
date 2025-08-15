@@ -37,10 +37,10 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { User, useUserStore, UserRole } from "@/store/user-store.tsx"
+import { User, useUserStore, UserRole } from "@/store/user-store"
 import { UserDialog } from "./user-dialog"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog"
-import { useLogStore } from "@/store/log-store.tsx"
+import { useLogStore } from "@/store/log-store"
 import { useToast } from "@/hooks/use-toast"
 
 

@@ -15,8 +15,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
 import React from "react"
-import { User } from "@prisma/client"
 import { logout } from "@/lib/actions/auth"
+import type { User } from "@/store/user-store"
 
 export function UserNav({ user }: { user: User | null }) {
   const handleLogout = async () => {

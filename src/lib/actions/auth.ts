@@ -4,8 +4,7 @@
 import { z } from "zod";
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
-
-import prisma from "@/lib/prisma";
+import { useUserStore } from "@/store/user-store";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -27,15 +26,13 @@ export async function login(prevState: any, formData: FormData) {
   const { email, password } = validatedFields.data;
 
   try {
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
+    const { users } = useUserStore.getState();
+    const user = users.find(u => u.email === email);
 
     if (!user || !user.password) {
       return { error: "Invalid credentials!" };
     }
 
-    // Demo: Simple string comparison, no bcrypt
     const passwordsMatch = password === user.password;
 
     if (!passwordsMatch) {
@@ -79,17 +76,13 @@ export async function getCurrentUser() {
     if (!session) return null;
 
     try {
-        const user = await prisma.user.findUnique({
-            where: { id: session.userId },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                role: true,
-                unit: true,
-            }
-        });
-        return user;
+        const { users } = useUserStore.getState();
+        const user = users.find(u => u.id === session.userId);
+        if (!user) return null;
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
     } catch (error) {
         return null;
     }

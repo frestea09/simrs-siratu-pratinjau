@@ -29,10 +29,10 @@ import { DialogFooter } from "../ui/dialog"
 import { SubmittedIndicator, useIndicatorStore, IndicatorCategory } from "@/store/indicator-store"
 import { useToast } from "@/hooks/use-toast"
 import { HOSPITAL_UNITS } from "@/lib/constants"
-import { useUserStore } from "@/store/user-store.tsx"
-import { useLogStore } from "@/store/log-store.tsx"
+import { useUserStore } from "@/store/user-store"
+import { useLogStore } from "@/store/log-store"
 import { Combobox } from "../ui/combobox"
-import { useNotificationStore } from "@/store/notification-store.tsx"
+import { useNotificationStore } from "@/store/notification-store"
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group"
 
 const formSchema = z.object({

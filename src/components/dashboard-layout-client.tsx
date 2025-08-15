@@ -240,17 +240,15 @@ export default function DashboardClientLayout({
 
           <SidebarFooter className="p-2 mt-auto">
             <SidebarMenu>
-              <SidebarMenuItem>
-                <NavItem
-                  item={{
-                    label: "Logout",
-                    icon: LogOut,
-                    onClick: handleLogout,
-                  }}
-                  openMenus={openMenus}
-                  setOpenMenus={setOpenMenus}
-                />
-              </SidebarMenuItem>
+              <NavItem
+                item={{
+                  label: "Logout",
+                  icon: LogOut,
+                  onClick: handleLogout,
+                }}
+                openMenus={openMenus}
+                setOpenMenus={setOpenMenus}
+              />
             </SidebarMenu>
           </SidebarFooter>
         </Sidebar>

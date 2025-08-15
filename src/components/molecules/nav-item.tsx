@@ -73,36 +73,48 @@ const NavSubMenu = ({ item, openMenus, setOpenMenus, isSubItem }: NavItemProps) 
   );
 };
 
-const NavLink = ({ item, isSubItem }: Pick<NavItemProps, 'item' | 'isSubItem'>) => {
-    const pathname = usePathname();
-    const commonProps = {
-      isActive: item.href ? pathname.startsWith(item.href) : false,
-      tooltip: item.label,
-      size: isSubItem ? 'default' : 'lg' as 'default' | 'sm' | 'lg' | null | undefined,
-      onClick: item.onClick,
-    };
-    const children = (
-      <div className="flex flex-row gap-4">
-        {item.icon && <item.icon className={cn(isSubItem ? "size-5" : "size-6")} />}
-        <span>{item.label}</span>
-      </div>
-    );
+const NavLink = ({ item, isSubItem }: Pick<NavItemProps, "item" | "isSubItem">) => {
+  const pathname = usePathname()
+  const isActive = item.href ? pathname.startsWith(item.href) : false
+  const children = (
+    <div className="flex flex-row gap-4">
+      {item.icon && <item.icon className={cn(isSubItem ? "size-5" : "size-6")} />}
+      <span>{item.label}</span>
+    </div>
+  )
 
-    if (isSubItem) {
-        return (
-            <SidebarMenuSubButton {...commonProps} asChild={!!item.href} as={item.href ? 'a' : 'button'}>
-              {item.href ? <Link href={item.href}>{children}</Link> : <button type="button">{children}</button>}
-            </SidebarMenuSubButton>
-        )
+  if (isSubItem) {
+    if (item.href) {
+      return (
+        <SidebarMenuSubButton isActive={isActive} onClick={item.onClick} asChild>
+          <Link href={item.href}>{children}</Link>
+        </SidebarMenuSubButton>
+      )
     }
-
     return (
-      <SidebarMenuButton {...commonProps} asChild={!!item.href}>
-        <Link href={item.href || '#'}>
+      <SidebarMenuSubButton isActive={isActive} onClick={item.onClick} type="button">
+        {children}
+      </SidebarMenuSubButton>
+    )
+  }
+
+  return (
+    <SidebarMenuButton
+      isActive={isActive}
+      tooltip={item.label}
+      size="lg"
+      onClick={item.onClick}
+      asChild={!!item.href}
+    >
+      {item.href ? (
+        <Link href={item.href}>
           <div className="flex items-center gap-3">{children}</div>
         </Link>
-      </SidebarMenuButton>
-    );
+      ) : (
+        <div className="flex items-center gap-3">{children}</div>
+      )}
+    </SidebarMenuButton>
+  )
 }
 
 export function NavItem(props: NavItemProps) {

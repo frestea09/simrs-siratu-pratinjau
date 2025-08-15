@@ -712,9 +712,10 @@ const SidebarMenuSubButton = React.forwardRef<
     as?: "a" | "button"
     size?: "sm" | "md"
     isActive?: boolean
+    asChild?: boolean
   }
->(({ as = "button", size = "md", isActive, className, ...props }, ref) => {
-  const Comp = as
+>(({ as = "button", size = "md", isActive, className, asChild = false, ...props }, ref) => {
+  const Comp = asChild ? Slot : as
   return (
     // @ts-expect-error - This is a valid use case for polymorphism.
     <Comp

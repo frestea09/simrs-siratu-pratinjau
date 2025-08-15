@@ -11,7 +11,7 @@ import { useLogStore } from "@/store/log-store.tsx"
 import { Step1PatientData } from "./incident-report-form/step1-patient-data"
 import { Step2IncidentDetails } from "./incident-report-form/step2-incident-details"
 import { Step3FollowUp } from "./incident-report-form/step3-follow-up"
-import { useNotificationStore } from "@/store/notification-store"
+import { useNotificationStore } from "@/store/notification-store.tsx"
 
 const steps = [
     { id: '01', name: 'Data Pasien' },

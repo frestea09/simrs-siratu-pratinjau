@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { useNotificationStore } from "@/store/notification-store"
+import { useNotificationStore } from "@/store/notification-store.tsx"
 import { cn } from "@/lib/utils"
 import { Badge } from "../ui/badge"
 

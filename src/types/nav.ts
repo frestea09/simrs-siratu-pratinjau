@@ -5,4 +5,5 @@ export type NavItem = {
   label: string;
   onClick?: () => void;
   subItems?: NavItem[];
+  adminOnly?: boolean;
 }

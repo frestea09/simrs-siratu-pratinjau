@@ -32,6 +32,7 @@ import {
   Activity,
   Loader2,
   Bell,
+  Cog,
 } from "lucide-react";
 import Link from "next/link";
 import favicon from "@/app/favicon.ico";
@@ -107,10 +108,16 @@ const navItems: NavItemType[] = [
 ];
 
 const adminNavItems: NavItemType[] = [
-  { href: "/dashboard/notifications", icon: Bell, label: "Notifikasi" },
-  { href: "/dashboard/users", icon: Users, label: "Manajemen Pengguna" },
-  { href: "/dashboard/logs", icon: History, label: "Log Sistem" },
-  { href: "/dashboard/settings", icon: Settings, label: "Pengaturan" },
+  {
+    label: "Pengaturan Sistem",
+    icon: Cog,
+    subItems: [
+      { href: "/dashboard/notifications", icon: Bell, label: "Notifikasi" },
+      { href: "/dashboard/users", icon: Users, label: "Manajemen Pengguna" },
+      { href: "/dashboard/logs", icon: History, label: "Log Sistem" },
+      { href: "/dashboard/settings", icon: Settings, label: "Pengaturan" },
+    ],
+  },
 ];
 
 export default function DashboardClientLayout({
@@ -219,12 +226,9 @@ export default function DashboardClientLayout({
 
             {currentUser?.role === "Admin Sistem" && (
               <SidebarMenu className="mt-4 pt-2 border-t border-sidebar-border/50">
-                <p className="text-sm font-semibold text-muted-foreground/80 px-4 group-data-[state=expanded]:block hidden mb-2">
-                  Administrasi
-                </p>
-                {adminNavItems.map((item) => (
+                {adminNavItems.map((item, index) => (
                   <NavItem
-                    key={item.href}
+                    key={index}
                     item={item}
                     openMenus={openMenus}
                     setOpenMenus={setOpenMenus}

@@ -2,7 +2,6 @@
 "use server";
 
 import { z } from "zod";
-import bcrypt from 'bcrypt';
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 
@@ -36,7 +35,8 @@ export async function login(prevState: any, formData: FormData) {
       return { error: "Invalid credentials!" };
     }
 
-    const passwordsMatch = await bcrypt.compare(password, user.password);
+    // Demo: Simple string comparison, no bcrypt
+    const passwordsMatch = password === user.password;
 
     if (!passwordsMatch) {
       return { error: "Invalid credentials!" };

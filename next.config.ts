@@ -19,14 +19,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-   webpack: (config, { isServer }) => {
-    // Exclude bcrypt and its dependency from server-side bundling
-    if (isServer) {
-      config.externals.push('@mapbox/node-pre-gyp');
-      config.externals.push('bcrypt');
-    }
-    return config;
-  },
 };
 
 export default nextConfig;

@@ -1,43 +1,21 @@
 
-"use client"
+"use server"
 
 import * as React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { UserDialog } from "@/components/organisms/user-dialog"
 import { UserTable } from "@/components/organisms/user-table"
-import { useUserStore } from "@/store/user-store.ts"
 import { Button } from "@/components/ui/button"
 import { PlusCircle } from "lucide-react"
+import prisma from "@/lib/prisma"
+import { getCurrentUser } from "@/lib/actions/auth"
+import { UsersPageClient } from "./page-client"
 
-export default function UsersPage() {
-  const users = useUserStore((state) => state.users)
-  const [isNewUserDialogOpen, setIsNewUserDialogOpen] = React.useState(false);
+export default async function UsersPage() {
+  const users = await prisma.user.findMany({
+    orderBy: { name: 'asc' }
+  });
+  const currentUser = await getCurrentUser();
 
-  return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Manajemen Pengguna</h2>
-      </div>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Daftar Pengguna</CardTitle>
-              <CardDescription>
-                Kelola akun pengguna dan hak akses sistem.
-              </CardDescription>
-            </div>
-             <Button size="lg" onClick={() => setIsNewUserDialogOpen(true)}>
-                <PlusCircle className="mr-2 h-5 w-5" />
-                Tambah Pengguna Baru
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <UserTable users={users} />
-        </CardContent>
-      </Card>
-      <UserDialog open={isNewUserDialogOpen} onOpenChange={setIsNewUserDialogOpen} />
-    </div>
-  )
+  return <UsersPageClient users={users} currentUser={currentUser} />
 }

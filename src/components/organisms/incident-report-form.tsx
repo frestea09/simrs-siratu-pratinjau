@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button"
 import { Stepper } from "@/components/molecules/stepper"
 import { useIncidentStore, Incident } from "@/store/incident-store"
 import { useToast } from "@/hooks/use-toast"
-import { useUserStore } from "@/store/user-store.ts"
 import { useLogStore } from "@/store/log-store"
 import { Step1PatientData } from "./incident-report-form/step1-patient-data"
 import { Step2IncidentDetails } from "./incident-report-form/step2-incident-details"
 import { Step3FollowUp } from "./incident-report-form/step3-follow-up"
 import { useNotificationStore } from "@/store/notification-store"
+import type { User } from "@prisma/client"
 
 const steps = [
     { id: '01', name: 'Data Pasien' },
@@ -22,13 +22,13 @@ const steps = [
 type IncidentReportFormProps = {
     setOpen: (open: boolean) => void;
     incident?: Incident;
+    currentUser: User | null;
 }
 
-export function IncidentReportForm({ setOpen, incident }: IncidentReportFormProps) {
+export function IncidentReportForm({ setOpen, incident, currentUser }: IncidentReportFormProps) {
     const [currentStep, setCurrentStep] = React.useState(0)
     const { addIncident, updateIncident } = useIncidentStore()
     const { toast } = useToast()
-    const { currentUser } = useUserStore();
     const { addLog } = useLogStore();
     const { addNotification } = useNotificationStore();
     
@@ -55,7 +55,7 @@ export function IncidentReportForm({ setOpen, incident }: IncidentReportFormProp
                 title: 'Laporan Insiden Baru',
                 description: `Insiden baru (${finalData.type}) telah dilaporkan. Segera lakukan investigasi.`,
                 link: '/dashboard/incidents',
-                recipientRole: 'Sub. Komite Keselamatan Pasien',
+                recipientRole: 'SUB_KOMITE_KESELAMATAN_PASIEN',
             })
             toast({ title: "Laporan Berhasil Disimpan", description: "Laporan insiden baru telah ditambahkan ke daftar." });
         }
@@ -66,7 +66,7 @@ export function IncidentReportForm({ setOpen, incident }: IncidentReportFormProp
         switch (currentStep) {
             case 0: return <Step1PatientData data={formData} onUpdate={updateFormData} />;
             case 1: return <Step2IncidentDetails data={formData} onUpdate={updateFormData} />;
-            case 2: return <Step3FollowUp data={formData} onUpdate={updateFormData} />;
+            case 2: return <Step3FollowUp data={formData} onUpdate={updateFormData} currentUser={currentUser} />;
             default: return null;
         }
     }
@@ -94,3 +94,5 @@ export function IncidentReportForm({ setOpen, incident }: IncidentReportFormProp
         </div>
     )
 }
+
+    

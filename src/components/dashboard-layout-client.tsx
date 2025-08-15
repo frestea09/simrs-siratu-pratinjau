@@ -47,7 +47,7 @@ import { NotificationPopover } from "./organisms/notification-popover";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { logout } from "@/lib/actions/auth";
-import type { User } from "@/store/user-store";
+import type { User } from "@prisma/client";
 
 const LoadingOverlay = ({ isLoading }: { isLoading: boolean }) => (
   <div
@@ -218,7 +218,7 @@ export default function DashboardClientLayout({
               ))}
             </SidebarMenu>
 
-            {user?.role === "Admin Sistem" && (
+            {user?.role === "ADMIN_SISTEM" && (
               <SidebarMenu className="mt-4 pt-2 border-t border-sidebar-border/50">
                 {adminNavItems.map((item, index) => (
                   <NavItem

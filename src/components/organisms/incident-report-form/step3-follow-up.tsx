@@ -7,7 +7,8 @@ import { Incident } from "@/store/incident-store"
 import { FormInputTextarea } from "@/components/molecules/form-input-textarea"
 import { FormInputRadio } from "@/components/molecules/form-input-radio"
 import { HOSPITAL_UNITS } from "@/lib/constants"
-import { useUserStore } from "@/store/user-store.ts"
+import type { User } from "@prisma/client"
+
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
     <h3 className="font-semibold text-lg text-primary">{children}</h3>
@@ -16,6 +17,7 @@ const SectionTitle = ({ children }: { children: React.ReactNode }) => (
 type StepProps = {
     data: Partial<Incident>;
     onUpdate: (newData: Partial<Incident>) => void;
+    currentUser: User | null;
 };
 
 const unitOptions = HOSPITAL_UNITS.map(unit => ({ value: unit, label: unit }));
@@ -36,9 +38,8 @@ const patientImpactOptions = [
     { value: 'Tidak ada cedera', label: 'Tidak ada cedera' },
 ];
 
-export function Step3FollowUp({ data, onUpdate }: StepProps) {
-    const { currentUser } = useUserStore()
-    const canAnalyze = currentUser?.role === 'Admin Sistem' || currentUser?.role === 'Sub. Komite Keselamatan Pasien';
+export function Step3FollowUp({ data, onUpdate, currentUser }: StepProps) {
+    const canAnalyze = currentUser?.role === 'ADMIN_SISTEM' || currentUser?.role === 'SUB_KOMITE_KESELAMATAN_PASIEN';
 
     return (
         <div className="space-y-6">
@@ -68,3 +69,5 @@ export function Step3FollowUp({ data, onUpdate }: StepProps) {
         </div>
     )
 }
+
+    

@@ -18,7 +18,6 @@ import {
   DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu"
 import { SubmittedIndicator } from "@/store/indicator-store"
-import { useUserStore } from "@/store/user-store.ts"
 import { useLogStore } from "@/store/log-store"
 import { useNotificationStore } from "@/store/notification-store"
 import { useIndicatorStore } from "@/store/indicator-store"
@@ -26,20 +25,21 @@ import { IndicatorSubmissionDialog } from "../indicator-submission-dialog"
 import { IndicatorSubmissionDetailDialog } from "../indicator-submission-detail-dialog"
 import { RejectionReasonDialog } from "../rejection-reason-dialog"
 import { statusOptions } from "../indicator-submission-table"
+import type { User } from "@prisma/client"
 
 
 type ActionsCellProps = {
   row: Row<SubmittedIndicator>
+  currentUser: User | null
 }
 
-export function ActionsCell({ row }: ActionsCellProps) {
+export function ActionsCell({ row, currentUser }: ActionsCellProps) {
     const indicator = row.original
     const [isDetailOpen, setIsDetailOpen] = React.useState(false)
     const [isEditOpen, setIsEditOpen] = React.useState(false)
     const [rejectionDialog, setRejectionDialog] = React.useState({ isOpen: false, indicator: null as SubmittedIndicator | null })
     
     const { updateSubmittedIndicatorStatus } = useIndicatorStore.getState()
-    const { currentUser } = useUserStore()
     const { addLog } = useLogStore()
     const { addNotification } = useNotificationStore()
 
@@ -62,9 +62,9 @@ export function ActionsCell({ row }: ActionsCellProps) {
         setRejectionDialog({ isOpen: true, indicator });
     };
 
-    const canVerify = currentUser?.role === 'Admin Sistem' || 
-                      currentUser?.role === 'Direktur' ||
-                      currentUser?.role === 'Sub. Komite Peningkatan Mutu';
+    const canVerify = currentUser?.role === 'ADMIN_SISTEM' || 
+                      currentUser?.role === 'DIREKTUR' ||
+                      currentUser?.role === 'SUB_KOMITE_PENINGKATAN_MUTU';
 
     return (
         <>
@@ -116,7 +116,7 @@ export function ActionsCell({ row }: ActionsCellProps) {
             </DropdownMenu>
 
             <IndicatorSubmissionDetailDialog indicator={indicator} open={isDetailOpen} onOpenChange={setIsDetailOpen} />
-            <IndicatorSubmissionDialog indicator={indicator} open={isEditOpen} setOpen={setIsEditOpen} />
+            <IndicatorSubmissionDialog indicator={indicator} open={isEditOpen} setOpen={setIsEditOpen} currentUser={currentUser} />
             <RejectionReasonDialog
                 open={rejectionDialog.isOpen}
                 onOpenChange={(isOpen) => setRejectionDialog({ isOpen, indicator: null })}
@@ -129,3 +129,5 @@ export function ActionsCell({ row }: ActionsCellProps) {
         </>
     )
 }
+
+    

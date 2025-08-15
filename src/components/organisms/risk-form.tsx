@@ -15,8 +15,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { DialogFooter } from "../ui/dialog"
 import { Risk, RiskCategory, RiskSource, useRiskStore, RiskEvaluation, RiskStatus } from "@/store/risk-store"
 import { useToast } from "@/hooks/use-toast"
-import { useUserStore } from "@/store/user-store.ts"
-import { useLogStore } from "@/store/log-store"
 import { HOSPITAL_UNITS } from "@/lib/constants"
 import { Combobox } from "../ui/combobox"
 import { Slider } from "../ui/slider"
@@ -25,6 +23,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Calendar } from "../ui/calendar"
 import { cn } from "@/lib/utils"
 import { Input } from "../ui/input"
+import type { User } from "@prisma/client"
 
 const sourceOptions: { value: RiskSource, label: string }[] = [
     { value: "Laporan Insiden", label: "Laporan Insiden" },
@@ -100,16 +99,17 @@ const formSchema = z.object({
 type RiskFormProps = {
     setOpen: (open: boolean) => void;
     riskToEdit?: Risk;
+    currentUser: User | null;
+    users: User[];
 }
 
 const ratingLabels = ["Sangat Rendah", "Rendah", "Sedang", "Tinggi", "Sangat Tinggi"];
 const controllabilityLabels = ["Sangat Sulit", "Sulit", "Sedang", "Mudah", "Sangat Mudah"];
 
 
-export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
+export function RiskForm({ setOpen, riskToEdit, currentUser, users }: RiskFormProps) {
     const { toast } = useToast()
     const { addRisk, updateRisk } = useRiskStore()
-    const { currentUser, users } = useUserStore()
     const isEditMode = !!riskToEdit;
 
     const userOptions = React.useMemo(() => users.map(u => ({ value: u.name, label: `${u.name} (${u.role})`})), [users]);
@@ -528,3 +528,5 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
         </Form>
     )
 }
+
+    

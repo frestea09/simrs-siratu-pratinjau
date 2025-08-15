@@ -17,11 +17,10 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { DialogFooter } from "../ui/dialog"
-import { User, useUserStore, UserRole } from "@/store/user-store"
 import { useToast } from "@/hooks/use-toast"
-import { useLogStore } from "@/store/log-store"
 import { HOSPITAL_UNITS } from "@/lib/constants"
 import { Combobox } from "../ui/combobox"
+import type { User, UserRole } from "@prisma/client"
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -33,12 +32,12 @@ const formSchema = z.object({
   password: z.string().min(6, {
     message: "Password harus memiliki setidaknya 6 karakter.",
   }),
-  role: z.enum(['Admin Sistem', 'PIC Mutu', 'PJ Ruangan', 'Kepala Unit/Instalasi', 'Direktur', 'Sub. Komite Peningkatan Mutu', 'Sub. Komite Keselamatan Pasien', 'Sub. Komite Manajemen Risiko'], {
+  role: z.enum(['ADMIN_SISTEM', 'PIC_MUTU', 'PJ_RUANGAN', 'KEPALA_UNIT_INSTALASI', 'DIREKTUR', 'SUB_KOMITE_PENINGKATAN_MUTU', 'SUB_KOMITE_KESELAMATAN_PASIEN', 'SUB_KOMITE_MANAJEMEN_RISIKO'], {
     required_error: "Anda harus memilih peran.",
   }),
   unit: z.string().optional(),
 }).refine(data => {
-    if (['PIC Mutu', 'PJ Ruangan', 'Kepala Unit/Instalasi'].includes(data.role) && !data.unit) {
+    if (['PIC_MUTU', 'PJ_RUANGAN', 'KEPALA_UNIT_INSTALASI'].includes(data.role) && !data.unit) {
         return false;
     }
     return true;
@@ -54,25 +53,22 @@ type UserFormProps = {
 
 const unitOptions = HOSPITAL_UNITS.map(unit => ({ value: unit, label: unit }));
 const roleOptions: {value: UserRole, label: string}[] = [
-    { value: "Admin Sistem", label: "Admin Sistem" },
-    { value: "Direktur", label: "Direktur" },
-    { value: "Sub. Komite Peningkatan Mutu", label: "Sub. Komite Peningkatan Mutu" },
-    { value: "Sub. Komite Keselamatan Pasien", label: "Sub. Komite Keselamatan Pasien" },
-    { value: "Sub. Komite Manajemen Risiko", label: "Sub. Komite Manajemen Risiko" },
-    { value: "Kepala Unit/Instalasi", label: "Kepala Unit/Instalasi" },
-    { value: "PIC Mutu", label: "PIC Mutu" },
-    { value: "PJ Ruangan", label: "PJ Ruangan" },
+    { value: "ADMIN_SISTEM", label: "Admin Sistem" },
+    { value: "DIREKTUR", label: "Direktur" },
+    { value: "SUB_KOMITE_PENINGKATAN_MUTU", label: "Sub. Komite Peningkatan Mutu" },
+    { value: "SUB_KOMITE_KESELAMATAN_PASIEN", label: "Sub. Komite Keselamatan Pasien" },
+    { value: "SUB_KOMITE_MANAJEMEN_RISIKO", label: "Sub. Komite Manajemen Risiko" },
+    { value: "KEPALA_UNIT_INSTALASI", label: "Kepala Unit/Instalasi" },
+    { value: "PIC_MUTU", label: "PIC Mutu" },
+    { value: "PJ_RUANGAN", label: "PJ Ruangan" },
 ]
 
-const unitAssociatedRoles: UserRole[] = ["PIC Mutu", "PJ Ruangan", "Kepala Unit/Instalasi"];
+const unitAssociatedRoles: UserRole[] = ["PIC_MUTU", "PJ_RUANGAN", "KEPALA_UNIT_INSTALASI"];
 
 
 export function UserForm({ setOpen, userToEdit }: UserFormProps) {
   const { toast } = useToast()
-  const { addUser, updateUser } = useUserStore()
-  const { currentUser } = useUserStore()
-  const { addLog } = useLogStore()
-
+  
   const isEditMode = !!userToEdit;
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -96,36 +92,13 @@ export function UserForm({ setOpen, userToEdit }: UserFormProps) {
   }, [selectedRole, form]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    const finalValues = { ...values };
-    if (!unitAssociatedRoles.includes(finalValues.role as UserRole)) {
-        delete finalValues.unit;
-    }
-
-    if (isEditMode && userToEdit) {
-        updateUser(userToEdit.id, finalValues)
-        addLog({
-            user: currentUser?.name || 'System',
-            action: 'UPDATE_USER',
-            details: `Data pengguna ${values.name} (${values.email}) diperbarui.`
-        })
-        toast({
-            title: "Pengguna Diperbarui",
-            description: `Data untuk pengguna "${values.name}" telah berhasil diperbarui.`,
-        })
-    } else {
-        const newId = addUser(finalValues as Omit<User, 'id'>)
-        addLog({
-            user: currentUser?.name || 'System',
-            action: 'ADD_USER',
-            details: `Pengguna baru ${values.name} (${values.email}) ditambahkan dengan ID ${newId}.`
-        })
-        toast({
-          title: "Pengguna Ditambahkan",
-          description: `Pengguna baru "${values.name}" telah berhasil ditambahkan.`,
-        })
-    }
+    // This would be a server action
+    console.log(values);
+    toast({
+        title: "Aksi Belum Diimplementasikan",
+        description: "Menambah/mengedit pengguna belum terhubung ke server.",
+    })
     setOpen(false)
-    form.reset()
   }
 
   return (

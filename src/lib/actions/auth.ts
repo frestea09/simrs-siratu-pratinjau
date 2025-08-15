@@ -4,7 +4,8 @@
 import { z } from "zod";
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
-import { useUserStore } from "@/store/user-store";
+import prisma from "@/lib/prisma";
+import type { User, UserRole } from "@prisma/client";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -26,8 +27,7 @@ export async function login(prevState: any, formData: FormData) {
   const { email, password } = validatedFields.data;
 
   try {
-    const { users } = useUserStore.getState();
-    const user = users.find(u => u.email === email);
+    const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user || !user.password) {
       return { error: "Invalid credentials!" };
@@ -65,7 +65,7 @@ export async function getSession() {
   if (!sessionCookie) return null;
   try {
     const { payload } = await jwtVerify(sessionCookie, secretKey, { algorithms: [algorithm] });
-    return payload as { userId: string, role: string, unit?: string, iat: number, exp: number };
+    return payload as { userId: string, role: UserRole, unit?: string, iat: number, exp: number };
   } catch (error) {
     return null;
   }
@@ -76,8 +76,7 @@ export async function getCurrentUser() {
     if (!session) return null;
 
     try {
-        const { users } = useUserStore.getState();
-        const user = users.find(u => u.id === session.userId);
+        const user = await prisma.user.findUnique({ where: { id: session.userId }});
         if (!user) return null;
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars

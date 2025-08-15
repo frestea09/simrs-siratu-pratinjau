@@ -16,27 +16,27 @@ import { useIndicatorStore, Indicator, SubmittedIndicator, IndicatorCategory } f
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "../ui/textarea"
 import { DialogFooter } from "../ui/dialog"
-import { useUserStore } from "@/store/user-store.ts"
 import { useLogStore } from "@/store/log-store"
+import type { User } from "@prisma/client"
 
 const centralRoles = [
-  'Admin Sistem',
-  'Direktur',
-  'Sub. Komite Peningkatan Mutu',
-  'Sub. Komite Keselamatan Pasien',
-  'Sub. Komite Manajemen Risiko'
+  'ADMIN_SISTEM',
+  'DIREKTUR',
+  'SUB_KOMITE_PENINGKATAN_MUTU',
+  'SUB_KOMITE_KESELAMATAN_PASIEN',
+  'SUB_KOMITE_MANAJEMEN_RISIKO'
 ];
 
 type IndicatorInputFormProps = {
     setOpen: (open: boolean) => void;
     indicatorToEdit?: Indicator;
     category: IndicatorCategory;
+    currentUser: User | null;
 }
 
-export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: IndicatorInputFormProps) {
+export function IndicatorInputForm({ setOpen, indicatorToEdit, category, currentUser }: IndicatorInputFormProps) {
   const { toast } = useToast()
   const { addIndicator, updateIndicator, submittedIndicators, indicators } = useIndicatorStore()
-  const { currentUser } = useUserStore()
   const { addLog } = useLogStore()
 
 
@@ -273,3 +273,5 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
     </div>
   )
 }
+
+    

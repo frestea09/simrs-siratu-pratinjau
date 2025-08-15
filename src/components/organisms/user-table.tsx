@@ -37,17 +37,14 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { User, useUserStore, UserRole } from "@/store/user-store"
 import { UserDialog } from "./user-dialog"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog"
-import { useLogStore } from "@/store/log-store"
 import { useToast } from "@/hooks/use-toast"
+import { User, UserRole } from "@prisma/client"
 
 
-const ActionsCell = ({ row }: { row: Row<User> }) => {
+const ActionsCell = ({ row, currentUser }: { row: Row<User>, currentUser: User | null }) => {
     const user = row.original;
-    const { removeUser, currentUser } = useUserStore();
-    const { addLog } = useLogStore();
     const { toast } = useToast();
     const [isEditOpen, setIsEditOpen] = React.useState(false);
 
@@ -60,14 +57,10 @@ const ActionsCell = ({ row }: { row: Row<User> }) => {
             })
             return;
         }
-        removeUser(user.id);
-        addLog({
-            user: currentUser?.name || 'System',
-            action: 'DELETE_USER',
-            details: `Pengguna ${user.name} (${user.email}) dihapus.`,
-        });
+        // This would be a server action
+        console.log("Deleting user", user.id);
         toast({
-            title: "Pengguna Dihapus",
+            title: "Pengguna Dihapus (Demo)",
             description: `Pengguna ${user.name} telah berhasil dihapus.`,
         });
     }
@@ -115,7 +108,18 @@ const ActionsCell = ({ row }: { row: Row<User> }) => {
     )
 }
 
-export const columns: ColumnDef<User>[] = [
+const roleLabelMapping: Record<UserRole, string> = {
+  ADMIN_SISTEM: "Admin Sistem",
+  DIREKTUR: "Direktur",
+  SUB_KOMITE_PENINGKATAN_MUTU: "Sub. Komite Peningkatan Mutu",
+  SUB_KOMITE_KESELAMATAN_PASIEN: "Sub. Komite Keselamatan Pasien",
+  SUB_KOMITE_MANAJEMEN_RISIKO: "Sub. Komite Manajemen Risiko",
+  KEPALA_UNIT_INSTALASI: "Kepala Unit/Instalasi",
+  PIC_MUTU: "PIC Mutu",
+  PJ_RUANGAN: "PJ Ruangan",
+};
+
+export const columns: (currentUser: User | null) => ColumnDef<User>[] = (currentUser) => [
   {
     accessorKey: "name",
     header: ({ column }) => {
@@ -138,7 +142,7 @@ export const columns: ColumnDef<User>[] = [
   {
     accessorKey: "role",
     header: "Peran",
-    cell: ({ row }) => <Badge variant="secondary">{row.getValue("role")}</Badge>,
+    cell: ({ row }) => <Badge variant="secondary">{roleLabelMapping[row.getValue("role") as UserRole]}</Badge>,
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id))
     },
@@ -151,23 +155,24 @@ export const columns: ColumnDef<User>[] = [
   {
     id: "actions",
     enableHiding: false,
-    cell: ActionsCell,
+    cell: ({ row }) => <ActionsCell row={row} currentUser={currentUser} />,
   },
 ]
 
-const roleOptions: UserRole[] = ['Admin Sistem', 'PIC Mutu', 'PJ Ruangan', 'Kepala Unit/Instalasi', 'Direktur', 'Sub. Komite Peningkatan Mutu', 'Sub. Komite Keselamatan Pasien', 'Sub. Komite Manajemen Risiko'];
+const roleOptions = Object.entries(roleLabelMapping).map(([value, label]) => ({ value: value as UserRole, label }));
 
 type UserTableProps = {
-  users: User[] 
+  users: User[],
+  currentUser: User | null
 }
 
-export function UserTable({ users }: UserTableProps) {
+export function UserTable({ users, currentUser }: UserTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
   const table = useReactTable({
     data: users,
-    columns,
+    columns: columns(currentUser),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -202,18 +207,18 @@ export function UserTable({ users }: UserTableProps) {
             <DropdownMenuSeparator />
             {roleOptions.map((role) => (
               <DropdownMenuCheckboxItem
-                key={role}
+                key={role.value}
                 className="capitalize"
                 checked={
-                  (table.getColumn("role")?.getFilterValue() as string[] | undefined)?.includes(role) ?? false
+                  (table.getColumn("role")?.getFilterValue() as string[] | undefined)?.includes(role.value) ?? false
                 }
                 onCheckedChange={(value) => {
                    const currentFilter = (table.getColumn("role")?.getFilterValue() as string[] | undefined) || [];
-                   const newFilter = value ? [...currentFilter, role] : currentFilter.filter(s => s !== role);
+                   const newFilter = value ? [...currentFilter, role.value] : currentFilter.filter(s => s !== role.value);
                    table.getColumn("role")?.setFilterValue(newFilter.length ? newFilter : undefined);
                 }}
               >
-                {role}
+                {role.label}
               </DropdownMenuCheckboxItem>
             ))}
           </DropdownMenuContent>
@@ -259,7 +264,7 @@ export function UserTable({ users }: UserTableProps) {
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length}
+                  colSpan={columns(currentUser).length}
                   className="h-24 text-center"
                 >
                   Tidak ada hasil.

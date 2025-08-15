@@ -19,22 +19,22 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Incident, IncidentStatus, useIncidentStore } from "@/store/incident-store"
 import { IncidentReportDialog } from "../incident-report-dialog"
-import { useUserStore } from "@/store/user-store.ts"
 import { useLogStore } from "@/store/log-store"
+import type { User } from "@prisma/client"
 
 type ActionsCellProps = {
   row: Row<Incident>;
   onViewDetails: (incident: Incident) => void;
+  currentUser: User | null;
 }
 
-export function ActionsCell({ row, onViewDetails }: ActionsCellProps) {
+export function ActionsCell({ row, onViewDetails, currentUser }: ActionsCellProps) {
   const incident = row.original
-  const { currentUser } = useUserStore();
   const { addLog } = useLogStore();
   const { updateIncidentStatus } = useIncidentStore()
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false)
 
-  const canChangeStatus = currentUser?.role === 'Admin Sistem' || currentUser?.role === 'Sub. Komite Keselamatan Pasien';
+  const canChangeStatus = currentUser?.role === 'ADMIN_SISTEM' || currentUser?.role === 'SUB_KOMITE_KESELAMATAN_PASIEN';
 
   const handleStatusChange = (status: IncidentStatus) => {
     updateIncidentStatus(incident.id, status)
@@ -91,7 +91,10 @@ export function ActionsCell({ row, onViewDetails }: ActionsCellProps) {
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
         incident={incident}
+        currentUser={currentUser}
       />
     </>
   )
 }
+
+    

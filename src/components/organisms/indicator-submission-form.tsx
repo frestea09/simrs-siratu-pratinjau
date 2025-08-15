@@ -29,11 +29,11 @@ import { DialogFooter } from "../ui/dialog"
 import { SubmittedIndicator, useIndicatorStore, IndicatorCategory } from "@/store/indicator-store"
 import { useToast } from "@/hooks/use-toast"
 import { HOSPITAL_UNITS } from "@/lib/constants"
-import { useUserStore } from "@/store/user-store.ts"
 import { useLogStore } from "@/store/log-store"
 import { Combobox } from "../ui/combobox"
 import { useNotificationStore } from "@/store/notification-store"
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group"
+import type { User } from "@prisma/client"
 
 const formSchema = z.object({
   name: z.string().min(5, {
@@ -61,6 +61,7 @@ const formSchema = z.object({
 type IndicatorSubmissionFormProps = {
     setOpen: (open: boolean) => void;
     indicator?: SubmittedIndicator;
+    currentUser: User | null;
 }
 
 const categoryOptions: {value: IndicatorCategory, label: string}[] = [
@@ -73,17 +74,16 @@ const categoryOptions: {value: IndicatorCategory, label: string}[] = [
 const unitOptions = HOSPITAL_UNITS.map(unit => ({ value: unit, label: unit }));
 
 const centralRoles = [
-  'Admin Sistem',
-  'Direktur',
-  'Sub. Komite Peningkatan Mutu',
-  'Sub. Komite Keselamatan Pasien',
-  'Sub. Komite Manajemen Risiko'
+  'ADMIN_SISTEM',
+  'DIREKTUR',
+  'SUB_KOMITE_PENINGKATAN_MUTU',
+  'SUB_KOMITE_KESELAMATAN_PASIEN',
+  'SUB_KOMITE_MANAJEMEN_RISIKO'
 ];
 
-export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmissionFormProps) {
+export function IndicatorSubmissionForm({ setOpen, indicator, currentUser }: IndicatorSubmissionFormProps) {
   const { toast } = useToast()
   const { submitIndicator, updateSubmittedIndicator, submittedIndicators } = useIndicatorStore()
-  const { currentUser } = useUserStore();
   const { addLog } = useLogStore();
   const { addNotification } = useNotificationStore();
   const isEditMode = !!indicator;
@@ -184,7 +184,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                 title: 'Pengajuan Indikator Baru (IMPU)',
                 description: `Indikator "${submissionData.name}" dari unit ${submissionData.unit} menunggu persetujuan.`,
                 link: '/dashboard/indicators',
-                recipientRole: 'Sub. Komite Peningkatan Mutu' 
+                recipientRole: 'SUB_KOMITE_PENINGKATAN_MUTU' 
             });
         }
     }
@@ -398,3 +398,5 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
     </Form>
   )
 }
+
+    

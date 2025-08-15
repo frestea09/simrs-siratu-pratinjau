@@ -16,7 +16,7 @@ import {
 import Link from "next/link"
 import React from "react"
 import { logout } from "@/lib/actions/auth"
-import type { User } from "@/store/user-store"
+import type { User } from "@prisma/client";
 
 export function UserNav({ user }: { user: User | null }) {
   const handleLogout = async () => {

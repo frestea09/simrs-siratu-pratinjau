@@ -31,6 +31,7 @@ import {
   Network,
   Activity,
   Loader2,
+  Bell,
 } from "lucide-react";
 import Link from "next/link";
 import favicon from "@/app/favicon.ico";
@@ -106,6 +107,7 @@ const navItems: NavItemType[] = [
 ];
 
 const adminNavItems: NavItemType[] = [
+  { href: "/dashboard/notifications", icon: Bell, label: "Notifikasi" },
   { href: "/dashboard/users", icon: Users, label: "Manajemen Pengguna" },
   { href: "/dashboard/logs", icon: History, label: "Log Sistem" },
   { href: "/dashboard/settings", icon: Settings, label: "Pengaturan" },

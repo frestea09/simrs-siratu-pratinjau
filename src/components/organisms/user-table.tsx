@@ -166,7 +166,7 @@ export function UserTable({ users }: UserTableProps) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
   const table = useReactTable({
-    data: users,
+    data: users.users,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,

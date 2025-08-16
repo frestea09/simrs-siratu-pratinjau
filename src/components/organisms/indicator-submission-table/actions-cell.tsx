@@ -3,7 +3,7 @@
 
 import * as React from "react"
 import { Row } from "@tanstack/react-table"
-import { MoreHorizontal, Eye, Pencil } from "lucide-react"
+import { MoreHorizontal, Eye, Pencil, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -22,6 +22,8 @@ import { useUserStore } from "@/store/user-store.tsx"
 import { useLogStore } from "@/store/log-store.tsx"
 import { useNotificationStore } from "@/store/notification-store.tsx"
 import { useIndicatorStore } from "@/store/indicator-store"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../../ui/alert-dialog"
+import { useToast } from "@/hooks/use-toast"
 import { IndicatorSubmissionDialog } from "../indicator-submission-dialog"
 import { IndicatorSubmissionDetailDialog } from "../indicator-submission-detail-dialog"
 import { RejectionReasonDialog } from "../rejection-reason-dialog"
@@ -38,10 +40,11 @@ export function ActionsCell({ row }: ActionsCellProps) {
     const [isEditOpen, setIsEditOpen] = React.useState(false)
     const [rejectionDialog, setRejectionDialog] = React.useState({ isOpen: false, indicator: null as SubmittedIndicator | null })
     
-    const { updateSubmittedIndicatorStatus } = useIndicatorStore.getState()
+    const { updateSubmittedIndicatorStatus, removeSubmittedIndicator } = useIndicatorStore.getState()
     const { currentUser } = useUserStore()
     const { addLog } = useLogStore()
     const { addNotification } = useNotificationStore()
+    const { toast } = useToast()
 
     const handleStatusChange = (indicator: SubmittedIndicator, status: SubmittedIndicator['status'], reason?: string) => {
         updateSubmittedIndicatorStatus(indicator.id, status, reason)
@@ -62,9 +65,28 @@ export function ActionsCell({ row }: ActionsCellProps) {
         setRejectionDialog({ isOpen: true, indicator });
     };
 
-    const canVerify = currentUser?.role === 'Admin Sistem' || 
+    const canVerify = currentUser?.role === 'Admin Sistem' ||
                       currentUser?.role === 'Direktur' ||
                       currentUser?.role === 'Sub. Komite Peningkatan Mutu';
+
+    const handleDelete = () => {
+        removeSubmittedIndicator(indicator.id)
+        addLog({
+            user: currentUser?.name || 'System',
+            action: 'DELETE_SUBMITTED_INDICATOR',
+            details: `Pengajuan indikator "${indicator.name}" (${indicator.id}) dihapus.`,
+        })
+        addNotification({
+            title: 'Pengajuan Indikator Dihapus',
+            description: `Pengajuan indikator "${indicator.name}" telah dihapus.`,
+            link: '/dashboard/indicators',
+            recipientUnit: indicator.unit,
+        })
+        toast({
+            title: 'Indikator Dihapus',
+            description: `Pengajuan indikator "${indicator.name}" telah dihapus.`,
+        })
+    }
 
     return (
         <>
@@ -95,8 +117,8 @@ export function ActionsCell({ row }: ActionsCellProps) {
                                 <DropdownMenuSubTrigger>Ubah Status</DropdownMenuSubTrigger>
                                 <DropdownMenuSubContent>
                                     {statusOptions.map((status) => (
-                                    <DropdownMenuItem 
-                                        key={status} 
+                                    <DropdownMenuItem
+                                        key={status}
                                         onSelect={() => {
                                         if (status === 'Ditolak') {
                                             openRejectionDialog(indicator);
@@ -112,6 +134,27 @@ export function ActionsCell({ row }: ActionsCellProps) {
                             </DropdownMenuSub>
                         </>
                     )}
+                    <DropdownMenuSeparator />
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full text-destructive">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Hapus
+                            </button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Anda yakin?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Aksi ini tidak dapat dibatalkan. Ini akan menghapus pengajuan indikator secara permanen.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Batal</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Hapus</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </DropdownMenuContent>
             </DropdownMenu>
 

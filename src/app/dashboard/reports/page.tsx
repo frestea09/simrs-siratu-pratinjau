@@ -127,7 +127,7 @@ export default function ReportsPage() {
             <CardTitle>Buat Laporan Rekapitulasi Tahunan</CardTitle>
             <CardDescription>
                 Pilih tahun untuk membuat laporan rekapitulasi capaian indikator bulanan.
-                Hanya indikator dengan status 'Diverifikasi' yang akan disertakan.
+                Hanya indikator dengan status &apos;Diverifikasi&apos; yang akan disertakan.
             </CardDescription>
           </CardHeader>
           <CardContent>

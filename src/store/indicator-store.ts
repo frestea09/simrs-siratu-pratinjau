@@ -44,9 +44,13 @@ type IndicatorState = {
   submittedIndicators: SubmittedIndicator[]
   addIndicator: (indicator: Omit<Indicator, 'id' |'ratio' | 'status'>) => string
   updateIndicator: (id: string, data: Partial<Omit<Indicator, 'id' |'ratio' | 'status'>>) => void
-  submitIndicator: (indicator: Omit<SubmittedIndicator, 'id' | 'status' | 'submissionDate'>) => string
+  submitIndicator: (
+    indicator: Omit<SubmittedIndicator, 'id' | 'status' | 'submissionDate'>,
+    sendNotificationCallback?: () => void
+  ) => string
   updateSubmittedIndicatorStatus: (id: string, status: SubmittedIndicator['status'], reason?: string) => void
   updateSubmittedIndicator: (id: string, data: Partial<Omit<SubmittedIndicator, 'id' | 'status' | 'submissionDate'>>) => void
+  removeSubmittedIndicator: (id: string) => void
 }
 
 const initialSubmittedIndicators: SubmittedIndicator[] = [];
@@ -87,10 +91,13 @@ export const useIndicatorStore = create<IndicatorState>((set, get) => ({
         return indicator
       }),
     })),
-  submitIndicator: (indicator, sendNotificationCallback) => {
+  submitIndicator: (
+    indicator: Omit<SubmittedIndicator, 'id' | 'status' | 'submissionDate'>,
+    sendNotificationCallback?: () => void
+  ) => {
     const newId = `IND-${String(get().submittedIndicators.length + 1).padStart(3, '0')}`;
     
-    const status = ['INM', 'IMP-RS', 'SPM'].includes(indicator.category)
+    const status: SubmittedIndicator['status'] = ['INM', 'IMP-RS', 'SPM'].includes(indicator.category)
         ? 'Diverifikasi'
         : 'Menunggu Persetujuan';
 
@@ -130,5 +137,9 @@ export const useIndicatorStore = create<IndicatorState>((set, get) => ({
       submittedIndicators: state.submittedIndicators.map((indicator) =>
         indicator.id === id ? { ...indicator, ...data } : indicator
       )
-    }))
+    })),
+  removeSubmittedIndicator: (id) =>
+    set((state) => ({
+      submittedIndicators: state.submittedIndicators.filter((indicator) => indicator.id !== id),
+    })),
 }))

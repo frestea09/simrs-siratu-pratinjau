@@ -147,7 +147,10 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
   React.useEffect(() => {
     // If user is not an admin and category is not IMPU, force their unit
     if (!userIsAdmin && selectedCategory !== 'IMPU') {
-        form.setValue('unit', currentUser?.unit || '');
+        const unitValue = currentUser?.unit || '';
+        if (form.getValues('unit') !== unitValue) {
+            form.setValue('unit', unitValue);
+        }
     }
   }, [selectedCategory, userIsAdmin, currentUser?.unit, form]);
 

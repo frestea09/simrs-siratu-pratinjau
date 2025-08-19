@@ -21,7 +21,12 @@ import Image from "next/image"
 import favicon from "@/app/favicon.ico"
 import { login } from "@/lib/actions/auth"
 import { useLogStore } from "@/store/log-store.tsx"
-import type { User } from "@prisma/client"
+import type { User, UserRole as DbUserRole } from "@prisma/client"
+import {
+  useUserStore,
+  type UserRole,
+  type User as StoreUser,
+} from "@/store/user-store.tsx"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -29,7 +34,19 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const { addLog } = useLogStore()
+  const { setCurrentUser } = useUserStore()
   const [demoUsers, setDemoUsers] = useState<User[]>([])
+
+  const roleMap: Record<DbUserRole, UserRole> = {
+    ADMIN_SISTEM: "Admin Sistem",
+    PIC_MUTU: "PIC Mutu",
+    PJ_RUANGAN: "PJ Ruangan",
+    KEPALA_UNIT_INSTALASI: "Kepala Unit/Instalasi",
+    DIREKTUR: "Direktur",
+    SUB_KOMITE_PENINGKATAN_MUTU: "Sub. Komite Peningkatan Mutu",
+    SUB_KOMITE_KESELAMATAN_PASIEN: "Sub. Komite Keselamatan Pasien",
+    SUB_KOMITE_MANAJEMEN_RISIKO: "Sub. Komite Manajemen Risiko",
+  }
 
   React.useEffect(() => {
     // In a real app, you wouldn't fetch demo users like this.
@@ -58,6 +75,16 @@ export default function LoginPage() {
       if (!user) {
         throw new Error("User not found after login.")
       }
+
+      const storeUser: StoreUser = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: roleMap[user.role as DbUserRole],
+        unit: user.unit ?? undefined,
+      }
+
+      setCurrentUser(storeUser)
       addLog({
         user: user.name,
         action: "LOGIN_SUCCESS",

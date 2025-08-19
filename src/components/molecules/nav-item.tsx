@@ -39,19 +39,16 @@ const useActivePath = (item: NavItemType) => {
 
 const NavSubMenu = ({ item, openMenus, setOpenMenus, isSubItem }: NavItemProps) => {
   const isParentActive = useActivePath(item);
-  const isOpen = openMenus[item.label] || false;
+  const isOpen = openMenus[item.label] ?? isParentActive;
   const ButtonComponent = isSubItem ? SidebarMenuSubButton : SidebarMenuButton;
 
-  React.useEffect(() => {
-    if (isParentActive && !isOpen) {
-      setOpenMenus((prev) => ({ ...prev, [item.label]: true }));
-    }
-  }, [isParentActive, isOpen, item.label, setOpenMenus]);
+  const toggleMenu = () =>
+    setOpenMenus((prev) => ({ ...prev, [item.label]: !isOpen }));
 
   return (
     <>
       <ButtonComponent
-        onClick={() => setOpenMenus(prev => ({ ...prev, [item.label]: !isOpen }))}
+        onClick={toggleMenu}
         isActive={isParentActive}
         tooltip={item.label}
         size={isSubItem ? 'default' : 'lg'}
@@ -63,10 +60,17 @@ const NavSubMenu = ({ item, openMenus, setOpenMenus, isSubItem }: NavItemProps) 
         </div>
         <ChevronDown className={`ml-auto size-5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </ButtonComponent>
-      <SidebarMenuSub className={cn("mt-1 pr-0", isSubItem ? 'pl-4' : '')}>
-        {isOpen && item.subItems?.map((subItem, index) => (
-          <NavItem key={index} item={subItem} openMenus={openMenus} setOpenMenus={setOpenMenus} isSubItem={true} />
-        ))}
+      <SidebarMenuSub className={cn('mt-1 pr-0', isSubItem ? 'pl-4' : '')}>
+        {isOpen &&
+          item.subItems?.map((subItem, index) => (
+            <NavItem
+              key={index}
+              item={subItem}
+              openMenus={openMenus}
+              setOpenMenus={setOpenMenus}
+              isSubItem={true}
+            />
+          ))}
       </SidebarMenuSub>
     </>
   );

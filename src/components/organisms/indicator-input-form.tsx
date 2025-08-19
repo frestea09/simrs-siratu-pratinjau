@@ -42,12 +42,12 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
 
   const isEditMode = !!indicatorToEdit?.id;
   
-  const [selectedIndicatorId, setSelectedIndicatorId] = React.useState<string | undefined>(isEditMode ? submittedIndicators.find(si => si.name === indicatorToEdit.indicator)?.id : undefined);
-  const [date, setDate] = React.useState<Date | undefined>((isEditMode && indicatorToEdit?.period) ? new Date(indicatorToEdit.period) : new Date())
-  const [numerator, setNumerator] = React.useState(indicatorToEdit?.numerator?.toString() || "")
-  const [denominator, setDenominator] = React.useState(indicatorToEdit?.denominator?.toString() || "")
-  const [analysisNotes, setAnalysisNotes] = React.useState(indicatorToEdit?.analysisNotes || "")
-  const [followUpPlan, setFollowUpPlan] = React.useState(indicatorToEdit?.followUpPlan || "")
+  const [selectedIndicatorId, setSelectedIndicatorId] = React.useState<string | undefined>(undefined);
+  const [date, setDate] = React.useState<Date | undefined>(new Date())
+  const [numerator, setNumerator] = React.useState("")
+  const [denominator, setDenominator] = React.useState("")
+  const [analysisNotes, setAnalysisNotes] = React.useState("")
+  const [followUpPlan, setFollowUpPlan] = React.useState("")
 
   const selectedSubmittedIndicator = React.useMemo(() => {
     return submittedIndicators.find(si => si.id === selectedIndicatorId);
@@ -64,7 +64,7 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
         setAnalysisNotes(indicatorToEdit.analysisNotes || "");
         setFollowUpPlan(indicatorToEdit.followUpPlan || "");
     } else {
-        // Reset form for new entry
+        // Reset form for new entry, only on initial mount or when dialog re-opens for 'new'
         setSelectedIndicatorId(undefined);
         setDate(new Date());
         setNumerator("");

@@ -13,10 +13,11 @@ type BreadcrumbProps = {
 
 export function Breadcrumb({ navItems }: BreadcrumbProps) {
   const pathname = usePathname();
-  const [breadcrumbs, setBreadcrumbs] = React.useState<{ href: string; label: string }[]>([]);
-
-  React.useEffect(() => {
-    const findPath = (items: NavItem[], currentPath: string): { href: string; label: string }[] => {
+  const breadcrumbs = React.useMemo(() => {
+    const findPath = (
+      items: NavItem[],
+      currentPath: string
+    ): { href: string; label: string }[] => {
       for (const item of items) {
         if (item.href === currentPath) {
           return [{ href: item.href, label: item.label }];
@@ -31,9 +32,8 @@ export function Breadcrumb({ navItems }: BreadcrumbProps) {
       return [];
     };
 
-    const path = findPath(navItems, pathname);
-    setBreadcrumbs(path);
-  }, [pathname, navItems]);
+    return findPath(navItems, pathname);
+  }, [navItems, pathname]);
 
   if (breadcrumbs.length === 0 || pathname === '/dashboard/overview') {
     return null;

@@ -44,10 +44,9 @@ const NavSubMenu = ({ item, openMenus, setOpenMenus, isSubItem }: NavItemProps) 
 
   React.useEffect(() => {
     if (isParentActive && !isOpen) {
-        setOpenMenus(prev => ({...prev, [item.label]: true}));
+      setOpenMenus((prev) => ({ ...prev, [item.label]: true }));
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isParentActive, item.label]);
+  }, [isParentActive, isOpen, item.label, setOpenMenus]);
 
   return (
     <>

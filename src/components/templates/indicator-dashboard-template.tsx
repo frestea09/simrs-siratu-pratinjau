@@ -41,7 +41,7 @@ export function IndicatorDashboardTemplate({ category, pageTitle }: IndicatorDas
     if (!userIsCentral && currentUser?.unit) {
       setSelectedUnit(currentUser.unit);
     }
-  }, []);
+  }, [userIsCentral, currentUser]);
 
 
   const {

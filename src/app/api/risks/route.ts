@@ -13,7 +13,35 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const data = await request.json()
-  const risk = await prisma.risk.create({ data })
-  return NextResponse.json({ risk }, { status: 201 })
+  try {
+    const data = await request.json()
+    const risk = await prisma.risk.create({
+      data: {
+        unit: data.unit,
+        source: data.source,
+        description: data.description,
+        cause: data.cause,
+        category: data.category,
+        consequence: Number(data.consequence),
+        likelihood: Number(data.likelihood),
+        controllability: Number(data.controllability),
+        evaluation: data.evaluation,
+        actionPlan: data.actionPlan,
+        dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
+        picId: data.picId || undefined,
+        status: data.status,
+        residualConsequence: data.residualConsequence
+          ? Number(data.residualConsequence)
+          : undefined,
+        residualLikelihood: data.residualLikelihood
+          ? Number(data.residualLikelihood)
+          : undefined,
+        reportNotes: data.reportNotes || undefined,
+      },
+    })
+    return NextResponse.json({ risk }, { status: 201 })
+  } catch (error) {
+    console.error("Failed to create risk", error)
+    return NextResponse.json({ error: "Failed to create risk" }, { status: 500 })
+  }
 }

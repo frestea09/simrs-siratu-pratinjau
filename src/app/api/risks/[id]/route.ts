@@ -23,12 +23,40 @@ export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const data = await request.json()
-  const risk = await prisma.risk.update({
-    where: { id: params.id },
-    data,
-  })
-  return NextResponse.json({ risk })
+  try {
+    const data = await request.json()
+    const risk = await prisma.risk.update({
+      where: { id: params.id },
+      data: {
+        unit: data.unit,
+        source: data.source,
+        description: data.description,
+        cause: data.cause,
+        category: data.category,
+        consequence: data.consequence ? Number(data.consequence) : undefined,
+        likelihood: data.likelihood ? Number(data.likelihood) : undefined,
+        controllability: data.controllability
+          ? Number(data.controllability)
+          : undefined,
+        evaluation: data.evaluation,
+        actionPlan: data.actionPlan,
+        dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
+        picId: data.picId || undefined,
+        status: data.status,
+        residualConsequence: data.residualConsequence
+          ? Number(data.residualConsequence)
+          : undefined,
+        residualLikelihood: data.residualLikelihood
+          ? Number(data.residualLikelihood)
+          : undefined,
+        reportNotes: data.reportNotes,
+      },
+    })
+    return NextResponse.json({ risk })
+  } catch (error) {
+    console.error("Failed to update risk", error)
+    return NextResponse.json({ error: "Failed to update risk" }, { status: 500 })
+  }
 }
 
 export async function DELETE(

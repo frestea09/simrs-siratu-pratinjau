@@ -19,12 +19,23 @@ export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const data = await request.json()
-  const indicator = await prisma.indicator.update({
-    where: { id: params.id },
-    data,
-  })
-  return NextResponse.json({ indicator })
+  try {
+    const data = await request.json()
+    const indicator = await prisma.indicator.update({
+      where: { id: params.id },
+      data: {
+        period: data.period ? new Date(data.period) : undefined,
+        numerator: data.numerator ? Number(data.numerator) : undefined,
+        denominator: data.denominator ? Number(data.denominator) : undefined,
+        analysisNotes: data.analysisNotes,
+        followUpPlan: data.followUpPlan,
+      },
+    })
+    return NextResponse.json({ indicator })
+  } catch (error) {
+    console.error("Failed to update indicator", error)
+    return NextResponse.json({ error: "Failed to update indicator" }, { status: 500 })
+  }
 }
 
 export async function DELETE(

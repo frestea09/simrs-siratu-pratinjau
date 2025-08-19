@@ -23,12 +23,30 @@ export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const data = await request.json()
-  const submission = await prisma.indicatorSubmission.update({
-    where: { id: params.id },
-    data,
-  })
-  return NextResponse.json({ submission })
+  try {
+    const data = await request.json()
+    const submission = await prisma.indicatorSubmission.update({
+      where: { id: params.id },
+      data: {
+        name: data.name,
+        category: data.category,
+        description: data.description,
+        unit: data.unit,
+        frequency: data.frequency,
+        status: data.status,
+        standard: data.standard ? Number(data.standard) : undefined,
+        standardUnit: data.standardUnit,
+        rejectionReason: data.rejectionReason,
+      },
+    })
+    return NextResponse.json({ submission })
+  } catch (error) {
+    console.error("Failed to update indicator submission", error)
+    return NextResponse.json(
+      { error: "Failed to update indicator submission" },
+      { status: 500 }
+    )
+  }
 }
 
 export async function DELETE(

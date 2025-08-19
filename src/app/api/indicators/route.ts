@@ -11,7 +11,21 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const data = await request.json()
-  const indicator = await prisma.indicator.create({ data })
-  return NextResponse.json({ indicator }, { status: 201 })
+  try {
+    const data = await request.json()
+    const indicator = await prisma.indicator.create({
+      data: {
+        submissionId: data.submissionId,
+        period: new Date(data.period),
+        numerator: Number(data.numerator),
+        denominator: Number(data.denominator),
+        analysisNotes: data.analysisNotes || undefined,
+        followUpPlan: data.followUpPlan || undefined,
+      },
+    })
+    return NextResponse.json({ indicator }, { status: 201 })
+  } catch (error) {
+    console.error("Failed to create indicator", error)
+    return NextResponse.json({ error: "Failed to create indicator" }, { status: 500 })
+  }
 }

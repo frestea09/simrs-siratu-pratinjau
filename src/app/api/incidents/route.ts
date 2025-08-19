@@ -7,7 +7,18 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const data = await request.json()
-  const incident = await prisma.incident.create({ data })
-  return NextResponse.json({ incident }, { status: 201 })
+  try {
+    const data = await request.json()
+    const incident = await prisma.incident.create({
+      data: {
+        ...data,
+        entryDate: data.entryDate ? new Date(data.entryDate) : undefined,
+        incidentDate: data.incidentDate ? new Date(data.incidentDate) : undefined,
+      },
+    })
+    return NextResponse.json({ incident }, { status: 201 })
+  } catch (error) {
+    console.error("Failed to create incident", error)
+    return NextResponse.json({ error: "Failed to create incident" }, { status: 500 })
+  }
 }

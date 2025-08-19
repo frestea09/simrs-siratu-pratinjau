@@ -63,11 +63,13 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
 
 
   React.useEffect(() => {
-    // This effect now only syncs the form when the indicatorToEdit prop changes,
-    // which happens when the dialog is opened for editing.
-    // It no longer handles the 'new' case, preventing the loop.
+    // Sync the form only when the indicator being edited changes.
+    // Using indicatorToEdit?.id as the dependency prevents unnecessary reruns
+    // that can lead to an update loop when store data updates elsewhere.
     if (indicatorToEdit?.id) {
-        const relatedSubmitted = submittedIndicators.find(si => si.name === indicatorToEdit.indicator);
+        const relatedSubmitted = submittedIndicators.find(
+            (si) => si.name === indicatorToEdit.indicator
+        );
         setSelectedIndicatorId(relatedSubmitted?.id);
         setDate(new Date(indicatorToEdit.period));
         setNumerator(indicatorToEdit.numerator.toString());
@@ -75,7 +77,8 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
         setAnalysisNotes(indicatorToEdit.analysisNotes || "");
         setFollowUpPlan(indicatorToEdit.followUpPlan || "");
     }
-  }, [indicatorToEdit, submittedIndicators])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [indicatorToEdit?.id])
 
   const userCanSeeAll = currentUser && centralRoles.includes(currentUser.role);
 

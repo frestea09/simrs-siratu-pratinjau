@@ -35,8 +35,14 @@ export function useIndicatorData({ allIndicators, selectedUnit, selectedIndicato
   }, [indicatorsForUnit, selectedIndicator])
 
   const { totalIndicators, meetingStandard, notMeetingStandard } = React.useMemo(() => {
-    const total = indicatorsForUnit.length
-    const meeting = indicatorsForUnit.filter(i => i.status === "Memenuhi Standar").length
+    const { start, end } = getFilterRange("this_month", new Date()) // Always use 'this_month' for overview cards
+    const currentMonthIndicators = indicatorsForUnit.filter(d => {
+      const periodDate = parseISO(d.period);
+      return periodDate >= start && periodDate <= end;
+    });
+
+    const total = currentMonthIndicators.length
+    const meeting = currentMonthIndicators.filter(i => i.status === "Memenuhi Standar").length
     return {
       totalIndicators: total,
       meetingStandard: meeting,

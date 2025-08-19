@@ -19,21 +19,36 @@ type IndicatorDashboardTemplateProps = {
   pageTitle: string
 }
 
+const centralRoles = [
+  "Admin Sistem",
+  "Direktur",
+  "Sub. Komite Peningkatan Mutu",
+  "Sub. Komite Keselamatan Pasien",
+  "Sub. Komite Manajemen Risiko",
+];
+
 export function IndicatorDashboardTemplate({ category, pageTitle }: IndicatorDashboardTemplateProps) {
   const { indicators } = useIndicatorStore()
   const { currentUser } = useUserStore()
-  const userIsCentral = currentUser && ["Admin Sistem", "Direktur", "Sub. Komite Peningkatan Mutu", "Sub. Komite Keselamatan Pasien", "Sub. Komite Manajemen Risiko"].includes(currentUser.role)
+  const userIsCentral = currentUser && centralRoles.includes(currentUser.role)
 
   const categoryIndicators = React.useMemo(() => {
-    const filteredByCategory = indicators.filter(i => i.category === category)
-    if (userIsCentral) return filteredByCategory
-    return filteredByCategory.filter(i => i.unit === currentUser?.unit)
-  }, [indicators, currentUser, userIsCentral, category])
+    return indicators.filter(i => i.category === category)
+    // No unit filtering here, it will be handled by useIndicatorData hook
+  }, [indicators, category])
 
-  const [selectedUnit, setSelectedUnit] = React.useState<string>("Semua Unit")
+  const [selectedUnit, setSelectedUnit] = React.useState<string>(userIsCentral ? "Semua Unit" : currentUser?.unit || "Semua Unit")
   const [selectedIndicator, setSelectedIndicator] = React.useState<string>("Semua Indikator")
   const [filterType, setFilterType] = React.useState<FilterType>("this_month")
   const [selectedDate, setSelectedDate] = React.useState<Date>(new Date())
+
+  // If user is not central, force their unit
+  React.useEffect(() => {
+    if (!userIsCentral && currentUser?.unit) {
+      setSelectedUnit(currentUser.unit);
+    }
+  }, [userIsCentral, currentUser]);
+
 
   const {
     indicatorsForUnit,
@@ -57,6 +72,8 @@ export function IndicatorDashboardTemplate({ category, pageTitle }: IndicatorDas
         : `Menampilkan tren untuk: ${selectedIndicator}.`
     return `${base} ${getFilterDescription(filterType, selectedDate)}`
   }
+
+  const indicatorsForReport = userIsCentral ? filteredIndicatorsForTable : filteredIndicatorsForTable.filter(i => i.unit === currentUser?.unit);
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -99,7 +116,7 @@ export function IndicatorDashboardTemplate({ category, pageTitle }: IndicatorDas
           showInputButton={true}
           chartData={chartData}
           reportDescription={getFilterDescription(filterType, selectedDate)}
-          indicators={filteredIndicatorsForTable}
+          indicators={indicatorsForReport}
         />
       </div>
     </div>

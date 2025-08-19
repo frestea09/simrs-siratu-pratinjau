@@ -88,7 +88,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
   const { addNotification } = useNotificationStore();
   const isEditMode = !!indicator;
   
-  const userIsAdmin = currentUser && centralRoles.includes(currentUser.role);
+  const userIsCentral = currentUser && centralRoles.includes(currentUser.role);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -97,7 +97,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
         adoptionType: 'new',
     } : {
       name: "",
-      unit: userIsAdmin ? undefined : currentUser?.unit,
+      unit: userIsCentral ? undefined : currentUser?.unit,
       description: "",
       standard: 100,
       standardUnit: '%',
@@ -140,15 +140,15 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
     }
   }, [adoptionType, adoptedIndicatorId, submittedIndicators, form, isEditMode]);
   
-  const userCanSelectUnit = userIsAdmin || selectedCategory === 'IMPU';
+  const userCanSelectUnit = userIsCentral;
 
 
   React.useEffect(() => {
     // If user is not an admin and category is not IMPU, force their unit
-    if (!userIsAdmin && selectedCategory !== 'IMPU') {
+    if (!userIsCentral && selectedCategory !== 'IMPU') {
         form.setValue('unit', currentUser?.unit || '');
     }
-  }, [selectedCategory, userIsAdmin, currentUser?.unit, form]);
+  }, [selectedCategory, userIsCentral, currentUser?.unit, form]);
 
 
   function onSubmit(values: z.infer<typeof formSchema>) {

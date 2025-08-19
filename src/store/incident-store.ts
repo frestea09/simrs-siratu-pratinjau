@@ -53,6 +53,7 @@ type IncidentState = {
   addIncident: (incident: Omit<Incident, 'id' | 'date' | 'status'>) => string
   updateIncident: (id: string, incident: Partial<Omit<Incident, 'id' | 'date' | 'status'>>) => void
   updateIncidentStatus: (id: string, status: IncidentStatus) => void;
+  removeIncident: (id: string) => void;
 }
 
 const initialIncidents: Incident[] = [];
@@ -85,8 +86,11 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
       })
   })),
   updateIncidentStatus: (id, status) => set(state => ({
-      incidents: state.incidents.map(inc => 
+      incidents: state.incidents.map(inc =>
           inc.id === id ? { ...inc, status } : inc
       )
+  })),
+  removeIncident: (id) => set(state => ({
+      incidents: state.incidents.filter(inc => inc.id !== id)
   }))
 }))

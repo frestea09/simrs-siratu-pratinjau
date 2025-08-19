@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState } from "react"
@@ -16,57 +17,61 @@ import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { Users, Eye, EyeOff, Loader2 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { useUserStore } from "@/store/user-store"
-import { useLogStore } from "@/store/log-store"
 import Image from "next/image"
 import favicon from "@/app/favicon.ico"
+import { login } from "@/lib/actions/auth"
+import { useLogStore } from "@/store/log-store"
 
 export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const { users, setCurrentUser } = useUserStore()
   const { addLog } = useLogStore()
+  const [demoUsers, setDemoUsers] = useState<any[]>([])
+
+  React.useEffect(() => {
+    // In a real app, you wouldn't fetch demo users like this.
+    // This is just to display login hints on the page.
+    const fetchDemoUsers = async () => {
+        try {
+            const res = await fetch("/api/users");
+            const data = await res.json();
+            setDemoUsers(data.users);
+        } catch (error) {
+            console.error("Failed to fetch demo users", error);
+        }
+    }
+    fetchDemoUsers();
+  }, [])
+
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setIsLoading(true)
 
     const formData = new FormData(event.currentTarget)
-    const username = formData.get("username") as string
-    const password = formData.get("password") as string
-    const trimmedUsername = username.trim()
 
     try {
-      const res = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: trimmedUsername, password }),
-      })
-
-      if (!res.ok) {
-        throw new Error("Invalid credentials")
-      }
-
-      const data = await res.json()
-      setCurrentUser(data.user)
+      const user = await login(formData)
       addLog({
-        user: data.user.name,
+        user: user.name,
         action: "LOGIN_SUCCESS",
-        details: `Pengguna ${data.user.name} berhasil login.`,
+        details: `Pengguna ${user.name} berhasil login.`,
       })
       router.push("/dashboard/overview")
-    } catch {
+      router.refresh() // Ensure layout re-renders with new session
+    } catch (error: any) {
+      const username = formData.get("username") as string;
       addLog({
-        user: trimmedUsername,
+        user: username || "Unknown",
         action: "LOGIN_FAIL",
-        details: `Percobaan login gagal untuk username: ${trimmedUsername}.`,
+        details: `Percobaan login gagal untuk username: ${username}.`,
       })
       toast({
         variant: "destructive",
         title: "Login Gagal",
-        description: "Username atau password salah. Silakan coba lagi.",
+        description: error.message || "Username atau password salah. Silakan coba lagi.",
       })
       setIsLoading(false)
     }
@@ -144,22 +149,24 @@ export default function LoginPage() {
               {isLoading ? "Memproses..." : "Login"}
             </Button>
           </form>
-          <Alert className="mt-4">
-            <Users className="h-4 w-4" />
-            <AlertTitle>Akun Demo</AlertTitle>
-            <AlertDescription>
-              <ul className="mt-2 list-disc space-y-1 pl-5 text-xs">
-                {users.map((user) => (
-                  <li key={user.email}>
-                    <b>{user.email}</b> ({user.name})
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-2 text-xs">
-                Password untuk semua akun: <b>123456</b>
-              </p>
-            </AlertDescription>
-          </Alert>
+          {demoUsers.length > 0 && (
+            <Alert className="mt-4">
+                <Users className="h-4 w-4" />
+                <AlertTitle>Akun Demo</AlertTitle>
+                <AlertDescription>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-xs">
+                    {demoUsers.map((user: any) => (
+                    <li key={user.email}>
+                        <b>{user.email}</b> ({user.name})
+                    </li>
+                    ))}
+                </ul>
+                <p className="mt-2 text-xs">
+                    Password untuk semua akun: <b>123456</b>
+                </p>
+                </AlertDescription>
+            </Alert>
+          )}
         </CardContent>
       </Card>
     </div>

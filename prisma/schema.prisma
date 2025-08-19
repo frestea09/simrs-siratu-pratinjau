@@ -10,9 +10,110 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ==================================
-//          ENUMS
-// ==================================
+model User {
+  id                               String                         @id @default(cuid())
+  name                             String
+  email                            String                         @unique
+  password                         String
+  role                             UserRole
+  unit                             String?
+  createdAt                        DateTime                       @default(now())
+  updatedAt                        DateTime                       @updatedAt
+  IndicatorSubmission              IndicatorSubmission[]
+  Risk                             Risk[]
+}
+
+model IndicatorSubmission {
+  id                String             @id @default(cuid())
+  name              String
+  category          IndicatorCategory
+  description       String             @db.Text
+  unit              String
+  frequency         IndicatorFrequency
+  status            IndicatorStatus    @default(Menunggu_Persetujuan)
+  submissionDate    DateTime           @default(now())
+  standard          Float
+  standardUnit      StandardUnit
+  rejectionReason   String?            @db.Text
+  submittedById     String
+  submittedBy       User               @relation(fields: [submittedById], references: [id])
+  Indicator         Indicator[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@index([submittedById])
+}
+
+model Indicator {
+  id              String             @id @default(cuid())
+  submissionId    String
+  submission      IndicatorSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  period          DateTime
+  numerator       Float
+  denominator     Float
+  analysisNotes   String?            @db.Text
+  followUpPlan    String?            @db.Text
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([submissionId])
+}
+
+model Incident {
+  id                    String          @id @default(cuid())
+  date                  DateTime        @default(now())
+  status                IncidentStatus  @default(Investigasi)
+  patientName           String?
+  medicalRecordNumber   String?
+  careRoom              String?
+  ageGroup              String?
+  gender                String?
+  payer                 String?
+  entryDate             DateTime?
+  entryTime             String?
+  incidentDate          DateTime?
+  incidentTime          String?
+  chronology            String?         @db.Text
+  type                  IncidentType
+  incidentSubject       String?
+  incidentLocation      String?
+  relatedUnit           String?
+  firstAction           String?         @db.Text
+  firstActionBy         String?
+  hasHappenedBefore     String?
+  severity              SeverityLevel
+  patientImpact         String?
+  analysisNotes         String?         @db.Text
+  followUpPlan          String?         @db.Text
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+}
+
+model Risk {
+  id                    String          @id @default(cuid())
+  unit                  String
+  source                RiskSource
+  description           String          @db.Text
+  cause                 String          @db.Text
+  category              RiskCategory
+  submissionDate        DateTime        @default(now())
+  consequence           Int
+  likelihood            Int
+  controllability       Int
+  evaluation            RiskEvaluation
+  actionPlan            String          @db.Text
+  dueDate               DateTime?
+  picId                 String?
+  pic                   User?           @relation(fields: [picId], references: [id])
+  status                RiskStatus      @default(Open)
+  residualConsequence   Int?
+  residualLikelihood    Int?
+  reportNotes           String?         @db.Text
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  @@index([picId])
+}
 
 enum UserRole {
   ADMIN_SISTEM
@@ -33,27 +134,26 @@ enum IndicatorCategory {
 }
 
 enum IndicatorFrequency {
-  HARIAN
-  MINGGUAN
-  BULANAN
-  TAHUNAN
-}
-
-enum SubmissionStatus {
-  MENUNGGU_PERSETUJUAN
-  DIVERIFIKASI
-  DITOLAK
+  Harian
+  Mingguan
+  Bulanan
+  Tahunan
 }
 
 enum StandardUnit {
-  PERSEN
-  MENIT
+  persen
+  menit
 }
 
 enum IndicatorStatus {
-  MEMENUHI_STANDAR
-  TIDAK_MEMENUHI_STANDAR
-  NA
+  Menunggu_Persetujuan
+  Diverifikasi
+  Ditolak
+}
+
+enum IncidentStatus {
+  Investigasi
+  Selesai
 }
 
 enum IncidentType {
@@ -61,173 +161,49 @@ enum IncidentType {
   KNC
   KTC
   KTD
-  SENTINEL
+  Sentinel
 }
 
-enum IncidentSeverity {
-  BIRU
-  HIJAU
-  KUNING
-  MERAH
-}
-
-enum IncidentStatus {
-  INVESTIGASI
-  SELESAI
+enum SeverityLevel {
+  biru
+  hijau
+  kuning
+  merah
 }
 
 enum RiskSource {
-  LAPORAN_INSIDEN
-  KOMPLAIN
-  SURVEY_RONDE
-  RAPAT_BRAINSTORMING
-  INVESTIGASI
-  LITIGASI
-  EXTERNAL_REQUIREMENT
+  Laporan_Insiden
+  Komplain
+  Survey_Ronde
+  Rapat_Brainstorming
+  Investigasi
+  Litigasi
+  External_Requirement
 }
 
 enum RiskCategory {
-  STRATEGIS
-  OPERASIONAL
-  FINANSIAL
-  COMPLIANCE
-  REPUTASI
-  PELAYANAN_PASIEN
-  BAHAYA_FISIK
-  BAHAYA_KIMIA
-  BAHAYA_BIOLOGI
-  BAHAYA_ERGONOMI
-  BAHAYA_PSIKOSOSIAL
-}
-
-enum RiskLevel {
-  Rendah
-  Moderat
-  Tinggi
-  Ekstrem
+  Strategis
+  Operasional
+  Finansial
+  Compliance
+  Reputasi
+  Pelayanan_Pasien
+  Bahaya_Fisik
+  Bahaya_Kimia
+  Bahaya_Biologi
+  Bahaya_Ergonomi
+  Bahaya_Psikososial
 }
 
 enum RiskEvaluation {
-  MITIGASI
-  TRANSFER
-  DITERIMA
-  DIHINDARI
+  Mitigasi
+  Transfer
+  Diterima
+  Dihindari
 }
 
 enum RiskStatus {
-  OPEN
-  IN_PROGRESS
-  CLOSED
-}
-
-// ==================================
-//          MODELS
-// ==================================
-
-model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
-  role      UserRole
-  unit      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  risks Risk[]
-}
-
-model IndicatorSubmission {
-  id              String             @id @default(cuid())
-  name            String
-  category        IndicatorCategory
-  description     String             @db.Text
-  unit            String
-  frequency       IndicatorFrequency
-  status          SubmissionStatus
-  submissionDate  DateTime           @default(now())
-  standard        Float
-  standardUnit    StandardUnit
-  rejectionReason String?            @db.Text
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
-}
-
-model Indicator {
-  id            String             @id @default(cuid())
-  indicator     String
-  category      IndicatorCategory
-  unit          String
-  period        DateTime
-  frequency     IndicatorFrequency
-  numerator     Float
-  denominator   Float
-  standard      Float
-  standardUnit  StandardUnit
-  analysisNotes String?            @db.Text
-  followUpPlan  String?            @db.Text
-  ratio         String
-  status        IndicatorStatus
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
-}
-
-model Incident {
-  id                  String           @id @default(cuid())
-  date                DateTime         @default(now())
-  status              IncidentStatus
-  patientName         String?
-  medicalRecordNumber String?
-  careRoom            String?
-  ageGroup            String?
-  gender              String?
-  payer               String?
-  entryDate           DateTime?
-  entryTime           String?
-  incidentDate        DateTime?
-  incidentTime        String?
-  chronology          String?          @db.Text
-  type                IncidentType
-  incidentSubject     String?
-  incidentLocation    String?
-  relatedUnit         String?
-  firstAction         String?          @db.Text
-  firstActionBy       String?
-  hasHappenedBefore   String?
-  severity            IncidentSeverity
-  patientImpact       String?
-  analysisNotes       String?          @db.Text
-  followUpPlan        String?          @db.Text
-  createdAt           DateTime         @default(now())
-  updatedAt           DateTime         @updatedAt
-}
-
-model Risk {
-  id                  String         @id @default(cuid())
-  unit                String
-  source              RiskSource
-  description         String         @db.Text
-  cause               String         @db.Text
-  category            RiskCategory
-  submissionDate      DateTime       @default(now())
-  consequence         Int
-  likelihood          Int
-  cxl                 Int
-  riskLevel           RiskLevel
-  controllability     Int
-  riskScore           Int
-  evaluation          RiskEvaluation
-  actionPlan          String         @db.Text
-  dueDate             DateTime?
-  picId               String?
-  status              RiskStatus
-  residualConsequence Int?
-  residualLikelihood  Int?
-  residualRiskScore   Int?
-  residualRiskLevel   RiskLevel?
-  reportNotes         String?        @db.Text
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
-
-  pic User? @relation(fields: [picId], references: [id])
+  Open
+  In_Progress
+  Closed
 }

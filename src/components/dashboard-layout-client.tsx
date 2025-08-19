@@ -130,19 +130,19 @@ export default function DashboardClientLayout({
   const { currentUser, clearCurrentUser } = useUserStore();
   const { addLog } = useLogStore();
   const [isLoading, setIsLoading] = React.useState(false);
-  const [previousPath, setPreviousPath] = React.useState(pathname);
+  const previousPath = React.useRef(pathname);
 
   React.useEffect(() => {
-    if (pathname !== previousPath) {
+    if (pathname !== previousPath.current) {
       setIsLoading(true);
       const timer = setTimeout(() => {
         setIsLoading(false);
-        setPreviousPath(pathname);
+        previousPath.current = pathname;
       }, 300); // Simulate loading time
 
       return () => clearTimeout(timer);
     }
-  }, [pathname, previousPath]);
+  }, [pathname]);
 
   const handleLogout = () => {
     if (currentUser) {

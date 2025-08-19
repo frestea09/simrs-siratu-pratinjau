@@ -34,6 +34,7 @@ import { useLogStore } from "@/store/log-store.tsx"
 import { Combobox } from "../ui/combobox"
 import { useNotificationStore } from "@/store/notification-store.tsx"
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group"
+import {centralRoles} from "@/store/central-roles.ts";
 
 const formSchema = z.object({
   name: z.string().min(5, {
@@ -72,13 +73,7 @@ const categoryOptions: {value: IndicatorCategory, label: string}[] = [
 
 const unitOptions = HOSPITAL_UNITS.map(unit => ({ value: unit, label: unit }));
 
-const centralRoles = [
-    "ADMIN_SISTEM",
-    "DIREKTUR",
-  'SUB_KOMITE_KESELAMATAN_PASIEN',
-  'SUB_KOMITE_PENINGKATAN_MUTU',
-  'SUB_KOMITE_MANAJEMEN_RISIKO'
-];
+
 
 export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmissionFormProps) {
   const { toast } = useToast()

@@ -1,0 +1,7 @@
+export const centralRoles = [
+    "ADMIN_SISTEM",
+    "DIREKTUR",
+    'SUB_KOMITE_KESELAMATAN_PASIEN',
+    'SUB_KOMITE_PENINGKATAN_MUTU',
+    'SUB_KOMITE_MANAJEMEN_RISIKO'
+];

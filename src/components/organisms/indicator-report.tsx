@@ -15,14 +15,9 @@ import { useUserStore } from "@/store/user-store.tsx"
 import { CartesianGrid, LabelList, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis, LineChart, Line, Legend, Dot, BarChart, Bar } from "recharts"
 import { format, parseISO } from "date-fns"
 import { AnalysisTable } from "./analysis-table"
+import {centralRoles} from "@/store/central-roles.ts";
 
-const centralRoles = [
-  'Admin Sistem',
-  'Direktur',
-  'Sub. Komite Peningkatan Mutu',
-  'Sub. Komite Keselamatan Pasien',
-  'Sub. Komite Manajemen Risiko'
-];
+
 
 type IndicatorReportProps = {
     indicators: Indicator[];

@@ -14,14 +14,9 @@ import { useUserStore } from "@/store/user-store.tsx";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
+import {centralRoles} from "@/store/central-roles.ts";
 
-const centralRoles = [
-  "Admin Sistem",
-  "Direktur",
-  "Sub. Komite Peningkatan Mutu",
-  "Sub. Komite Keselamatan Pasien",
-  "Sub. Komite Manajemen Risiko",
-];
+
 
 export default function IndicatorsPage() {
   const { submittedIndicators } = useIndicatorStore();

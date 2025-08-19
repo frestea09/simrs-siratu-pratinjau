@@ -13,19 +13,13 @@ import { IndicatorFilterCard } from "@/components/organisms/indicator-filter-car
 import { IndicatorChartCard } from "@/components/organisms/indicator-chart-card"
 import { IndicatorReport } from "@/components/organisms/indicator-report"
 import { IndicatorStatCards } from "@/components/organisms/indicator-stat-cards"
+import {centralRoles} from "@/store/central-roles.ts";
 
 type IndicatorDashboardTemplateProps = {
   category: IndicatorCategory
   pageTitle: string
 }
 
-const centralRoles = [
-  "Admin Sistem",
-  "Direktur",
-  "Sub. Komite Peningkatan Mutu",
-  "Sub. Komite Keselamatan Pasien",
-  "Sub. Komite Manajemen Risiko",
-];
 
 export function IndicatorDashboardTemplate({ category, pageTitle }: IndicatorDashboardTemplateProps) {
   const { indicators } = useIndicatorStore()
@@ -47,7 +41,7 @@ export function IndicatorDashboardTemplate({ category, pageTitle }: IndicatorDas
     if (!userIsCentral && currentUser?.unit) {
       setSelectedUnit(currentUser.unit);
     }
-  }, [userIsCentral, currentUser]);
+  }, []);
 
 
   const {

@@ -18,14 +18,9 @@ import { Textarea } from "../ui/textarea"
 import { DialogFooter } from "../ui/dialog"
 import { useUserStore } from "@/store/user-store.tsx"
 import { useLogStore } from "@/store/log-store.tsx"
+import {centralRoles} from "@/store/central-roles.ts";
 
-const centralRoles = [
-  'Admin Sistem',
-  'Direktur',
-  'Sub. Komite Peningkatan Mutu',
-  'Sub. Komite Keselamatan Pasien',
-  'Sub. Komite Manajemen Risiko'
-];
+
 
 type IndicatorInputFormProps = {
     setOpen: (open: boolean) => void;

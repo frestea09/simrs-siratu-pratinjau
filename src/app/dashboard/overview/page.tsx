@@ -35,14 +35,9 @@ import { useUserStore } from "@/store/user-store"
 import { useLogStore } from "@/store/log-store"
 import { format } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
+import {centralRoles} from "@/store/central-roles.ts";
 
-const centralRoles = [
-  'Admin Sistem',
-  'Direktur',
-  'Sub. Komite Peningkatan Mutu',
-  'Sub. Komite Keselamatan Pasien',
-  'Sub. Komite Manajemen Risiko'
-];
+
 
 export default function OverviewPage() {
   const { indicators, submittedIndicators } = useIndicatorStore()

@@ -42,7 +42,7 @@ export function ActionsCell({ row }: ActionsCellProps) {
     
     const { updateSubmittedIndicatorStatus, removeSubmittedIndicator } = useIndicatorStore.getState()
     const { currentUser } = useUserStore()
-    const { addLog } = useLogStore()
+    const addLog = useLogStore((state) => state.addLog)
     const { addNotification } = useNotificationStore()
     const { toast } = useToast()
 

@@ -66,11 +66,10 @@ export const LogStoreProvider = ({ children }: { children: React.ReactNode }) =>
 };
 
 
-export const useLogStore = (): LogState => {
+export const useLogStore = <T,>(selector: (state: LogState) => T): T => {
   const store = useContext(LogStoreContext);
   if (!store) {
     throw new Error('useLogStore must be used within a LogStoreProvider');
   }
-  // This ensures that the component using the store re-renders when the state changes.
-  return store(state => state);
+  return store(selector);
 };

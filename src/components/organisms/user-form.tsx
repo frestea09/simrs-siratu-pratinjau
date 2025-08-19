@@ -71,7 +71,7 @@ export function UserForm({ setOpen, userToEdit }: UserFormProps) {
   const { toast } = useToast()
   const { addUser, updateUser } = useUserStore()
   const { currentUser } = useUserStore()
-  const { addLog } = useLogStore()
+  const addLog = useLogStore((state) => state.addLog)
 
   const isEditMode = !!userToEdit;
   

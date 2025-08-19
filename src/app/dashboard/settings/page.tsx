@@ -47,7 +47,7 @@ const passwordFormSchema = z.object({
 
 export default function SettingsPage() {
   const { currentUser, updateUser } = useUserStore()
-  const { addLog } = useLogStore()
+  const addLog = useLogStore((state) => state.addLog)
   const { toast } = useToast()
 
   // Inisialisasi form untuk profil

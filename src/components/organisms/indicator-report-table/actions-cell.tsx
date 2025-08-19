@@ -24,7 +24,7 @@ export function ActionsCell({ row, onEdit }: ActionsCellProps) {
     
     const { removeIndicator } = useIndicatorStore();
     const { toast } = useToast();
-    const { addLog } = useLogStore();
+    const addLog = useLogStore((state) => state.addLog);
     const { currentUser } = useUserStore();
 
     const handleDelete = () => {

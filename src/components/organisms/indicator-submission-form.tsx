@@ -79,7 +79,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
   const { toast } = useToast()
   const { submitIndicator, updateSubmittedIndicator, submittedIndicators } = useIndicatorStore()
   const { currentUser } = useUserStore();
-  const { addLog } = useLogStore();
+  const addLog = useLogStore((state) => state.addLog);
   const { addNotification } = useNotificationStore();
   const isEditMode = !!indicator;
 

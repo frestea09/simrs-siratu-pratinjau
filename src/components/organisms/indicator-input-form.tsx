@@ -32,7 +32,7 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
   const { toast } = useToast()
   const { addIndicator, updateIndicator, submittedIndicators, indicators } = useIndicatorStore()
   const { currentUser } = useUserStore()
-  const { addLog } = useLogStore()
+  const addLog = useLogStore((state) => state.addLog)
 
 
   const isEditMode = !!indicatorToEdit?.id;

@@ -29,7 +29,7 @@ export function IncidentReportForm({ setOpen, incident }: IncidentReportFormProp
     const { addIncident, updateIncident } = useIncidentStore()
     const { toast } = useToast()
     const { currentUser } = useUserStore();
-    const { addLog } = useLogStore();
+    const addLog = useLogStore((state) => state.addLog);
     const { addNotification } = useNotificationStore();
     
     const [formData, setFormData] = React.useState<Partial<Incident>>(

@@ -30,7 +30,7 @@ type ActionsCellProps = {
 export function ActionsCell({ row, onViewDetails }: ActionsCellProps) {
   const incident = row.original
   const { currentUser } = useUserStore();
-  const { addLog } = useLogStore();
+  const addLog = useLogStore((state) => state.addLog);
   const { updateIncidentStatus } = useIncidentStore()
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false)
 

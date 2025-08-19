@@ -47,7 +47,7 @@ import { useToast } from "@/hooks/use-toast"
 const ActionsCell = ({ row }: { row: Row<User> }) => {
     const user = row.original;
     const { removeUser, currentUser } = useUserStore();
-    const { addLog } = useLogStore();
+    const addLog = useLogStore((state) => state.addLog);
     const { toast } = useToast();
     const [isEditOpen, setIsEditOpen] = React.useState(false);
 

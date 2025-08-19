@@ -43,7 +43,7 @@ export default function OverviewPage() {
   const { indicators, submittedIndicators } = useIndicatorStore()
   const { incidents } = useIncidentStore()
   const { users, currentUser } = useUserStore()
-  const { logs } = useLogStore()
+  const logs = useLogStore((state) => state.logs)
 
   const userIsCentral = currentUser && centralRoles.includes(currentUser.role);
   const canViewIncidentData = currentUser && (currentUser.role === 'Admin Sistem' || currentUser.role === 'Sub. Komite Keselamatan Pasien');

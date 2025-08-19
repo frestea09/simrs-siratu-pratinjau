@@ -28,7 +28,7 @@ export default function LoginPage() {
   const { toast } = useToast()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const { addLog } = useLogStore()
+  const addLog = useLogStore((state) => state.addLog)
   const [demoUsers, setDemoUsers] = useState<User[]>([])
 
   React.useEffect(() => {

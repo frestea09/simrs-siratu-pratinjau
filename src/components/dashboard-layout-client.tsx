@@ -128,7 +128,7 @@ export default function DashboardClientLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { currentUser, clearCurrentUser } = useUserStore();
-  const { addLog } = useLogStore();
+  const addLog = useLogStore((state) => state.addLog);
   const [isLoading, setIsLoading] = React.useState(false);
   const previousPath = React.useRef(pathname);
 

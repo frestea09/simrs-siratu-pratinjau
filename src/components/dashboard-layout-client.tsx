@@ -48,6 +48,7 @@ import { cn } from "@/lib/utils";
 import { NotificationPopover } from "./organisms/notification-popover";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { logout } from "@/lib/actions/auth";
 
 const LoadingOverlay = ({ isLoading }: { isLoading: boolean }) => (
   <div
@@ -144,7 +145,7 @@ export default function DashboardClientLayout({
     }
   }, [pathname, previousPath]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (currentUser) {
       addLog({
         user: currentUser.name,
@@ -152,6 +153,7 @@ export default function DashboardClientLayout({
         details: "Pengguna berhasil logout.",
       });
     }
+    await logout();
     clearCurrentUser();
     router.push("/");
   };

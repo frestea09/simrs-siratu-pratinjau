@@ -42,12 +42,25 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
 
   const isEditMode = !!indicatorToEdit?.id;
   
-  const [selectedIndicatorId, setSelectedIndicatorId] = React.useState<string | undefined>(undefined);
-  const [date, setDate] = React.useState<Date | undefined>(new Date())
-  const [numerator, setNumerator] = React.useState("")
-  const [denominator, setDenominator] = React.useState("")
-  const [analysisNotes, setAnalysisNotes] = React.useState("")
-  const [followUpPlan, setFollowUpPlan] = React.useState("")
+  const [selectedIndicatorId, setSelectedIndicatorId] = React.useState<string | undefined>(
+    indicatorToEdit ? submittedIndicators.find(si => si.name === indicatorToEdit.indicator)?.id : undefined
+  );
+  const [date, setDate] = React.useState<Date | undefined>(
+      indicatorToEdit ? new Date(indicatorToEdit.period) : new Date()
+  );
+  const [numerator, setNumerator] = React.useState(
+      indicatorToEdit ? indicatorToEdit.numerator.toString() : ""
+  );
+  const [denominator, setDenominator] = React.useState(
+      indicatorToEdit ? indicatorToEdit.denominator.toString() : ""
+  );
+  const [analysisNotes, setAnalysisNotes] = React.useState(
+      indicatorToEdit ? indicatorToEdit.analysisNotes || "" : ""
+  );
+  const [followUpPlan, setFollowUpPlan] = React.useState(
+      indicatorToEdit ? indicatorToEdit.followUpPlan || "" : ""
+  );
+
 
   const selectedSubmittedIndicator = React.useMemo(() => {
     return submittedIndicators.find(si => si.id === selectedIndicatorId);
@@ -55,6 +68,9 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
 
 
   React.useEffect(() => {
+    // This effect now only syncs the form when the indicatorToEdit prop changes,
+    // which happens when the dialog is opened for editing.
+    // It no longer handles the 'new' case, preventing the loop.
     if (indicatorToEdit?.id) {
         const relatedSubmitted = submittedIndicators.find(si => si.name === indicatorToEdit.indicator);
         setSelectedIndicatorId(relatedSubmitted?.id);
@@ -63,14 +79,6 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
         setDenominator(indicatorToEdit.denominator.toString());
         setAnalysisNotes(indicatorToEdit.analysisNotes || "");
         setFollowUpPlan(indicatorToEdit.followUpPlan || "");
-    } else {
-        // Reset form for new entry, only on initial mount or when dialog re-opens for 'new'
-        setSelectedIndicatorId(undefined);
-        setDate(new Date());
-        setNumerator("");
-        setDenominator("");
-        setAnalysisNotes("");
-        setFollowUpPlan("");
     }
   }, [indicatorToEdit, submittedIndicators])
 
@@ -141,13 +149,6 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
         })
     }
 
-    // Reset form and close dialog
-    setSelectedIndicatorId(undefined)
-    setDate(new Date())
-    setNumerator("")
-    setDenominator("")
-    setAnalysisNotes("")
-    setFollowUpPlan("")
     setOpen(false);
   }
 

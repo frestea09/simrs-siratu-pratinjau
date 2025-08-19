@@ -175,6 +175,8 @@ function toast({ ...props }: Toast) {
 function useToast() {
   const [state, setState] = React.useState<State>(memoryState)
 
+  // Register the state listener once on mount to avoid accumulating
+  // multiple subscriptions, which can trigger endless render loops.
   React.useEffect(() => {
     listeners.push(setState)
     return () => {
@@ -183,7 +185,8 @@ function useToast() {
         listeners.splice(index, 1)
       }
     }
-  }, [state])
+    // Empty dependency array ensures the effect runs only once.
+  }, [])
 
   return {
     ...state,

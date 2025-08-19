@@ -24,7 +24,7 @@ type IndicatorDashboardTemplateProps = {
 export function IndicatorDashboardTemplate({ category, pageTitle }: IndicatorDashboardTemplateProps) {
   const { indicators } = useIndicatorStore()
   const { currentUser } = useUserStore()
-  const userIsCentral = currentUser && centralRoles.includes(currentUser.role)
+  const userIsCentral = currentUser ? centralRoles.includes(currentUser.role) : false
 
   const categoryIndicators = React.useMemo(() => {
     return indicators.filter(i => i.category === category)
@@ -35,6 +35,7 @@ export function IndicatorDashboardTemplate({ category, pageTitle }: IndicatorDas
   const [selectedIndicator, setSelectedIndicator] = React.useState<string>("Semua Indikator")
   const [filterType, setFilterType] = React.useState<FilterType>("this_month")
   const [selectedDate, setSelectedDate] = React.useState<Date>(new Date())
+  const [chartType, setChartType] = React.useState<"line" | "bar">("line")
 
   // If user is not central, force their unit
   React.useEffect(() => {
@@ -92,6 +93,8 @@ export function IndicatorDashboardTemplate({ category, pageTitle }: IndicatorDas
           setFilterType={setFilterType}
           selectedDate={selectedDate}
           setSelectedDate={setSelectedDate}
+          chartType={chartType}
+          setChartType={setChartType}
         />
 
         <IndicatorChartCard
@@ -99,6 +102,7 @@ export function IndicatorDashboardTemplate({ category, pageTitle }: IndicatorDas
           description={getChartDescription()}
           filterType={filterType}
           selectedIndicator={selectedIndicator}
+          chartType={chartType}
         />
 
         <IndicatorReport

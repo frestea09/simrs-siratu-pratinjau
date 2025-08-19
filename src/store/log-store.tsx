@@ -19,6 +19,7 @@ type LogAction =
  | 'DELETE_SUBMITTED_INDICATOR'
  | 'ADD_INCIDENT'
  | 'UPDATE_INCIDENT'
+ | 'DELETE_INCIDENT'
 
 
 export type SystemLog = {

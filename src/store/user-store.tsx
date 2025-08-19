@@ -97,7 +97,10 @@ export const useUserStore = (): UserState => {
   }
 
   const userState = store((state) => state)
-  const { setNotificationsForUser } = useNotificationStore()
+  // Subscribe only to the setter to avoid re-render loops when notifications update
+  const setNotificationsForUser = useNotificationStore(
+    (state) => state.setNotificationsForUser
+  )
 
   useEffect(() => {
     // When the current user changes, re-filter the notifications

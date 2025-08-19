@@ -121,14 +121,20 @@ export const NotificationStoreProvider = ({ children }: { children: React.ReactN
     );
 };
 
-// Custom hook to use the store
-export const useNotificationStore = (): NotificationState => {
-    const store = useContext(NotificationStoreContext);
-    if (!store) {
-        throw new Error('useNotificationStore must be used within a NotificationStoreProvider');
-    }
-    
-    // We need to re-subscribe to changes here to make the hook re-render components
-    const state = store((s) => s);
-    return state;
-};
+// Custom hook to use the store with optional selector
+export function useNotificationStore(): NotificationState;
+export function useNotificationStore<T>(
+  selector: (state: NotificationState) => T
+): T;
+export function useNotificationStore<T>(
+  selector?: (state: NotificationState) => T
+) {
+  const store = useContext(NotificationStoreContext);
+  if (!store) {
+    throw new Error('useNotificationStore must be used within a NotificationStoreProvider');
+  }
+  if (selector) {
+    return store(selector);
+  }
+  return store((s) => s);
+}

@@ -73,11 +73,11 @@ const categoryOptions: {value: IndicatorCategory, label: string}[] = [
 const unitOptions = HOSPITAL_UNITS.map(unit => ({ value: unit, label: unit }));
 
 const centralRoles = [
-  'Admin Sistem',
-  'Direktur',
-  'Sub. Komite Peningkatan Mutu',
-  'Sub. Komite Keselamatan Pasien',
-  'Sub. Komite Manajemen Risiko'
+    "ADMIN_SISTEM",
+    "DIREKTUR",
+  'SUB_KOMITE_KESELAMATAN_PASIEN',
+  'SUB_KOMITE_PENINGKATAN_MUTU',
+  'SUB_KOMITE_MANAJEMEN_RISIKO'
 ];
 
 export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmissionFormProps) {
@@ -87,9 +87,8 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
   const { addLog } = useLogStore();
   const { addNotification } = useNotificationStore();
   const isEditMode = !!indicator;
-  
+
   const userIsCentral = currentUser && centralRoles.includes(currentUser.role);
-  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: isEditMode ? {

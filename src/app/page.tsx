@@ -20,7 +20,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import Image from "next/image"
 import favicon from "@/app/favicon.ico"
 import { login } from "@/lib/actions/auth"
-import { useLogStore } from "@/store/log-store"
+import { useLogStore } from "@/store/log-store.tsx"
+import type { User } from "@prisma/client"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -28,7 +29,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const { addLog } = useLogStore()
-  const [demoUsers, setDemoUsers] = useState<any[]>([])
+  const [demoUsers, setDemoUsers] = useState<User[]>([])
 
   React.useEffect(() => {
     // In a real app, you wouldn't fetch demo users like this.
@@ -54,6 +55,9 @@ export default function LoginPage() {
 
     try {
       const user = await login(formData)
+      if (!user) {
+        throw new Error("User not found after login.")
+      }
       addLog({
         user: user.name,
         action: "LOGIN_SUCCESS",
@@ -62,16 +66,16 @@ export default function LoginPage() {
       router.push("/dashboard/overview")
       router.refresh() // Ensure layout re-renders with new session
     } catch (error: any) {
-      const username = formData.get("username") as string;
+      const email = formData.get("email") as string;
       addLog({
-        user: username || "Unknown",
+        user: email || "Unknown",
         action: "LOGIN_FAIL",
-        details: `Percobaan login gagal untuk username: ${username}.`,
+        details: `Percobaan login gagal untuk email: ${email}.`,
       })
       toast({
         variant: "destructive",
         title: "Login Gagal",
-        description: error.message || "Username atau password salah. Silakan coba lagi.",
+        description: error.message || "Email atau password salah. Silakan coba lagi.",
       })
       setIsLoading(false)
     }
@@ -96,11 +100,11 @@ export default function LoginPage() {
         <CardContent>
           <form onSubmit={handleLogin} className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
-                id="username"
-                name="username"
-                type="text"
+                id="email"
+                name="email"
+                type="email"
                 placeholder="email@sim.rs"
                 required
                 disabled={isLoading}

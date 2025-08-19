@@ -18,6 +18,7 @@ export default async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
+// Matcher unchanged
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|.*\\.png$).*)'],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };

@@ -2,37 +2,13 @@
 "use server"
 
 import { z } from "zod"
-import { SignJWT, jwtVerify } from "jose"
 import { cookies } from "next/headers"
 import { prisma } from "@/lib/prisma"
 
-const secretKey = process.env.SESSION_SECRET
-const encodedKey = new TextEncoder().encode(secretKey)
-
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(6),
+  password: z.string().min(1),
 })
-
-export async function encrypt(payload: any) {
-  return new SignJWT(payload)
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("7d")
-    .sign(encodedKey)
-}
-
-export async function decrypt(session: string | undefined = "") {
-  try {
-    const { payload } = await jwtVerify(session, encodedKey, {
-      algorithms: ["HS256"],
-    })
-    return payload
-  } catch (error) {
-    console.log("Failed to verify session")
-    return null
-  }
-}
 
 export async function login(formData: FormData) {
   const { email, password } = loginSchema.parse(Object.fromEntries(formData))
@@ -44,12 +20,10 @@ export async function login(formData: FormData) {
 
   // Create the session
   const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-  const session = await encrypt({ userId: user.id, expires })
-
-  // Save the session in a cookie
-  cookies().set("session", session, { expires, httpOnly: true })
+  cookies().set("session", user.id, { expires, httpOnly: true })
   
-  return user;
+  const { password: _, ...userWithoutPassword } = user
+  return userWithoutPassword
 }
 
 export async function logout() {
@@ -58,23 +32,22 @@ export async function logout() {
 }
 
 export async function getSession() {
-  const session = cookies().get("session")?.value
-  return await decrypt(session)
+  return cookies().get("session")?.value
 }
 
 export async function getCurrentUser() {
-  const session = await getSession()
-  if (!session?.userId) return null
+  const userId = await getSession()
+  if (!userId) return null
 
   const user = await prisma.user.findUnique({
-    where: { id: session.userId as string },
+    where: { id: userId },
     select: {
       id: true,
       name: true,
       email: true,
       role: true,
       unit: true,
-    }
+    },
   })
   return user
 }

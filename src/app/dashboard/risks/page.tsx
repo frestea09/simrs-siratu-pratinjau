@@ -32,6 +32,11 @@ export default function RisksPage() {
     const [isDialogOpen, setIsDialogOpen] = React.useState(false)
     const [isReportOpen, setIsReportOpen] = React.useState(false)
     const risks = useRiskStore((state) => state.risks)
+    const fetchRisks = useRiskStore((state) => state.fetchRisks)
+
+    React.useEffect(() => {
+        fetchRisks()
+    }, [fetchRisks])
 
     const summary = React.useMemo(() => {
         const levelCounts: Record<RiskLevel, number> = { Ekstrem: 0, Tinggi: 0, Moderat: 0, Rendah: 0 };

@@ -16,9 +16,14 @@ import { Button } from "@/components/ui/button"
 export default function IncidentsPage() {
   const { currentUser } = useUserStore()
   const incidents = useIncidentStore((state) => state.incidents)
+  const fetchIncidents = useIncidentStore((state) => state.fetchIncidents)
   const [reportData, setReportData] = React.useState<any[] | null>(null)
   const [reportColumns, setReportColumns] = React.useState<ColumnDef<any>[] | null>(null)
   const [isNewDialogOpen, setIsNewDialogOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    fetchIncidents()
+  }, [fetchIncidents])
 
   const handleExport = (data: any[], columns: ColumnDef<any>[]) => {
     setReportData(data);

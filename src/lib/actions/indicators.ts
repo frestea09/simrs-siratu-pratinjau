@@ -4,6 +4,7 @@
 import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "./auth"
+import { toDbStandardUnit, fromDbStandardUnit } from "@/lib/standard-unit"
 
 export async function getIndicatorSubmissions(currentUser: any) {
   const userIsCentral = [
@@ -12,17 +13,16 @@ export async function getIndicatorSubmissions(currentUser: any) {
     "SUB_KOMITE_PENINGKATAN_MUTU",
   ].includes(currentUser.role)
 
-  if (userIsCentral) {
-    return await prisma.indicatorSubmission.findMany({
-      orderBy: { submissionDate: "desc" },
-      include: { submittedBy: true }
-    })
-  }
-  return await prisma.indicatorSubmission.findMany({
-    where: { unit: currentUser.unit },
+  const submissions = await prisma.indicatorSubmission.findMany({
+    where: userIsCentral ? undefined : { unit: currentUser.unit },
     orderBy: { submissionDate: "desc" },
-     include: { submittedBy: true }
+    include: { submittedBy: true },
   })
+
+  return submissions.map((s) => ({
+    ...s,
+    standardUnit: fromDbStandardUnit(s.standardUnit),
+  }))
 }
 
 export async function submitIndicator(data: any) {
@@ -37,21 +37,23 @@ export async function submitIndicator(data: any) {
     data: {
       ...data,
       standard: parseFloat(data.standard),
+      standardUnit: toDbStandardUnit(data.standardUnit),
       submittedById: user.id,
       status: status,
     },
   })
   revalidatePath("/dashboard/indicators")
-  return submission
+  return { ...submission, standardUnit: fromDbStandardUnit(submission.standardUnit) }
 }
 
 export async function updateSubmittedIndicator(id: string, data: any) {
-   await prisma.indicatorSubmission.update({
+  await prisma.indicatorSubmission.update({
     where: { id },
     data: {
-        ...data,
-        standard: parseFloat(data.standard),
-    }
+      ...data,
+      standard: parseFloat(data.standard),
+      standardUnit: toDbStandardUnit(data.standardUnit),
+    },
   })
   revalidatePath("/dashboard/indicators")
 }
@@ -106,7 +108,7 @@ export async function getIndicators(category?: string) {
         unit: ind.submission.unit,
         frequency: ind.submission.frequency,
         standard: ind.submission.standard,
-        standardUnit: ind.submission.standardUnit,
+        standardUnit: fromDbStandardUnit(ind.submission.standardUnit),
     }));
 }
 

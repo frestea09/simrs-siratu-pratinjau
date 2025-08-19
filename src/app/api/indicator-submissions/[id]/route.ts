@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { toDbStandardUnit, fromDbStandardUnit } from "@/lib/standard-unit"
 
 export async function GET(
   _request: Request,
@@ -11,7 +12,9 @@ export async function GET(
   if (!submission) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
-  return NextResponse.json({ submission })
+  return NextResponse.json({
+    submission: { ...submission, standardUnit: fromDbStandardUnit(submission.standardUnit) },
+  })
 }
 
 export async function PUT(
@@ -24,9 +27,12 @@ export async function PUT(
     data: {
       ...data,
       standard: data.standard ? parseFloat(data.standard) : undefined,
+      standardUnit: toDbStandardUnit(data.standardUnit),
     },
   })
-  return NextResponse.json({ submission })
+  return NextResponse.json({
+    submission: { ...submission, standardUnit: fromDbStandardUnit(submission.standardUnit) },
+  })
 }
 
 export async function DELETE(

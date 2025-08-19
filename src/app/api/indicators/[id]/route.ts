@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { fromDbStandardUnit } from "@/lib/standard-unit"
 
 export async function GET(
   _request: Request,
@@ -12,7 +13,15 @@ export async function GET(
   if (!indicator) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
-  return NextResponse.json({ indicator })
+  return NextResponse.json({
+    indicator: {
+      ...indicator,
+      submission: {
+        ...indicator.submission,
+        standardUnit: fromDbStandardUnit(indicator.submission.standardUnit),
+      },
+    },
+  })
 }
 
 export async function PUT(

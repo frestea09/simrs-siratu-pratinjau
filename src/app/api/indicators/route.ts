@@ -1,11 +1,20 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { fromDbStandardUnit } from "@/lib/standard-unit"
 
 export async function GET() {
   const indicators = await prisma.indicator.findMany({
     include: { submission: true },
   })
-  return NextResponse.json({ indicators })
+  return NextResponse.json({
+    indicators: indicators.map((i) => ({
+      ...i,
+      submission: {
+        ...i.submission,
+        standardUnit: fromDbStandardUnit(i.submission.standardUnit),
+      },
+    })),
+  })
 }
 
 export async function POST(request: Request) {

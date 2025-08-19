@@ -31,6 +31,7 @@ type IndicatorChartCardProps = {
   description: string
   filterType: string
   selectedIndicator: string
+  chartType: 'line' | 'bar'
 }
 
 export function IndicatorChartCard({
@@ -38,8 +39,8 @@ export function IndicatorChartCard({
   description,
   filterType,
   selectedIndicator,
+  chartType,
 }: IndicatorChartCardProps) {
-  const [chartType, setChartType] = React.useState<"line" | "bar">("line")
 
   const ChartTooltipContent = (props: any) => {
     const { active, payload } = props

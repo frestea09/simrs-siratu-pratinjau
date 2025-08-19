@@ -41,6 +41,8 @@ type IndicatorFilterCardProps = {
   setFilterType: (type: FilterType) => void;
   selectedDate: Date;
   setSelectedDate: (date: Date) => void;
+  chartType: 'line' | 'bar';
+  setChartType: (type: 'line' | 'bar') => void;
 }
 
 export function IndicatorFilterCard({
@@ -54,9 +56,9 @@ export function IndicatorFilterCard({
   setFilterType,
   selectedDate,
   setSelectedDate,
+  chartType,
+  setChartType,
 }: IndicatorFilterCardProps) {
-  
-  const [chartType, setChartType] = React.useState<'line' | 'bar'>('line');
 
   const renderFilterInput = () => {
     // Component logic from the original page

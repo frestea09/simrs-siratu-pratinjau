@@ -55,6 +55,11 @@ export function IndicatorReportTable({ indicators, onExport, onEdit, showCategor
       cell: ({ row }) => <div className="font-medium">{row.getValue("indicator")}</div>,
     },
     {
+      accessorKey: "unit",
+      header: "Unit",
+      cell: ({ row }) => <div>{row.getValue("unit")}</div>,
+    },
+    {
       accessorKey: "category",
       header: "Kategori",
       cell: ({ row }) => <Badge variant="outline">{row.getValue("category")}</Badge>,

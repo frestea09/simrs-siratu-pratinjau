@@ -3,11 +3,15 @@
 
 import * as React from "react"
 import { Row } from "@tanstack/react-table"
-import { MoreHorizontal, Eye, Pencil } from "lucide-react"
+import { MoreHorizontal, Eye, Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Indicator } from "@/store/indicator-store"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
+import { Indicator, useIndicatorStore } from "@/store/indicator-store"
 import { ReportDetailDialog } from "../report-detail-dialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../../ui/alert-dialog"
+import { useToast } from "@/hooks/use-toast"
+import { useLogStore } from "@/store/log-store.tsx"
+import { useUserStore } from "@/store/user-store.tsx"
 
 type ActionsCellProps = {
     row: Row<Indicator>,
@@ -17,6 +21,23 @@ type ActionsCellProps = {
 export function ActionsCell({ row, onEdit }: ActionsCellProps) {
     const indicator = row.original
     const [isDetailOpen, setIsDetailOpen] = React.useState(false);
+    const { removeIndicator } = useIndicatorStore.getState();
+    const { toast } = useToast();
+    const { addLog } = useLogStore();
+    const { currentUser } = useUserStore();
+
+    const handleDelete = () => {
+        removeIndicator(indicator.id);
+        addLog({
+            user: currentUser?.name || 'System',
+            action: 'DELETE_INDICATOR',
+            details: `Data capaian indikator "${indicator.indicator}" (${indicator.id}) dihapus.`,
+        });
+        toast({
+            title: 'Data Dihapus',
+            description: `Capaian indikator "${indicator.indicator}" telah dihapus.`,
+        });
+    };
 
     return (
         <>
@@ -37,6 +58,27 @@ export function ActionsCell({ row, onEdit }: ActionsCellProps) {
                             <Pencil className="mr-2 h-4 w-4" />
                             <span>Edit</span>
                         </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full text-destructive">
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Hapus
+                                </button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Anda yakin?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Aksi ini tidak dapat dibatalkan. Ini akan menghapus data capaian secara permanen.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Batal</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Hapus</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>

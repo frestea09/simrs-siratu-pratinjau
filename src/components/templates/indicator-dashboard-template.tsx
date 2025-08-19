@@ -22,7 +22,7 @@ type IndicatorDashboardTemplateProps = {
 export function IndicatorDashboardTemplate({ category, pageTitle }: IndicatorDashboardTemplateProps) {
   const { indicators } = useIndicatorStore()
   const { currentUser } = useUserStore()
-  const userIsCentral = currentUser && ["Admin Sistem", "Direktur", "Sub. Komite Peningkatan Mutu", "Sub. Komite Keselamatan Pasien", "Sub. Komite Manajemen Risiko"].includes(currentUser.role)
+  const userIsCentral = currentUser && ["Admin Sistem", "Direktur", "PIC Mutu", "Sub. Komite Peningkatan Mutu", "Sub. Komite Keselamatan Pasien", "Sub. Komite Manajemen Risiko"].includes(currentUser.role)
 
   const categoryIndicators = React.useMemo(() => {
     const filteredByCategory = indicators.filter(i => i.category === category)

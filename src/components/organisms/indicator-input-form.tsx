@@ -22,6 +22,7 @@ import { useLogStore } from "@/store/log-store.tsx"
 const centralRoles = [
   'Admin Sistem',
   'Direktur',
+  'PIC Mutu',
   'Sub. Komite Peningkatan Mutu',
   'Sub. Komite Keselamatan Pasien',
   'Sub. Komite Manajemen Risiko'

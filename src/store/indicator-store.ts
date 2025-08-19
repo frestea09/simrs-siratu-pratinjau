@@ -44,6 +44,7 @@ type IndicatorState = {
   submittedIndicators: SubmittedIndicator[]
   addIndicator: (indicator: Omit<Indicator, 'id' |'ratio' | 'status'>) => string
   updateIndicator: (id: string, data: Partial<Omit<Indicator, 'id' |'ratio' | 'status'>>) => void
+  removeIndicator: (id: string) => void
   submitIndicator: (
     indicator: Omit<SubmittedIndicator, 'id' | 'status' | 'submissionDate'>,
     sendNotificationCallback?: () => void
@@ -90,6 +91,10 @@ export const useIndicatorStore = create<IndicatorState>((set, get) => ({
         }
         return indicator
       }),
+    })),
+  removeIndicator: (id) =>
+    set((state) => ({
+      indicators: state.indicators.filter((indicator) => indicator.id !== id),
     })),
   submitIndicator: (
     indicator: Omit<SubmittedIndicator, 'id' | 'status' | 'submissionDate'>,

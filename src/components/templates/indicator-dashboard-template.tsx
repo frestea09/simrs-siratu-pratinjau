@@ -72,9 +72,7 @@ export function IndicatorDashboardTemplate({ category, pageTitle }: IndicatorDas
         : `Menampilkan tren untuk: ${selectedIndicator}.`
     return `${base} ${getFilterDescription(filterType, selectedDate)}`
   }
-
-  const indicatorsForReport = userIsCentral ? filteredIndicatorsForTable : filteredIndicatorsForTable.filter(i => i.unit === currentUser?.unit);
-
+  
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
@@ -116,7 +114,7 @@ export function IndicatorDashboardTemplate({ category, pageTitle }: IndicatorDas
           showInputButton={true}
           chartData={chartData}
           reportDescription={getFilterDescription(filterType, selectedDate)}
-          indicators={indicatorsForReport}
+          indicators={filteredIndicatorsForTable}
         />
       </div>
     </div>

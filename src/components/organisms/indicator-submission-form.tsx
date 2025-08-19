@@ -140,15 +140,11 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
     }
   }, [adoptionType, adoptedIndicatorId, submittedIndicators, form, isEditMode]);
   
-  const userCanSelectUnit = userIsCentral;
-
-
   React.useEffect(() => {
-    // If user is not an admin and category is not IMPU, force their unit
-    if (!userIsCentral && selectedCategory !== 'IMPU') {
-        form.setValue('unit', currentUser?.unit || '');
+    if (!userIsCentral && currentUser?.unit) {
+      form.setValue('unit', currentUser.unit);
     }
-  }, [selectedCategory, userIsCentral, currentUser?.unit, form]);
+  }, [userIsCentral, currentUser?.unit, form]);
 
 
   function onSubmit(values: z.infer<typeof formSchema>) {
@@ -305,7 +301,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                                 searchPlaceholder="Cari unit..."
                                 value={field.value}
                                 onSelect={(value) => form.setValue('unit', value)}
-                                disabled={!userCanSelectUnit}
+                                disabled={!userIsCentral}
                             />
                           <FormMessage />
                         </FormItem>

@@ -19,14 +19,23 @@ import { Users, Eye, EyeOff, Loader2 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import Image from "next/image"
 import favicon from "@/app/favicon.ico"
-import { login } from "@/lib/actions/auth"
+// import { login } from "@/lib/actions/auth" // Removed as it's deleted
 import { useLogStore } from "@/store/log-store.tsx"
-import type { User, UserRole as DbUserRole } from "@prisma/client"
 import {
   useUserStore,
   type UserRole,
   type User as StoreUser,
 } from "@/store/user-store.tsx"
+
+// This is now a temporary mock user type
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  unit?: string;
+};
+
 
 export default function LoginPage() {
   const router = useRouter()
@@ -34,34 +43,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const { addLog } = useLogStore()
-  const { setCurrentUser } = useUserStore()
-  const [demoUsers, setDemoUsers] = useState<User[]>([])
-
-  const roleMap: Record<DbUserRole, UserRole> = {
-    ADMIN_SISTEM: "Admin Sistem",
-    PIC_MUTU: "PIC Mutu",
-    PJ_RUANGAN: "PJ Ruangan",
-    KEPALA_UNIT_INSTALASI: "Kepala Unit/Instalasi",
-    DIREKTUR: "Direktur",
-    SUB_KOMITE_PENINGKATAN_MUTU: "Sub. Komite Peningkatan Mutu",
-    SUB_KOMITE_KESELAMATAN_PASIEN: "Sub. Komite Keselamatan Pasien",
-    SUB_KOMITE_MANAJEMEN_RISIKO: "Sub. Komite Manajemen Risiko",
-  }
-
-  React.useEffect(() => {
-    // In a real app, you wouldn't fetch demo users like this.
-    // This is just to display login hints on the page.
-    const fetchDemoUsers = async () => {
-        try {
-            const res = await fetch("/api/users");
-            const data = await res.json();
-            setDemoUsers(data.users);
-        } catch (error) {
-            console.error("Failed to fetch demo users", error);
-        }
-    }
-    fetchDemoUsers();
-  }, [])
+  const { setCurrentUser, users: demoUsers } = useUserStore()
 
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -69,43 +51,34 @@ export default function LoginPage() {
     setIsLoading(true)
 
     const formData = new FormData(event.currentTarget)
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
 
-    try {
-      const user = await login(formData)
-      if (!user) {
-        throw new Error("User not found after login.")
-      }
+    // Mock login logic, we'll replace this with Firebase Auth
+    const user = demoUsers.find(u => u.email === email && u.password === password);
 
-      const storeUser: StoreUser = {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: roleMap[user.role as DbUserRole],
-        unit: user.unit ?? undefined,
-      }
-
-      setCurrentUser(storeUser)
-      addLog({
-        user: user.name,
-        action: "LOGIN_SUCCESS",
-        details: `Pengguna ${user.name} berhasil login.`,
-      })
-      router.push("/dashboard/overview")
-      router.refresh() // Ensure layout re-renders with new session
-    } catch (error: any) {
-      const email = formData.get("email") as string;
-      addLog({
-        user: email || "Unknown",
-        action: "LOGIN_FAIL",
-        details: `Percobaan login gagal untuk email: ${email}.`,
-      })
-      toast({
-        variant: "destructive",
-        title: "Login Gagal",
-        description: error.message || "Email atau password salah. Silakan coba lagi.",
-      })
-      setIsLoading(false)
+    if (user) {
+        setCurrentUser(user);
+        addLog({
+            user: user.name,
+            action: "LOGIN_SUCCESS",
+            details: `Pengguna ${user.name} berhasil login.`,
+        });
+        router.push("/dashboard/overview");
+        router.refresh();
+    } else {
+         addLog({
+            user: email || "Unknown",
+            action: "LOGIN_FAIL",
+            details: `Percobaan login gagal untuk email: ${email}.`,
+        });
+        toast({
+            variant: "destructive",
+            title: "Login Gagal",
+            description: "Email atau password salah. Silakan coba lagi.",
+        });
     }
+    setIsLoading(false)
   }
 
   return (

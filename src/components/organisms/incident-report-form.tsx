@@ -4,7 +4,8 @@
 import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { Stepper } from "@/components/molecules/stepper"
-import { useIncidentStore, Incident } from "@/store/incident-store"
+import { Incident } from "@/store/incident-store"
+import { addIncident, updateIncident } from "@/lib/actions/incidents"
 import { useToast } from "@/hooks/use-toast"
 import { useUserStore } from "@/store/user-store.tsx"
 import { useLogStore } from "@/store/log-store.tsx"
@@ -26,7 +27,6 @@ type IncidentReportFormProps = {
 
 export function IncidentReportForm({ setOpen, incident }: IncidentReportFormProps) {
     const [currentStep, setCurrentStep] = React.useState(0)
-    const { addIncident, updateIncident } = useIncidentStore()
     const { toast } = useToast()
     const { currentUser } = useUserStore();
     const { addLog } = useLogStore();
@@ -41,16 +41,16 @@ export function IncidentReportForm({ setOpen, incident }: IncidentReportFormProp
     const prev = () => setCurrentStep((prev) => (prev > 0 ? prev - 1 : prev))
     const updateFormData = (newData: Partial<Incident>) => setFormData(prev => ({...prev, ...newData}));
 
-    const handleSave = () => {
+    const handleSave = async () => {
         const finalData = { ...formData } as Omit<Incident, 'id' | 'date' | 'status'>;
 
-        if (isEditMode && incident.id) {
-            updateIncident(incident.id, finalData)
+        if (isEditMode && incident?.id) {
+            await updateIncident(incident.id, finalData)
             addLog({ user: currentUser?.name || 'System', action: 'UPDATE_INCIDENT', details: `Laporan insiden ${incident.id} diperbarui.` })
             toast({ title: "Laporan Berhasil Diperbarui", description: `Laporan insiden ${incident.id} telah diperbarui.` });
         } else {
-            const newId = addIncident(finalData);
-            addLog({ user: currentUser?.name || 'Anonymous', action: 'ADD_INCIDENT', details: `Laporan insiden baru ${newId} ditambahkan.` })
+            const created = await addIncident(finalData);
+            addLog({ user: currentUser?.name || 'Anonymous', action: 'ADD_INCIDENT', details: `Laporan insiden baru ${created.id} ditambahkan.` })
             addNotification({
                 title: 'Laporan Insiden Baru',
                 description: `Insiden baru (${finalData.type}) telah dilaporkan. Segera lakukan investigasi.`,

@@ -33,7 +33,7 @@ export async function submitIndicator(data: any) {
       ? 'Diverifikasi'
       : 'Menunggu_Persetujuan';
 
-  await prisma.indicatorSubmission.create({
+  const submission = await prisma.indicatorSubmission.create({
     data: {
       ...data,
       standard: parseFloat(data.standard),
@@ -42,6 +42,7 @@ export async function submitIndicator(data: any) {
     },
   })
   revalidatePath("/dashboard/indicators")
+  return submission
 }
 
 export async function updateSubmittedIndicator(id: string, data: any) {

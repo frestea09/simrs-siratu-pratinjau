@@ -13,7 +13,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { DialogFooter } from "../ui/dialog"
-import { Risk, RiskCategory, RiskSource, useRiskStore, RiskEvaluation, RiskStatus } from "@/store/risk-store"
+import { Risk, RiskCategory, RiskSource, RiskEvaluation, RiskStatus } from "@/store/risk-store"
+import { addRisk, updateRisk } from "@/lib/actions/risks"
 import { useToast } from "@/hooks/use-toast"
 import { useUserStore } from "@/store/user-store.tsx"
 import { useLogStore } from "@/store/log-store.tsx"
@@ -108,7 +109,6 @@ const controllabilityLabels = ["Sangat Sulit", "Sulit", "Sedang", "Mudah", "Sang
 
 export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
     const { toast } = useToast()
-    const { addRisk, updateRisk } = useRiskStore()
     const { currentUser, users } = useUserStore()
     const isEditMode = !!riskToEdit;
 
@@ -142,7 +142,7 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
     const residualConsequenceValue = form.watch("residualConsequence");
     const residualLikelihoodValue = form.watch("residualLikelihood");
 
-    function onSubmit(values: z.infer<typeof formSchema>) {
+    async function onSubmit(values: z.infer<typeof formSchema>) {
         const dataToSave = {
             ...values,
             dueDate: values.dueDate ? values.dueDate.toISOString() : undefined,
@@ -151,10 +151,10 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
         }
 
         if (isEditMode && riskToEdit) {
-            updateRisk(riskToEdit.id, dataToSave);
+            await updateRisk(riskToEdit.id, dataToSave);
             toast({ title: "Risiko Diperbarui", description: "Data risiko telah berhasil diperbarui." });
         } else {
-            addRisk(dataToSave as any);
+            await addRisk(dataToSave as any);
             toast({ title: "Risiko Baru Ditambahkan", description: "Risiko baru telah berhasil diidentifikasi dan ditambahkan ke register." });
         }
         setOpen(false)

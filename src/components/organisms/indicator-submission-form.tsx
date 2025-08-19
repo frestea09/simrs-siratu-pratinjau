@@ -27,6 +27,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { DialogFooter } from "../ui/dialog"
 import { SubmittedIndicator, useIndicatorStore, IndicatorCategory } from "@/store/indicator-store"
+import { submitIndicator, updateSubmittedIndicator } from "@/lib/actions/indicators"
 import { useToast } from "@/hooks/use-toast"
 import { HOSPITAL_UNITS } from "@/lib/constants"
 import { useUserStore } from "@/store/user-store.tsx"
@@ -77,7 +78,7 @@ const unitOptions = HOSPITAL_UNITS.map(unit => ({ value: unit, label: unit }));
 
 export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmissionFormProps) {
   const { toast } = useToast()
-  const { submitIndicator, updateSubmittedIndicator, submittedIndicators } = useIndicatorStore()
+  const { submittedIndicators } = useIndicatorStore()
   const { currentUser } = useUserStore();
   const { addLog } = useLogStore();
   const { addNotification } = useNotificationStore();
@@ -141,40 +142,40 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
   }, [userIsCentral, currentUser?.unit, form]);
 
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     // Exclude adoption-specific fields from the final data
     const { adoptionType, adoptedIndicatorId, ...submissionData } = values;
 
     if (isEditMode && indicator.id) {
-        updateSubmittedIndicator(indicator.id, submissionData)
+        await updateSubmittedIndicator(indicator.id, submissionData)
         addLog({
             user: currentUser?.name || "System",
             action: 'UPDATE_SUBMITTED_INDICATOR',
-            details: `Pengajuan indikator "${submissionData.name}" diperbarui.`
+            details: `Pengajuan indikator \"${submissionData.name}\" diperbarui.`
         })
         toast({
             title: "Pengajuan Diperbarui",
-            description: `Pengajuan untuk "${submissionData.name}" telah berhasil diperbarui.`,
+            description: `Pengajuan untuk \"${submissionData.name}\" telah berhasil diperbarui.`,
         })
     } else {
-        const newId = submitIndicator(submissionData as any)
+        const created = await submitIndicator(submissionData as any)
         addLog({
             user: currentUser?.name || "System",
             action: 'ADD_SUBMITTED_INDICATOR',
-            details: `Indikator baru "${submissionData.name}" (${newId}) diajukan.`
+            details: `Indikator baru \"${submissionData.name}\" (${created.id}) diajukan.`
         })
 
         toast({
           title: "Pengajuan Berhasil",
-          description: `Indikator "${submissionData.name}" telah berhasil diajukan.`,
+          description: `Indikator \"${submissionData.name}\" telah berhasil diajukan.`,
         })
 
         if(submissionData.category === 'IMPU') {
-            addNotification({ 
+            addNotification({
                 title: 'Pengajuan Indikator Baru (IMPU)',
-                description: `Indikator "${submissionData.name}" dari unit ${submissionData.unit} menunggu persetujuan.`,
+                description: `Indikator \"${submissionData.name}\" dari unit ${submissionData.unit} menunggu persetujuan.`,
                 link: '/dashboard/indicators',
-                recipientRole: 'Sub. Komite Peningkatan Mutu' 
+                recipientRole: 'Sub. Komite Peningkatan Mutu'
             });
         }
     }

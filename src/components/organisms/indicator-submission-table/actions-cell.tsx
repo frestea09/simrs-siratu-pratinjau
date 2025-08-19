@@ -46,8 +46,8 @@ export function ActionsCell({ row }: ActionsCellProps) {
     const { addNotification } = useNotificationStore()
     const { toast } = useToast()
 
-    const handleStatusChange = (indicator: SubmittedIndicator, status: SubmittedIndicator['status'], reason?: string) => {
-        updateSubmittedIndicatorStatus(indicator.id, status, reason)
+    const handleStatusChange = async (indicator: SubmittedIndicator, status: SubmittedIndicator['status'], reason?: string) => {
+        await updateSubmittedIndicatorStatus(indicator.id, status, reason)
         addLog({
             user: currentUser?.name || 'System',
             action: 'UPDATE_INDICATOR_STATUS',
@@ -69,8 +69,8 @@ export function ActionsCell({ row }: ActionsCellProps) {
                       currentUser?.role === 'Direktur' ||
                       currentUser?.role === 'Sub. Komite Peningkatan Mutu';
 
-    const handleDelete = () => {
-        removeSubmittedIndicator(indicator.id)
+    const handleDelete = async () => {
+        await removeSubmittedIndicator(indicator.id)
         addLog({
             user: currentUser?.name || 'System',
             action: 'DELETE_SUBMITTED_INDICATOR',
@@ -119,11 +119,11 @@ export function ActionsCell({ row }: ActionsCellProps) {
                                     {statusOptions.map((status) => (
                                     <DropdownMenuItem
                                         key={status}
-                                        onSelect={() => {
+                                        onSelect={async () => {
                                         if (status === 'Ditolak') {
                                             openRejectionDialog(indicator);
                                         } else {
-                                            handleStatusChange(indicator, status);
+                                            await handleStatusChange(indicator, status);
                                         }
                                         }}
                                     >

@@ -141,12 +141,12 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
   }, [userIsCentral, currentUser?.unit, form]);
 
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     // Exclude adoption-specific fields from the final data
     const { adoptionType, adoptedIndicatorId, ...submissionData } = values;
 
     if (isEditMode && indicator.id) {
-        updateSubmittedIndicator(indicator.id, submissionData)
+        await updateSubmittedIndicator(indicator.id, submissionData)
         addLog({
             user: currentUser?.name || "System",
             action: 'UPDATE_SUBMITTED_INDICATOR',
@@ -157,7 +157,10 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
             description: `Pengajuan untuk "${submissionData.name}" telah berhasil diperbarui.`,
         })
     } else {
-        const newId = submitIndicator(submissionData as any)
+        const newId = await submitIndicator({
+            ...(submissionData as any),
+            submittedById: currentUser?.id || '',
+        })
         addLog({
             user: currentUser?.name || "System",
             action: 'ADD_SUBMITTED_INDICATOR',

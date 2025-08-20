@@ -142,7 +142,7 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
     const residualConsequenceValue = form.watch("residualConsequence");
     const residualLikelihoodValue = form.watch("residualLikelihood");
 
-    function onSubmit(values: z.infer<typeof formSchema>) {
+    async function onSubmit(values: z.infer<typeof formSchema>) {
         const dataToSave = {
             ...values,
             dueDate: values.dueDate ? values.dueDate.toISOString() : undefined,
@@ -151,10 +151,10 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
         }
 
         if (isEditMode && riskToEdit) {
-            updateRisk(riskToEdit.id, dataToSave);
+            await updateRisk(riskToEdit.id, dataToSave);
             toast({ title: "Risiko Diperbarui", description: "Data risiko telah berhasil diperbarui." });
         } else {
-            addRisk(dataToSave as any);
+            await addRisk(dataToSave as any);
             toast({ title: "Risiko Baru Ditambahkan", description: "Risiko baru telah berhasil diidentifikasi dan ditambahkan ke register." });
         }
         setOpen(false)

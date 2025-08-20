@@ -41,15 +41,15 @@ export function IncidentReportForm({ setOpen, incident }: IncidentReportFormProp
     const prev = () => setCurrentStep((prev) => (prev > 0 ? prev - 1 : prev))
     const updateFormData = (newData: Partial<Incident>) => setFormData(prev => ({...prev, ...newData}));
 
-    const handleSave = () => {
+    const handleSave = async () => {
         const finalData = { ...formData } as Omit<Incident, 'id' | 'date' | 'status'>;
 
         if (isEditMode && incident.id) {
-            updateIncident(incident.id, finalData)
+            await updateIncident(incident.id, finalData)
             addLog({ user: currentUser?.name || 'System', action: 'UPDATE_INCIDENT', details: `Laporan insiden ${incident.id} diperbarui.` })
             toast({ title: "Laporan Berhasil Diperbarui", description: `Laporan insiden ${incident.id} telah diperbarui.` });
         } else {
-            const newId = addIncident(finalData);
+            const newId = await addIncident(finalData);
             addLog({ user: currentUser?.name || 'Anonymous', action: 'ADD_INCIDENT', details: `Laporan insiden baru ${newId} ditambahkan.` })
             addNotification({
                 title: 'Laporan Insiden Baru',

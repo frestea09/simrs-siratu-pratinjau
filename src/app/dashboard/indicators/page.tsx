@@ -19,11 +19,15 @@ import {centralRoles} from "@/store/central-roles.ts";
 
 
 export default function IndicatorsPage() {
-  const { submittedIndicators } = useIndicatorStore();
+  const { submittedIndicators, fetchSubmittedIndicators } = useIndicatorStore();
   const { currentUser } = useUserStore();
   const [isNewDialogOpen, setIsNewDialogOpen] = React.useState(false);
 
   const userCanSeeAll = currentUser && centralRoles.includes(currentUser.role);
+
+  React.useEffect(() => {
+    fetchSubmittedIndicators();
+  }, [fetchSubmittedIndicators]);
 
   const filteredSubmittedIndicators = React.useMemo(() => {
     if (userCanSeeAll || !currentUser?.unit) {

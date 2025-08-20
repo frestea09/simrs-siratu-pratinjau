@@ -39,8 +39,8 @@ export function ActionsCell({ row, onViewDetails }: ActionsCellProps) {
 
   const canChangeStatus = currentUser?.role === 'Admin Sistem' || currentUser?.role === 'Sub. Komite Keselamatan Pasien';
 
-  const handleStatusChange = (status: IncidentStatus) => {
-    updateIncidentStatus(incident.id, status)
+  const handleStatusChange = async (status: IncidentStatus) => {
+    await updateIncidentStatus(incident.id, status)
     addLog({
       user: currentUser?.name || 'System',
       action: 'UPDATE_INCIDENT',
@@ -48,8 +48,8 @@ export function ActionsCell({ row, onViewDetails }: ActionsCellProps) {
     })
   }
 
-  const handleDelete = () => {
-    removeIncident(incident.id)
+  const handleDelete = async () => {
+    await removeIncident(incident.id)
     addLog({
       user: currentUser?.name || 'System',
       action: 'DELETE_INCIDENT',
@@ -88,11 +88,11 @@ export function ActionsCell({ row, onViewDetails }: ActionsCellProps) {
                   Ubah Status
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
-                  <DropdownMenuItem onClick={() => handleStatusChange('Investigasi')}>
+                  <DropdownMenuItem onClick={async () => await handleStatusChange('Investigasi')}>
                     <ShieldQuestion className="mr-2 h-4 w-4" />
                     <span>Investigasi</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleStatusChange('Selesai')}>
+                  <DropdownMenuItem onClick={async () => await handleStatusChange('Selesai')}>
                     <CheckCircle className="mr-2 h-4 w-4" />
                     <span>Selesai</span>
                   </DropdownMenuItem>
@@ -117,7 +117,7 @@ export function ActionsCell({ row, onViewDetails }: ActionsCellProps) {
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Batal</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Hapus</AlertDialogAction>
+                <AlertDialogAction onClick={async () => handleDelete()} className="bg-destructive hover:bg-destructive/90">Hapus</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>

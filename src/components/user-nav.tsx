@@ -17,12 +17,14 @@ import { useUserStore } from "@/store/user-store.tsx"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import React from "react"
+import { logout } from "@/lib/actions/auth"
 
 export function UserNav() {
   const router = useRouter()
   const { currentUser, clearCurrentUser } = useUserStore()
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await logout()
     clearCurrentUser()
     router.push("/")
   }

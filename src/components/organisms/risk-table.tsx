@@ -52,8 +52,8 @@ const ActionsCell = ({ row }: { row: Row<Risk> }) => {
     const { removeRisk } = useRiskStore();
     const { toast } = useToast();
 
-    const handleDelete = () => {
-        removeRisk(risk.id);
+    const handleDelete = async () => {
+        await removeRisk(risk.id);
         toast({
             title: "Risiko Dihapus",
             description: `Risiko "${risk.description.substring(0, 30)}..." telah dihapus.`,
@@ -101,7 +101,7 @@ const ActionsCell = ({ row }: { row: Row<Risk> }) => {
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                                 <AlertDialogCancel>Batal</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Hapus</AlertDialogAction>
+                                <AlertDialogAction onClick={async () => handleDelete()} className="bg-destructive hover:bg-destructive/90">Hapus</AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>

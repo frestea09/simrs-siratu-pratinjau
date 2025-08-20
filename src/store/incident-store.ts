@@ -1,15 +1,13 @@
+"use client"
 
-import { create } from 'zustand'
+import { create } from "zustand"
 
-export type IncidentStatus = 'Investigasi' | 'Selesai';
+export type IncidentStatus = "Investigasi" | "Selesai"
 
 export type Incident = {
-  // Base Info
   id: string
   date: string
   status: IncidentStatus
-
-  // Step 1: Patient Data
   patientName?: string
   medicalRecordNumber?: string
   careRoom?: string
@@ -18,79 +16,87 @@ export type Incident = {
   payer?: string
   entryDate?: string
   entryTime?: string
-
-  // Step 2: Incident Details
   incidentDate?: string
   incidentTime?: string
   chronology?: string
-  type: 'KPC' | 'KNC' | 'KTC' | 'KTD' | 'Sentinel'
+  type: "KPC" | "KNC" | "KTC" | "KTD" | "Sentinel"
   incidentSubject?: string
   incidentLocation?: string
   relatedUnit?: string
-  
-  // Step 3: Follow-up
   firstAction?: string
   firstActionBy?: string
   hasHappenedBefore?: string
-  severity: 'biru' | 'hijau' | 'kuning' | 'merah'
+  severity: "biru" | "hijau" | "kuning" | "merah"
   patientImpact?: string
   analysisNotes?: string
   followUpPlan?: string
 }
 
-const incidentTypeMap: { [key: string]: string } = {
-    'KPC': 'Kondisi Potensial Cedera (KPC)', 'KNC': 'Kejadian Nyaris Cedera (KNC)',
-    'KTC': 'Kejadian Tidak Cedera (KTC)', 'KTD': 'Kejadian Tidak Diharapkan (KTD)',
-    'Sentinel': 'Kejadian Sentinel',
-};
-const severityMap: { [key: string]: string } = {
-    biru: 'BIRU (Rendah)', hijau: 'HIJAU (Sedang)', kuning: 'KUNING (Tinggi)', merah: 'MERAH (Sangat Tinggi)',
-};
-
-
 type IncidentState = {
   incidents: Incident[]
-  addIncident: (incident: Omit<Incident, 'id' | 'date' | 'status'>) => string
-  updateIncident: (id: string, incident: Partial<Omit<Incident, 'id' | 'date' | 'status'>>) => void
-  updateIncidentStatus: (id: string, status: IncidentStatus) => void;
-  removeIncident: (id: string) => void;
+  fetchIncidents: () => Promise<void>
+  addIncident: (incident: Omit<Incident, "id" | "date" | "status">) => Promise<string>
+  updateIncident: (
+    id: string,
+    incident: Partial<Omit<Incident, "id" | "date" | "status">>
+  ) => Promise<void>
+  updateIncidentStatus: (id: string, status: IncidentStatus) => Promise<void>
+  removeIncident: (id: string) => Promise<void>
 }
 
-const initialIncidents: Incident[] = [];
+export const useIncidentStore = create<IncidentState>((set) => ({
+  incidents: [],
 
-
-export const useIncidentStore = create<IncidentState>((set, get) => ({
-  incidents: initialIncidents,
-  addIncident: (incident) => {
-    const newId = `IKP-${String(get().incidents.length + 1).padStart(3, '0')}`;
-    const newIncident: Incident = {
-        ...(incident as Omit<Incident, 'id' | 'date' | 'status'>),
-        id: newId,
-        date: new Date().toISOString(),
-        status: 'Investigasi',
-    };
-    set((state) => ({
-      incidents: [newIncident, ...state.incidents],
-    }));
-    return newId;
+  fetchIncidents: async () => {
+    const res = await fetch("/api/incidents")
+    if (!res.ok) return
+    const data = await res.json()
+    set({ incidents: data.incidents })
   },
-  updateIncident: (id, incidentData) => set((state) => ({
-      incidents: state.incidents.map(inc => {
-          if (inc.id === id) {
-              return {
-                  ...inc,
-                  ...incidentData
-              }
-          }
-          return inc;
-      })
-  })),
-  updateIncidentStatus: (id, status) => set(state => ({
-      incidents: state.incidents.map(inc =>
-          inc.id === id ? { ...inc, status } : inc
-      )
-  })),
-  removeIncident: (id) => set(state => ({
-      incidents: state.incidents.filter(inc => inc.id !== id)
-  }))
+
+  addIncident: async (incident) => {
+    const res = await fetch("/api/incidents", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(incident),
+    })
+    if (!res.ok) throw new Error("Failed to add incident")
+    const data = await res.json()
+    set((state) => ({ incidents: [data.incident, ...state.incidents] }))
+    return data.incident.id
+  },
+
+  updateIncident: async (id, incidentData) => {
+    await fetch(`/api/incidents/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(incidentData),
+    })
+    set((state) => ({
+      incidents: state.incidents.map((inc) =>
+        inc.id === id ? { ...inc, ...incidentData } : inc
+      ),
+    }))
+  },
+
+  updateIncidentStatus: async (id, status) => {
+    await fetch(`/api/incidents/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    })
+    set((state) => ({
+      incidents: state.incidents.map((inc) =>
+        inc.id === id ? { ...inc, status } : inc
+      ),
+    }))
+  },
+
+  removeIncident: async (id) => {
+    await fetch(`/api/incidents/${id}`, { method: "DELETE" })
+    set((state) => ({
+      incidents: state.incidents.filter((inc) => inc.id !== id),
+    }))
+  },
 }))
+

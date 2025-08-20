@@ -3,6 +3,18 @@
 import { create } from "zustand"
 import React, { createContext, useContext, useEffect, useRef } from "react"
 import { useNotificationStore } from "./notification-store"
+import type { UserRole as DbUserRole } from "@prisma/client"
+
+const roleMap: Record<DbUserRole, UserRole> = {
+  ADMIN_SISTEM: "Admin Sistem",
+  PIC_MUTU: "PIC Mutu",
+  PJ_RUANGAN: "PJ Ruangan",
+  KEPALA_UNIT_INSTALASI: "Kepala Unit/Instalasi",
+  DIREKTUR: "Direktur",
+  SUB_KOMITE_PENINGKATAN_MUTU: "Sub. Komite Peningkatan Mutu",
+  SUB_KOMITE_KESELAMATAN_PASIEN: "Sub. Komite Keselamatan Pasien",
+  SUB_KOMITE_MANAJEMEN_RISIKO: "Sub. Komite Manajemen Risiko",
+}
 
 export type UserRole =
   | "Admin Sistem"
@@ -27,6 +39,7 @@ type UserState = {
   users: User[]
   currentUser: User | null
   fetchUsers: () => Promise<void>
+  fetchCurrentUser: () => Promise<void>
   addUser: (user: Omit<User, "id">) => string
   updateUser: (id: string, data: Partial<Omit<User, "id">>) => void
   removeUser: (id: string) => void
@@ -43,6 +56,29 @@ const createUserStore = () =>
       if (res.ok) {
         const data = await res.json()
         set({ users: data.users })
+      }
+    },
+    fetchCurrentUser: async () => {
+      try {
+        const res = await fetch("/api/session")
+        if (res.ok) {
+          const data = await res.json()
+          if (data.user) {
+            set({
+              currentUser: {
+                id: data.user.id,
+                name: data.user.name,
+                email: data.user.email,
+                role: roleMap[data.user.role as DbUserRole],
+                unit: data.user.unit ?? undefined,
+              },
+            })
+          } else {
+            set({ currentUser: null })
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch current user", error)
       }
     },
     addUser: (user) => {
@@ -81,6 +117,7 @@ export const UserStoreProvider = ({
 
   useEffect(() => {
     storeRef.current?.getState().fetchUsers()
+    storeRef.current?.getState().fetchCurrentUser()
   }, [])
 
   return (

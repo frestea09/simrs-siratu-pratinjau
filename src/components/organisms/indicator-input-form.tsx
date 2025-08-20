@@ -96,7 +96,7 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
         .map(i => new Date(i.period));
   }, [indicators, selectedSubmittedIndicator]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedSubmittedIndicator || !date || !numerator || !denominator) {
         toast({
             variant: "destructive",
@@ -121,7 +121,7 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
     };
 
     if (isEditMode && indicatorToEdit) {
-        updateIndicator(indicatorToEdit.id, dataToSave);
+        await updateIndicator(indicatorToEdit.id, dataToSave);
         addLog({
             user: currentUser?.name || 'System',
             action: 'UPDATE_INDICATOR',
@@ -132,7 +132,10 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
             description: `Capaian untuk ${dataToSave.indicator} periode ${format(date, "d MMMM yyyy")} telah diperbarui.`,
         })
     } else {
-         const newId = addIndicator(dataToSave)
+         const newId = await addIndicator({
+            ...dataToSave,
+            submissionId: selectedSubmittedIndicator.id,
+         })
          addLog({
             user: currentUser?.name || 'System',
             action: 'ADD_INDICATOR',

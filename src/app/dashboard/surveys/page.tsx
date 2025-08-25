@@ -13,34 +13,17 @@ import {
   Download,
   PlusCircle,
   Users,
-  Activity,
-  ThumbsUp,
-  LineChart as LineChartIcon,
-  BarChart as BarChartIcon,
+  TrendingUp,
+  TrendingDown,
+  Minus,
 } from "lucide-react"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { SurveyTable } from "@/components/organisms/survey-table"
 import { SurveyDialog } from "@/components/organisms/survey-dialog"
 import { ReportPreviewDialog } from "@/components/organisms/report-preview-dialog"
+import { SurveyFilterCard } from "@/components/organisms/survey-filter-card"
+import { SurveyChartCard } from "@/components/organisms/survey-chart-card"
 import { SurveyResult, useSurveyStore } from "@/store/survey-store"
 import { format } from "date-fns"
-import { cn } from "@/lib/utils"
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-} from "recharts"
 
 export default function SurveysPage() {
   const surveys = useSurveyStore((state) => state.surveys)
@@ -52,7 +35,6 @@ export default function SurveysPage() {
   const [csvData, setCsvData] = React.useState("")
   const [filterUnit, setFilterUnit] = React.useState<string>("all")
   const [chartType, setChartType] = React.useState<"line" | "bar">("line")
-  const [isPending, startTransition] = React.useTransition()
 
   const units = React.useMemo(() => {
     return Array.from(new Set(surveys.map((s) => s.unit)))
@@ -68,29 +50,28 @@ export default function SurveysPage() {
 
   const totalRespondents = filteredSurveys.length
 
-  const averageScore = React.useMemo(() => {
-    if (filteredSurveys.length === 0) return 0
-    return (
-      filteredSurveys.reduce((acc, s) => acc + s.totalScore, 0) /
-      filteredSurveys.length
-    )
-  }, [filteredSurveys])
-
-  const averagePositive = React.useMemo(() => {
-    if (filteredSurveys.length === 0) return 0
-    return (
-      filteredSurveys.reduce((acc, s) => acc + s.positivePercentage, 0) /
-      filteredSurveys.length
-    )
-  }, [filteredSurveys])
-
-  const responseCounts = React.useMemo(() => {
+  const chartData = React.useMemo(() => {
     const counts: Record<string, number> = {}
     filteredSurveys.forEach((s) => {
-      counts[s.unit] = (counts[s.unit] || 0) + 1
+      const month = format(new Date(s.submissionDate), "yyyy-MM")
+      counts[month] = (counts[month] || 0) + 1
     })
-    return Object.entries(counts).map(([unit, count]) => ({ unit, count }))
+    return Object.entries(counts)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, count]) => ({
+        name: format(new Date(`${month}-01`), "LLL yyyy"),
+        value: count,
+      }))
   }, [filteredSurveys])
+
+  const trendDirection = React.useMemo(() => {
+    if (chartData.length < 2) return "stabil"
+    const prev = chartData[chartData.length - 2].value
+    const last = chartData[chartData.length - 1].value
+    if (last > prev) return "meningkat"
+    if (last < prev) return "menurun"
+    return "stabil"
+  }, [chartData])
 
   const generateCSV = (data: SurveyResult[]) => {
     const headers = [
@@ -169,7 +150,7 @@ export default function SurveysPage() {
         <p className="mb-4 text-sm text-muted-foreground">
           Ikhtisar untuk memahami hasil survei dengan cepat.
         </p>
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2">
           <Card className="bg-muted/50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -184,116 +165,32 @@ export default function SurveysPage() {
           <Card className="bg-muted/50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Skor Rata-rata
+                Trend Responden
               </CardTitle>
-              <Activity className="h-4 w-4 text-muted-foreground" />
+              {trendDirection === "meningkat" ? (
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              ) : trendDirection === "menurun" ? (
+                <TrendingDown className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <Minus className="h-4 w-4 text-muted-foreground" />
+              )}
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {averageScore.toFixed(2)}
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-muted/50">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Respons Positif
-              </CardTitle>
-              <ThumbsUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {averagePositive.toFixed(1)}%
+              <div className="text-2xl font-bold capitalize">
+                {trendDirection}
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Filter & Tampilan Data</CardTitle>
-          <CardDescription>
-            Gunakan filter di bawah untuk menampilkan data lebih spesifik.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-end">
-          <Select value={filterUnit} onValueChange={setFilterUnit}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Pilih Unit" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Semua Unit</SelectItem>
-              {units.map((u) => (
-                <SelectItem key={u} value={u}>
-                  {u}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <div className="flex w-fit items-center rounded-md border p-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => startTransition(() => setChartType("line"))}
-              className={cn("h-8 w-8", chartType === "line" && "bg-muted")}
-              disabled={isPending}
-            >
-              <LineChartIcon className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => startTransition(() => setChartType("bar"))}
-              className={cn("h-8 w-8", chartType === "bar" && "bg-muted")}
-              disabled={isPending}
-            >
-              <BarChartIcon className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Dashboard Survei</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {responseCounts.length > 0 ? (
-            <>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%" key={chartType}>
-                  {chartType === "line" ? (
-                    <LineChart data={responseCounts}>
-                      <XAxis dataKey="unit" />
-                      <YAxis allowDecimals={false} />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="count" stroke="#8884d8" />
-                    </LineChart>
-                  ) : (
-                    <BarChart data={responseCounts}>
-                      <XAxis dataKey="unit" />
-                      <YAxis allowDecimals={false} />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#8884d8" />
-                    </BarChart>
-                  )}
-                </ResponsiveContainer>
-              </div>
-              <ul className="grid gap-2 md:grid-cols-2">
-                {responseCounts.map((item) => (
-                  <li key={item.unit} className="text-sm">
-                    <span className="font-medium">{item.unit}:</span>{" "}
-                    {item.count} responden
-                  </li>
-                ))}
-              </ul>
-            </>
-          ) : (
-            <p className="text-center text-sm text-muted-foreground">
-              Belum ada data survei.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+      <SurveyFilterCard
+        units={units}
+        selectedUnit={filterUnit}
+        setSelectedUnit={setFilterUnit}
+        chartType={chartType}
+        setChartType={setChartType}
+      />
+      <SurveyChartCard data={chartData} chartType={chartType} />
       <Card>
         <CardHeader>
           <CardTitle>Laporan Hasil Survei</CardTitle>

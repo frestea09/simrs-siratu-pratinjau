@@ -7,15 +7,25 @@ import { Download, PlusCircle } from "lucide-react"
 import { SurveyTable } from "@/components/organisms/survey-table"
 import { SurveyDialog } from "@/components/organisms/survey-dialog"
 import { ReportPreviewDialog } from "@/components/organisms/report-preview-dialog"
-import { SurveyResult, useSurveyStore } from "@/store/survey-store"
+import { SurveyResult } from "@/types/survey"
+import { getSurveys, removeSurvey } from "@/lib/actions/surveys"
 import { format } from "date-fns"
 
 export default function SurveysPage() {
-  const surveys = useSurveyStore((state) => state.surveys)
+  const [surveys, setSurveys] = React.useState<SurveyResult[]>([])
   const [isSurveyDialogOpen, setIsSurveyDialogOpen] = React.useState(false)
   const [editingSurvey, setEditingSurvey] = React.useState<SurveyResult | null>(null)
   const [isPreviewOpen, setIsPreviewOpen] = React.useState(false)
   const [csvData, setCsvData] = React.useState("")
+
+  const fetchSurveys = React.useCallback(async () => {
+    const data = await getSurveys()
+    setSurveys(data)
+  }, [])
+
+  React.useEffect(() => {
+    fetchSurveys()
+  }, [fetchSurveys])
 
   const generateCSV = () => {
     const headers = ["ID", "Tanggal Pengisian", "Unit Kerja", "Total Skor", "Rata-rata Dimensi"];
@@ -61,6 +71,11 @@ export default function SurveysPage() {
     setIsSurveyDialogOpen(open);
   };
 
+  const handleDelete = React.useCallback(async (id: string) => {
+    await removeSurvey(id)
+    await fetchSurveys()
+  }, [fetchSurveys])
+
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
@@ -88,10 +103,19 @@ export default function SurveysPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <SurveyTable surveys={surveys} onEdit={(s) => { setEditingSurvey(s); setIsSurveyDialogOpen(true); }} />
+          <SurveyTable
+            surveys={surveys}
+            onEdit={(s) => { setEditingSurvey(s); setIsSurveyDialogOpen(true); }}
+            onDelete={handleDelete}
+          />
         </CardContent>
       </Card>
-      <SurveyDialog open={isSurveyDialogOpen} onOpenChange={handleDialogChange} survey={editingSurvey} />
+      <SurveyDialog
+        open={isSurveyDialogOpen}
+        onOpenChange={handleDialogChange}
+        survey={editingSurvey}
+        onSaved={fetchSurveys}
+      />
       <ReportPreviewDialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen} csvData={csvData} onDownload={downloadCSV} />
     </div>
   );

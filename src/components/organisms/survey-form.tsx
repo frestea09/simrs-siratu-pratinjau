@@ -4,10 +4,11 @@
 import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { Stepper } from "@/components/molecules/stepper"
-import { SurveyResult, useSurveyStore } from "@/store/survey-store"
+import { SurveyResult } from "@/types/survey"
 import { useToast } from "@/hooks/use-toast"
 import { useUserStore } from "@/store/user-store.tsx"
 import { SURVEY_QUESTIONS, SurveyDimension, SurveyQuestion } from "@/lib/survey-questions"
+import { createSurvey, updateSurvey } from "@/lib/actions/surveys"
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group"
 import { Label } from "../ui/label"
 import { Combobox } from "../ui/combobox"
@@ -47,13 +48,13 @@ const unitOptions = HOSPITAL_UNITS.map(unit => ({ value: unit, label: unit }));
 type SurveyFormProps = {
   setOpen: (open: boolean) => void;
   survey?: SurveyResult;
+  onSaved: () => Promise<void> | void;
 }
 
-export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
+export function SurveyForm({ setOpen, survey, onSaved }: SurveyFormProps) {
   const [currentStep, setCurrentStep] = React.useState(0);
   const [answers, setAnswers] = React.useState<Answers>(() => survey?.answers ?? {});
   const [unit, setUnit] = React.useState<string>(() => survey?.unit ?? "");
-  const { addSurvey, updateSurvey } = useSurveyStore();
   const { toast } = useToast();
   const { currentUser } = useUserStore();
   const isEdit = !!survey;
@@ -131,7 +132,7 @@ export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
     };
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!unit) {
       toast({
         variant: "destructive",
@@ -143,18 +144,19 @@ export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
     }
     const results = calculateResults();
     if (isEdit && survey) {
-      updateSurvey(survey.id, results);
+      await updateSurvey(survey.id, results);
       toast({
         title: "Survei Berhasil Diperbarui",
         description: `Data survei dari unit ${survey.unit} telah diperbarui.`,
       });
     } else {
-      addSurvey(results);
+      await createSurvey(results);
       toast({
         title: "Survei Berhasil Disimpan",
         description: "Terima kasih atas partisipasi Anda dalam meningkatkan budaya keselamatan pasien.",
       });
     }
+    await onSaved();
     setOpen(false);
   };
 

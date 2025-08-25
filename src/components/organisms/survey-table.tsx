@@ -23,7 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { SurveyResult, useSurveyStore } from "@/store/survey-store"
+import { SurveyResult } from "@/types/survey"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,25 +47,25 @@ import { Progress } from "../ui/progress"
 type SurveyTableProps = {
   surveys: SurveyResult[]
   onEdit: (survey: SurveyResult) => void
+  onDelete: (id: string) => Promise<void>
 }
 
-export function SurveyTable({ surveys, onEdit }: SurveyTableProps) {
+export function SurveyTable({ surveys, onEdit, onDelete }: SurveyTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "submissionDate", desc: true },
   ])
-  const { removeSurvey } = useSurveyStore()
   const { toast } = useToast()
 
   const handleDelete = React.useCallback(
-    (survey: SurveyResult) => {
-      removeSurvey(survey.id)
+    async (survey: SurveyResult) => {
+      await onDelete(survey.id)
       toast({
         title: "Survei Dihapus",
         description: `Data survei dari unit ${survey.unit} telah dihapus.`,
         variant: "destructive",
       })
     },
-    [removeSurvey, toast]
+    [onDelete, toast]
   )
 
   const columns = React.useMemo<ColumnDef<SurveyResult>[]>(

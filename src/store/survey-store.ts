@@ -24,6 +24,7 @@ export type SurveyResult = {
     positivePercentage: number;
     neutralPercentage: number;
     negativePercentage: number;
+    answers: Record<string, string>;
 };
 
 // State untuk store Zustand
@@ -31,6 +32,7 @@ type SurveyState = {
     surveys: SurveyResult[];
     addSurvey: (survey: Omit<SurveyResult, 'id' | 'submissionDate'>) => void;
     removeSurvey: (id: string) => void;
+    updateSurvey: (id: string, survey: Omit<SurveyResult, 'id' | 'submissionDate'>) => void;
 };
 
 // --- Store Zustand ---
@@ -56,6 +58,15 @@ export const useSurveyStore = create<SurveyState>()(
             removeSurvey: (id) => {
                 set((state) => ({
                     surveys: state.surveys.filter((survey) => survey.id !== id),
+                }));
+            },
+
+            // Aksi untuk memperbarui hasil survei
+            updateSurvey: (id, surveyData) => {
+                set((state) => ({
+                    surveys: state.surveys.map((survey) =>
+                        survey.id === id ? { ...survey, ...surveyData } : survey
+                    ),
                 }));
             },
         }),

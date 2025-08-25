@@ -4,7 +4,7 @@
 import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { Stepper } from "@/components/molecules/stepper"
-import { useSurveyStore } from "@/store/survey-store"
+import { SurveyResult, useSurveyStore } from "@/store/survey-store"
 import { useToast } from "@/hooks/use-toast"
 import { useUserStore } from "@/store/user-store.tsx"
 import { SURVEY_QUESTIONS, SurveyDimension, SurveyQuestion } from "@/lib/survey-questions"
@@ -12,7 +12,7 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group"
 import { Label } from "../ui/label"
 import { Combobox } from "../ui/combobox"
 import { HOSPITAL_UNITS } from "@/lib/constants"
-import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
+import { Alert, AlertDescription } from "../ui/alert"
 import { Info } from "lucide-react"
 
 // --- Tipe Data ---
@@ -46,15 +46,17 @@ const unitOptions = HOSPITAL_UNITS.map(unit => ({ value: unit, label: unit }));
 
 type SurveyFormProps = {
   setOpen: (open: boolean) => void;
+  survey?: SurveyResult;
 }
 
-export function SurveyForm({ setOpen }: SurveyFormProps) {
+export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
   const [currentStep, setCurrentStep] = React.useState(0);
-  const [answers, setAnswers] = React.useState<Answers>({});
-  const [unit, setUnit] = React.useState<string>("");
-  const { addSurvey } = useSurveyStore();
+  const [answers, setAnswers] = React.useState<Answers>(() => survey?.answers ?? {});
+  const [unit, setUnit] = React.useState<string>(() => survey?.unit ?? "");
+  const { addSurvey, updateSurvey } = useSurveyStore();
   const { toast } = useToast();
   const { currentUser } = useUserStore();
+  const isEdit = !!survey;
 
   const next = () => setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
   const prev = () => setCurrentStep((prev) => (prev > 0 ? prev - 1 : prev));
@@ -125,6 +127,7 @@ export function SurveyForm({ setOpen }: SurveyFormProps) {
       positivePercentage: totalQuestions > 0 ? (totalPositive / totalQuestions) * 100 : 0,
       neutralPercentage: totalQuestions > 0 ? (totalNeutral / totalQuestions) * 100 : 0,
       negativePercentage: totalQuestions > 0 ? (totalNegative / totalQuestions) * 100 : 0,
+      answers,
     };
   };
 
@@ -139,19 +142,27 @@ export function SurveyForm({ setOpen }: SurveyFormProps) {
       return;
     }
     const results = calculateResults();
-    addSurvey(results);
-    toast({
-      title: "Survei Berhasil Disimpan",
-      description: "Terima kasih atas partisipasi Anda dalam meningkatkan budaya keselamatan pasien.",
-    });
+    if (isEdit && survey) {
+      updateSurvey(survey.id, results);
+      toast({
+        title: "Survei Berhasil Diperbarui",
+        description: `Data survei dari unit ${survey.unit} telah diperbarui.`,
+      });
+    } else {
+      addSurvey(results);
+      toast({
+        title: "Survei Berhasil Disimpan",
+        description: "Terima kasih atas partisipasi Anda dalam meningkatkan budaya keselamatan pasien.",
+      });
+    }
     setOpen(false);
   };
-  
+
   React.useEffect(() => {
-    if(currentUser && currentUser.unit) {
+    if(currentUser && currentUser.unit && !survey) {
         setUnit(currentUser.unit)
     }
-  }, [currentUser])
+  }, [currentUser, survey])
 
   const renderStepContent = () => {
     if (currentStep === 0) {

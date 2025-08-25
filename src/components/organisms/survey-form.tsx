@@ -15,6 +15,7 @@ import { Combobox } from "../ui/combobox"
 import { HOSPITAL_UNITS } from "@/lib/constants"
 import { Alert, AlertDescription } from "../ui/alert"
 import { Info } from "lucide-react"
+import { Progress } from "../ui/progress"
 
 // --- Tipe Data ---
 type Answers = Record<string, string>; // { "A1": "sangat_setuju", "A2": "setuju", ... }
@@ -58,6 +59,7 @@ export function SurveyForm({ setOpen, survey, onSaved }: SurveyFormProps) {
   const { toast } = useToast();
   const { currentUser } = useUserStore();
   const isEdit = !!survey;
+  const progress = (currentStep / (steps.length - 1)) * 100;
 
   const next = () => setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
   const prev = () => setCurrentStep((prev) => (prev > 0 ? prev - 1 : prev));
@@ -200,11 +202,18 @@ export function SurveyForm({ setOpen, survey, onSaved }: SurveyFormProps) {
     <div className="flex flex-col md:flex-row gap-8 p-1">
       <Stepper steps={steps} currentStep={currentStep} setCurrentStep={setCurrentStep} />
       <div className="flex-1">
+        <Progress value={progress} className="mb-4" />
         <div className="max-h-[65vh] min-h-[300px] overflow-y-auto pr-4 pl-1 space-y-8">
           {renderStepContent()}
         </div>
         <div className="flex justify-between items-center pt-5 mt-5 border-t">
-          <div>{currentStep > 0 && <Button variant="outline" onClick={prev}>Kembali</Button>}</div>
+          <div>
+            {currentStep > 0 ? (
+              <Button variant="outline" onClick={prev}>Kembali</Button>
+            ) : (
+              <Button variant="outline" onClick={() => setOpen(false)}>Batal</Button>
+            )}
+          </div>
           <div>
             {currentStep < steps.length - 1 ? (
               <Button onClick={next}>Lanjutkan</Button>

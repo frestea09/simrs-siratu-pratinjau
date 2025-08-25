@@ -3,21 +3,23 @@
 import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
 
-const prismaAny = prisma as any
-
 export async function getSurveys() {
-  return prismaAny.surveyResult.findMany({
+  return prisma.surveyResult.findMany({
     orderBy: { submissionDate: "desc" },
   })
 }
 
+export async function getSurvey(id: string) {
+  return prisma.surveyResult.findUnique({ where: { id } })
+}
+
 export async function createSurvey(data: any) {
-  await prismaAny.surveyResult.create({ data })
+  await prisma.surveyResult.create({ data })
   revalidatePath("/dashboard/surveys")
 }
 
 export async function updateSurvey(id: string, data: any) {
-  await prismaAny.surveyResult.update({
+  await prisma.surveyResult.update({
     where: { id },
     data,
   })
@@ -25,6 +27,6 @@ export async function updateSurvey(id: string, data: any) {
 }
 
 export async function removeSurvey(id: string) {
-  await prismaAny.surveyResult.delete({ where: { id } })
+  await prisma.surveyResult.delete({ where: { id } })
   revalidatePath("/dashboard/surveys")
 }

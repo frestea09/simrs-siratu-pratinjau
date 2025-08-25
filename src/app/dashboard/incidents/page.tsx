@@ -178,6 +178,12 @@ export default function IncidentsPage() {
     </ResponsiveContainer>
   )
 
+  const noDataMessage = (
+    <p className="flex h-full items-center justify-center text-sm text-muted-foreground">
+      Tidak ada data untuk periode ini.
+    </p>
+  )
+
   const AddNewButton = () => (
     <Button size="lg" onClick={() => setIsNewDialogOpen(true)}>
       <PlusCircle className="mr-2 h-5 w-5" />
@@ -240,7 +246,9 @@ export default function IncidentsPage() {
             </CardHeader>
             <CardContent>
               <div style={{ width: "100%", height: 300 }}>
-                {chartType === "line" ? lineChart : barChart}
+                {incidentChartData.length > 0
+                  ? (chartType === "line" ? lineChart : barChart)
+                  : noDataMessage}
               </div>
             </CardContent>
           </Card>
@@ -264,9 +272,13 @@ export default function IncidentsPage() {
             <CardContent>
               <IncidentTable
                 incidents={filteredIncidents}
-                lineChart={lineChart}
-                barChart={barChart}
-                chartDescription={getFilterDescription(filterType, selectedDate)}
+                lineChart={incidentChartData.length > 0 ? lineChart : noDataMessage}
+                barChart={incidentChartData.length > 0 ? barChart : noDataMessage}
+                chartDescription={
+                  incidentChartData.length > 0
+                    ? getFilterDescription(filterType, selectedDate)
+                    : undefined
+                }
               />
             </CardContent>
           </Card>

@@ -102,11 +102,6 @@ const navItems: NavItemType[] = [
         icon: ClipboardCheck,
         label: "Survei Budaya",
       },
-      {
-        href: "/dashboard/surveys/dashboard",
-        icon: Users,
-        label: "User Budaya",
-      },
       { href: "/dashboard/risks", icon: BarChart3, label: "Manajemen Risiko" },
     ],
   },

@@ -145,6 +145,8 @@ type Toast = Omit<ToasterToast, "id">
 
 function toast({ ...props }: Toast) {
   const id = genId()
+  // Dismiss any existing toasts before showing a new one to prevent UI freezes
+  dispatch({ type: "DISMISS_TOAST" })
 
   const update = (props: ToasterToast) =>
     dispatch({

@@ -27,12 +27,29 @@ export async function POST(req: Request) {
 
   try {
     const data = await req.json()
+
+    const period = new Date(data.period)
+    const numerator = Number(data.numerator)
+    const denominator = Number(data.denominator)
+
+    if (
+      !data.submissionId ||
+      isNaN(period.getTime()) ||
+      isNaN(numerator) ||
+      isNaN(denominator)
+    ) {
+      return NextResponse.json(
+        { error: "Invalid indicator data" },
+        { status: 400 }
+      )
+    }
+
     const indicator = await prisma.indicator.create({
       data: {
         submissionId: data.submissionId,
-        period: data.period,
-        numerator: parseFloat(data.numerator),
-        denominator: parseFloat(data.denominator),
+        period,
+        numerator,
+        denominator,
         analysisNotes: data.analysisNotes,
         followUpPlan: data.followUpPlan,
       },

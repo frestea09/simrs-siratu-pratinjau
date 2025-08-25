@@ -5,7 +5,8 @@ import * as React from "react"
 
 import type { ToastActionElement, ToastProps } from "@/components/ui/toast"
 
-const TOAST_LIMIT = 3
+// Limit to a single toast at a time to avoid overwhelming the UI
+const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 5000
 
 type ToasterToast = ToastProps & {
@@ -144,6 +145,8 @@ type Toast = Omit<ToasterToast, "id">
 
 function toast({ ...props }: Toast) {
   const id = genId()
+  // Dismiss any existing toasts before showing a new one to prevent UI freezes
+  dispatch({ type: "DISMISS_TOAST" })
 
   const update = (props: ToasterToast) =>
     dispatch({

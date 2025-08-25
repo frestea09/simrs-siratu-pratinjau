@@ -52,7 +52,6 @@ export default function SurveysPage() {
   const [csvData, setCsvData] = React.useState("")
   const [filterUnit, setFilterUnit] = React.useState<string>("all")
   const [chartType, setChartType] = React.useState<"line" | "bar">("line")
-  const [isPending, startTransition] = React.useTransition()
 
   const units = React.useMemo(() => {
     return Array.from(new Set(surveys.map((s) => s.unit)))
@@ -230,27 +229,25 @@ export default function SurveysPage() {
               ))}
             </SelectContent>
           </Select>
-          <div className="flex w-fit items-center rounded-md border p-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => startTransition(() => setChartType("line"))}
-              className={cn("h-8 w-8", chartType === "line" && "bg-muted")}
-              disabled={isPending}
-            >
-              <LineChartIcon className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => startTransition(() => setChartType("bar"))}
-              className={cn("h-8 w-8", chartType === "bar" && "bg-muted")}
-              disabled={isPending}
-            >
-              <BarChartIcon className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardContent>
+            <div className="flex w-fit items-center rounded-md border p-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setChartType("line")}
+                className={cn("h-8 w-8", chartType === "line" && "bg-muted")}
+              >
+                <LineChartIcon className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setChartType("bar")}
+                className={cn("h-8 w-8", chartType === "bar" && "bg-muted")}
+              >
+                <BarChartIcon className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardContent>
       </Card>
       <Card>
         <CardHeader>
@@ -259,25 +256,30 @@ export default function SurveysPage() {
         <CardContent className="space-y-4">
           {responseCounts.length > 0 ? (
             <>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%" key={chartType}>
-                  {chartType === "line" ? (
-                    <LineChart data={responseCounts}>
-                      <XAxis dataKey="unit" />
-                      <YAxis allowDecimals={false} />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="count" stroke="#8884d8" />
-                    </LineChart>
-                  ) : (
-                    <BarChart data={responseCounts}>
-                      <XAxis dataKey="unit" />
-                      <YAxis allowDecimals={false} />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#8884d8" />
-                    </BarChart>
-                  )}
-                </ResponsiveContainer>
-              </div>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    {chartType === "line" ? (
+                      <LineChart data={responseCounts}>
+                        <XAxis dataKey="unit" />
+                        <YAxis allowDecimals={false} />
+                        <Tooltip />
+                        <Line
+                          type="monotone"
+                          dataKey="count"
+                          stroke="#8884d8"
+                          isAnimationActive={false}
+                        />
+                      </LineChart>
+                    ) : (
+                      <BarChart data={responseCounts}>
+                        <XAxis dataKey="unit" />
+                        <YAxis allowDecimals={false} />
+                        <Tooltip />
+                        <Bar dataKey="count" fill="#8884d8" isAnimationActive={false} />
+                      </BarChart>
+                    )}
+                  </ResponsiveContainer>
+                </div>
               <ul className="grid gap-2 md:grid-cols-2">
                 {responseCounts.map((item) => (
                   <li key={item.unit} className="text-sm">

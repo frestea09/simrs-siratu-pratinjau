@@ -250,7 +250,9 @@ export function IncidentFilterCard({
                   <SelectContent>
                     <SelectItem value="7d">7 Hari Terakhir</SelectItem>
                     <SelectItem value="30d">30 Hari Terakhir</SelectItem>
+                    <SelectItem value="this_month">Bulan Ini</SelectItem>
                     <SelectItem value="3m">3 Bulan Terakhir</SelectItem>
+                    <SelectItem value="6m">6 Bulan Terakhir</SelectItem>
                     <SelectItem value="1y">1 Tahun Terakhir</SelectItem>
                     <SelectItem value="3y">3 Tahun Terakhir</SelectItem>
                     <SelectItem value="daily">Harian (Custom)</SelectItem>
@@ -290,4 +292,3 @@ export function IncidentFilterCard({
     </Card>
   )
 }
-

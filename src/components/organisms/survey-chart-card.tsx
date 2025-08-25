@@ -25,8 +25,41 @@ type SurveyChartCardProps = {
 }
 
 export function SurveyChartCard({ data, chartType }: SurveyChartCardProps) {
-  const ChartComponent = chartType === "line" ? LineChart : BarChart
-  const MainElement = (chartType === "line" ? Line : Bar) as any
+  const chartKey = React.useMemo(() => `${chartType}-${JSON.stringify(data)}`, [chartType, data]);
+
+  const renderChart = () => {
+    if (chartType === "line") {
+      return (
+        <LineChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} />
+          <XAxis dataKey="name" />
+          <YAxis allowDecimals={false} />
+          <Tooltip />
+          <Line
+            type="monotone"
+            dataKey="value"
+            stroke="#8884d8"
+            fill="#8884d8"
+            isAnimationActive={false}
+          />
+        </LineChart>
+      )
+    }
+    return (
+      <BarChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+        <XAxis dataKey="name" />
+        <YAxis allowDecimals={false} />
+        <Tooltip />
+        <Bar
+          dataKey="value"
+          stroke="#8884d8"
+          fill="#8884d8"
+          isAnimationActive={false}
+        />
+      </BarChart>
+    )
+  }
 
   return (
     <Card>
@@ -37,20 +70,8 @@ export function SurveyChartCard({ data, chartType }: SurveyChartCardProps) {
         {data.length > 0 ? (
           <>
             <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <ChartComponent data={data}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="name" />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip />
-                  <MainElement
-                    type="monotone"
-                    dataKey="value"
-                    stroke="#8884d8"
-                    fill="#8884d8"
-                    isAnimationActive={false}
-                  />
-                </ChartComponent>
+              <ResponsiveContainer width="100%" height="100%" key={chartKey}>
+                {renderChart()}
               </ResponsiveContainer>
             </div>
             <ul className="grid gap-2 md:grid-cols-2">
@@ -70,4 +91,3 @@ export function SurveyChartCard({ data, chartType }: SurveyChartCardProps) {
     </Card>
   )
 }
-

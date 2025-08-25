@@ -148,9 +148,11 @@ export default function IncidentsPage() {
 
   const typesToShow = selectedType === "Semua" ? Object.keys(colorMap) : [selectedType]
 
+  const chartKey = React.useMemo(() => `${chartType}-${typesToShow.join('-')}`, [chartType, typesToShow]);
+
   const lineChart = (
     <div style={{ width: "100%", height: 350 }}>
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" key={chartKey}>
         <LineChart data={incidentChartData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="period" />
@@ -167,7 +169,7 @@ export default function IncidentsPage() {
 
   const barChart = (
     <div style={{ width: "100%", height: 350 }}>
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" key={chartKey}>
         <BarChart data={incidentChartData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="period" />
@@ -249,7 +251,7 @@ export default function IncidentsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div style={{ width: "100%", height: 300 }}>
+              <div style={{ width: "100%", height: 350 }}>
                 {incidentChartData.length > 0
                   ? (chartType === "line" ? lineChart : barChart)
                   : noDataMessage}

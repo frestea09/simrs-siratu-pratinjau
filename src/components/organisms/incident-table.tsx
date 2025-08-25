@@ -84,13 +84,13 @@ export function IncidentTable({ incidents, onExport }: IncidentTableProps) {
             kuning: "KUNING (Tinggi)",
             merah: "MERAH (Sangat Tinggi)",
         }
-        const variantMap: Record<Incident['severity'], "default" | "secondary" | "destructive" | "outline"> = {
-            biru: "secondary",
-            hijau: "default",
-            kuning: "outline",
-            merah: "destructive"
+        const colorMap: Record<Incident['severity'], string> = {
+            biru: "bg-blue-500 text-white border-blue-500 hover:bg-blue-500/80",
+            hijau: "bg-green-500 text-white border-green-500 hover:bg-green-500/80",
+            kuning: "bg-yellow-500 text-yellow-900 border-yellow-500 hover:bg-yellow-500/80",
+            merah: "bg-red-500 text-white border-red-500 hover:bg-red-500/80",
         }
-        return <Badge variant={variantMap[severity]}>{severityMap[severity]}</Badge>
+        return <Badge variant="outline" className={colorMap[severity]}>{severityMap[severity]}</Badge>
       },
     },
     {

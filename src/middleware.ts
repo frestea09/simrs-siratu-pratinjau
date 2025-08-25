@@ -1,6 +1,5 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/actions/auth';
 
 const protectedRoutes = ['/dashboard'];
 
@@ -9,8 +8,11 @@ export default async function middleware(req: NextRequest) {
   const isProtectedRoute = protectedRoutes.some((route) => path.startsWith(route));
 
   if (isProtectedRoute) {
-    const session = await getSession();
-    if (!session) {
+    const sessionRes = await fetch(new URL('/api/session', req.url), {
+      headers: { cookie: req.headers.get('cookie') ?? '' },
+    });
+    const { user } = await sessionRes.json();
+    if (!user) {
       return NextResponse.redirect(new URL('/', req.nextUrl));
     }
   }

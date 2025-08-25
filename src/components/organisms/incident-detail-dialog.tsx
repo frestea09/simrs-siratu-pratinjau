@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { Incident } from "@/store/incident-store"
+import { formatChronology } from "@/lib/utils"
 
 const DetailSection = ({ title, children }: { title: string, children: React.ReactNode }) => (
     <div className="space-y-2">
@@ -24,7 +25,7 @@ const DetailItem = ({ label, value }: { label: string, value: React.ReactNode })
 const FullWidthDetailItem = ({ label, value }: { label: string, value: React.ReactNode }) => (
     <div className="md:col-span-2">
         <p className="text-muted-foreground">{label}</p>
-        <p className="font-medium whitespace-pre-wrap">{value || "-"}</p>
+        <p className="font-medium whitespace-pre-wrap leading-relaxed text-justify">{value || "-"}</p>
     </div>
 )
 
@@ -65,7 +66,7 @@ export const IncidentDetailDialog = ({ incident, open, onOpenChange }: IncidentD
                          <DetailItem label="Insiden Mengenai" value={incident.incidentSubject} />
                          <DetailItem label="Lokasi Insiden" value={incident.incidentLocation} />
                          <DetailItem label="Unit Terkait" value={incident.relatedUnit} />
-                         <FullWidthDetailItem label="Kronologis Insiden" value={incident.chronology} />
+                         <FullWidthDetailItem label="Kronologis Insiden" value={formatChronology(incident.chronology || "")} />
                     </DetailSection>
                     <Separator />
                     <DetailSection title="Tindak Lanjut & Analisis">

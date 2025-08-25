@@ -3,6 +3,7 @@
 
 import { z } from "zod"
 import { cookies } from "next/headers"
+import { prisma } from "@/lib/prisma"
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -12,24 +13,23 @@ const loginSchema = z.object({
 export async function login(formData: FormData) {
   const { email, password } = loginSchema.parse(Object.fromEntries(formData))
 
-  // This is a mock login. In a real app, you'd validate against a database.
-  if (password !== "123456") {
-      throw new Error("Invalid credentials")
-  }
-  
-  const mockUser = {
-      id: `user_${email}`,
-      email: email,
-      name: 'Mock User',
-      role: 'Admin Sistem'
+  const user = await prisma.user.findUnique({ where: { email } })
+  if (!user || user.password !== password) {
+    throw new Error("Invalid credentials")
   }
 
+  const sessionUser = {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    unit: user.unit ?? null,
+  }
 
-  // Create the session
   const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-  cookies().set("session", JSON.stringify(mockUser), { expires, httpOnly: true })
-  
-  return mockUser
+  cookies().set("session", JSON.stringify(sessionUser), { expires, httpOnly: true })
+
+  return sessionUser
 }
 
 export async function logout() {

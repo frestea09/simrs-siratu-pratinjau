@@ -86,6 +86,8 @@ export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
   const next = async () => {
     if (currentStep === 0 && steps.length === 1) {
       await loadQuestions()
+      setCurrentStep(1)
+      return
     }
     setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev))
   }
@@ -293,12 +295,12 @@ export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
             )}
           </div>
           <div>
-            {currentStep < steps.length - 1 ? (
-              <Button onClick={next}>Lanjutkan</Button>
-            ) : (
+            {currentStep === steps.length - 1 && steps.length > 1 ? (
               <Button onClick={handleSave} size="lg">
                 Selesai & Simpan Survei
               </Button>
+            ) : (
+              <Button onClick={next}>Lanjutkan</Button>
             )}
           </div>
         </div>

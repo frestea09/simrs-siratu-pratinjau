@@ -10,6 +10,7 @@ import type { SurveyDimension, SurveyQuestion } from "@/lib/survey-questions"
 import { Combobox } from "../ui/combobox"
 import { HOSPITAL_UNITS } from "@/lib/constants"
 import dynamic from "next/dynamic"
+import { Progress } from "../ui/progress"
 
 // --- Tipe Data ---
 type Answers = Record<string, string> // { "A1": "sangat_setuju", "A2": "setuju", ... }
@@ -45,6 +46,9 @@ export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
   const { toast } = useToast()
   const { currentUser } = useUserStore()
   const isEdit = !!survey
+
+  const totalSteps = steps.length
+  const progress = totalSteps > 1 ? (currentStep / (totalSteps - 1)) * 100 : 0
 
   const loadQuestions = React.useCallback(async () => {
     setLoadingQuestions(true)
@@ -271,6 +275,12 @@ export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
         setCurrentStep={setCurrentStep}
       />
       <div className="flex-1">
+        <div className="mb-6 space-y-2">
+          <p className="text-sm font-medium text-muted-foreground">
+            Bagian {currentStep + 1} dari {totalSteps}
+          </p>
+          <Progress value={progress} className="h-2" />
+        </div>
         <div className="max-h-[65vh] min-h-[300px] space-y-8 overflow-y-auto pl-1 pr-4">
           {renderStepContent()}
         </div>

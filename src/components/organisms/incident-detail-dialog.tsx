@@ -10,23 +10,23 @@ import { formatChronology } from "@/lib/utils"
 
 const DetailSection = ({ title, children }: { title: string, children: React.ReactNode }) => (
     <div className="space-y-2">
-        <h4 className="font-semibold text-primary">{title}</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm pl-2">{children}</div>
+        <h4 className="font-semibold text-primary text-lg">{title}</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 pl-2">{children}</div>
     </div>
 )
 
 const DetailItem = ({ label, value }: { label: string, value: React.ReactNode }) => (
-    <div className="flex flex-col">
-        <p className="text-muted-foreground">{label}</p>
-        <p className="font-medium">{value || "-"}</p>
+    <div className="flex flex-col gap-1">
+        <p className="text-sm text-muted-foreground">{label}</p>
+        <p className="font-medium text-base">{value || "-"}</p>
     </div>
 )
 
 const FullWidthDetailItem = ({ label, value }: { label: string, value: React.ReactNode }) => (
-    <div className="md:col-span-2">
-        <p className="text-muted-foreground">{label}</p>
+    <div className="md:col-span-2 flex flex-col gap-1">
+        <p className="text-sm text-muted-foreground">{label}</p>
         {typeof value === "string" || value === undefined || value === null ? (
-            <p className="font-medium whitespace-pre-wrap leading-relaxed text-justify">{value || "-"}</p>
+            <p className="font-medium text-base whitespace-pre-wrap leading-relaxed text-justify">{value || "-"}</p>
         ) : (
             value
         )}
@@ -43,9 +43,9 @@ const ChronologyList = ({ text }: { text: string }) => {
     }
 
     return (
-        <ol className="list-decimal pl-6 space-y-1 text-sm">
+        <ol className="list-decimal pl-6 space-y-2 text-base">
             {steps.map((step, index) => (
-                <li key={index} className="leading-relaxed text-justify">
+                <li key={index} className="leading-relaxed">
                     {step}
                 </li>
             ))}

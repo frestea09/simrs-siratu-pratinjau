@@ -18,12 +18,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs"
-import {
   LineChart,
   Line,
   BarChart,
@@ -47,7 +41,6 @@ export default function SurveysPage() {
   const [csvData, setCsvData] = React.useState("")
   const [unit, setUnit] = React.useState("all")
   const [range, setRange] = React.useState("7d")
-  const [chartType, setChartType] = React.useState("line")
   const data = React.useMemo(() => generateData(range), [range])
   const total = React.useMemo(
     () => data.reduce((sum, d) => sum + d.count, 0),
@@ -165,40 +158,26 @@ export default function SurveysPage() {
         </CardContent>
       </Card>
 
-      <Tabs
-        value={chartType}
-        onValueChange={setChartType}
-        className="w-full"
-      >
-        <Card>
-          <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <CardTitle>Tren Pengisian</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Total Pengisi: {total}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <TabsList>
-                <TabsTrigger value="line">Garis</TabsTrigger>
-                <TabsTrigger value="bar">Batang</TabsTrigger>
-              </TabsList>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  downloadChart(
-                    chartType === "line" ? lineRef : barRef,
-                    `${chartType}-pengisian.svg`
-                  )
-                }
-              >
-                <Download className="mr-2 h-4 w-4" /> Unduh
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <TabsContent value="line">
+      <Card>
+        <CardHeader>
+          <CardTitle>Tren Pengisian</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Total Pengisi: {total}
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Garis</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => downloadChart(lineRef, "garis-pengisian.svg")}
+                >
+                  <Download className="mr-2 h-4 w-4" /> Unduh
+                </Button>
+              </div>
               <div ref={lineRef} className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={data}>
@@ -215,8 +194,18 @@ export default function SurveysPage() {
                   </LineChart>
                 </ResponsiveContainer>
               </div>
-            </TabsContent>
-            <TabsContent value="bar">
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Batang</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => downloadChart(barRef, "batang-pengisian.svg")}
+                >
+                  <Download className="mr-2 h-4 w-4" /> Unduh
+                </Button>
+              </div>
               <div ref={barRef} className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={data}>
@@ -228,10 +217,10 @@ export default function SurveysPage() {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-            </TabsContent>
-          </CardContent>
-        </Card>
-      </Tabs>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">

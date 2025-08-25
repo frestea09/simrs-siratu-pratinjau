@@ -1,6 +1,6 @@
 "use client"
 
-import { create } from "zustand"
+import { createWithEqualityFn } from "zustand/traditional"
 import { calculateRatio, calculateStatus } from "@/lib/indicator-utils"
 
 export type IndicatorCategory = "INM" | "IMP-RS" | "IMPU" | "SPM"
@@ -78,7 +78,7 @@ const statusFromApi = (s: string): SubmittedIndicator["status"] =>
 const unitToApi = (u: "%" | "menit") => (u === "%" ? "persen" : "menit")
 const unitFromApi = (u: string): "%" | "menit" => (u === "persen" ? "%" : "menit")
 
-export const useIndicatorStore = create<IndicatorState>((set, get) => ({
+export const useIndicatorStore = createWithEqualityFn<IndicatorState>()((set, get) => ({
   indicators: [],
   submittedIndicators: [],
 

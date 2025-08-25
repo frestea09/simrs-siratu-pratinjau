@@ -1,7 +1,7 @@
 
 "use client"
 
-import { create } from "zustand"
+import { createWithEqualityFn } from "zustand/traditional"
 import { persist, createJSONStorage } from 'zustand/middleware'
 
 // --- Tipe Data ---
@@ -37,7 +37,7 @@ type SurveyState = {
 
 // --- Store Zustand ---
 
-export const useSurveyStore = create<SurveyState>()(
+export const useSurveyStore = createWithEqualityFn<SurveyState>()(
     persist(
         (set) => ({
             surveys: [], // Data awal kosong

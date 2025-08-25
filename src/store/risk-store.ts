@@ -1,6 +1,6 @@
 "use client"
 
-import { create } from "zustand"
+import { createWithEqualityFn } from "zustand/traditional"
 
 export type RiskSource =
   | "Laporan Insiden"
@@ -152,7 +152,7 @@ const calculateRiskProperties = (risk: Partial<Risk>) => {
   return { cxl, riskLevel, riskScore, residualRiskScore, residualRiskLevel }
 }
 
-export const useRiskStore = create<RiskState>((set) => ({
+export const useRiskStore = createWithEqualityFn<RiskState>()((set) => ({
   risks: [],
 
   fetchRisks: async () => {

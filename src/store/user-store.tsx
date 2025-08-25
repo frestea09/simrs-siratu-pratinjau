@@ -1,6 +1,6 @@
 "use client"
 
-import { create } from "zustand"
+import { createWithEqualityFn } from "zustand/traditional"
 import React, { createContext, useContext, useEffect, useRef } from "react"
 import { useNotificationStore } from "./notification-store"
 import type { UserRole as DbUserRole } from "@prisma/client"
@@ -48,7 +48,7 @@ type UserState = {
 }
 
 const createUserStore = () =>
-  create<UserState>()((set, get) => ({
+  createWithEqualityFn<UserState>()((set, get) => ({
     users: [],
     currentUser: null,
     fetchUsers: async () => {

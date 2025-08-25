@@ -20,6 +20,8 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   Tooltip,
@@ -32,6 +34,7 @@ export default function SurveysPage() {
   const [isPreviewOpen, setIsPreviewOpen] = React.useState(false)
   const [csvData, setCsvData] = React.useState("")
   const [filterUnit, setFilterUnit] = React.useState<string>("all")
+  const [chartType, setChartType] = React.useState<"bar" | "line">("bar")
 
   const units = React.useMemo(() => {
     return Array.from(new Set(surveys.map((s) => s.unit)))
@@ -45,13 +48,31 @@ export default function SurveysPage() {
     [surveys, filterUnit]
   )
 
+  const totalRespondents = filteredSurveys.length
+
+  const averageScore = React.useMemo(() => {
+    if (filteredSurveys.length === 0) return 0
+    return (
+      filteredSurveys.reduce((acc, s) => acc + s.totalScore, 0) /
+      filteredSurveys.length
+    )
+  }, [filteredSurveys])
+
+  const averagePositive = React.useMemo(() => {
+    if (filteredSurveys.length === 0) return 0
+    return (
+      filteredSurveys.reduce((acc, s) => acc + s.positivePercentage, 0) /
+      filteredSurveys.length
+    )
+  }, [filteredSurveys])
+
   const responseCounts = React.useMemo(() => {
     const counts: Record<string, number> = {}
-    surveys.forEach((s) => {
+    filteredSurveys.forEach((s) => {
       counts[s.unit] = (counts[s.unit] || 0) + 1
     })
     return Object.entries(counts).map(([unit, count]) => ({ unit, count }))
-  }, [surveys])
+  }, [filteredSurveys])
 
   const generateCSV = (data: SurveyResult[]) => {
     const headers = ["ID", "Tanggal Pengisian", "Unit Kerja", "Total Skor", "Rata-rata Dimensi"];
@@ -122,74 +143,86 @@ export default function SurveysPage() {
       </div>
       <Card>
         <CardHeader>
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <CardTitle>Laporan Hasil Survei</CardTitle>
-              <CardDescription>
-                Daftar semua hasil survei budaya keselamatan yang telah dikirimkan.
-              </CardDescription>
-            </div>
-            <div className="flex flex-col items-start gap-2 md:flex-row md:items-center">
-              <Select value={filterUnit} onValueChange={setFilterUnit}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Pilih Unit" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Unit</SelectItem>
-                  {units.map((u) => (
-                    <SelectItem key={u} value={u}>
-                      {u}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={handlePreview}
-                  disabled={filteredSurveys.length === 0}
-                >
-                  <Download className="mr-2 h-5 w-5" />
-                  Unduh Laporan
-                </Button>
-                <Button size="lg" onClick={() => setIsSurveyDialogOpen(true)}>
-                  <PlusCircle className="mr-2 h-5 w-5" />
-                  Isi Survei Baru
-                </Button>
-              </div>
-            </div>
-          </div>
+          <CardTitle>Ringkasan Survei</CardTitle>
+          <CardDescription>
+            Ikhtisar untuk memahami hasil survei dengan cepat.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <SurveyTable
-            surveys={filteredSurveys}
-            onEdit={(s) => {
-              setEditingSurvey(s)
-              setIsSurveyDialogOpen(true)
-            }}
-          />
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="rounded-md border p-4 text-center">
+              <p className="text-sm text-muted-foreground">Jumlah Responden</p>
+              <p className="text-2xl font-bold">{totalRespondents}</p>
+            </div>
+            <div className="rounded-md border p-4 text-center">
+              <p className="text-sm text-muted-foreground">Skor Rata-rata</p>
+              <p className="text-2xl font-bold">{averageScore.toFixed(2)}</p>
+            </div>
+            <div className="rounded-md border p-4 text-center">
+              <p className="text-sm text-muted-foreground">Respons Positif</p>
+              <p className="text-2xl font-bold">{averagePositive.toFixed(1)}%</p>
+            </div>
+          </div>
         </CardContent>
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Dashboard Survei</CardTitle>
+          <CardTitle>Filter Data</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Select value={filterUnit} onValueChange={setFilterUnit}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Pilih Unit" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Unit</SelectItem>
+              {units.map((u) => (
+                <SelectItem key={u} value={u}>
+                  {u}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Dashboard Survei</CardTitle>
+            <Select
+              value={chartType}
+              onValueChange={(v) => setChartType(v as "bar" | "line")}
+            >
+              <SelectTrigger className="w-[120px]">
+                <SelectValue placeholder="Tipe Grafik" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="bar">Bar</SelectItem>
+                <SelectItem value="line">Line</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col items-center justify-center rounded-md border p-4">
-            <p className="text-sm text-muted-foreground">Total Responden</p>
-            <p className="text-3xl font-bold">{surveys.length}</p>
-          </div>
           {responseCounts.length > 0 ? (
             <>
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={responseCounts}>
-                    <XAxis dataKey="unit" />
-                    <YAxis allowDecimals={false} />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#8884d8" />
-                  </BarChart>
+                  {chartType === "bar" ? (
+                    <BarChart data={responseCounts}>
+                      <XAxis dataKey="unit" />
+                      <YAxis allowDecimals={false} />
+                      <Tooltip />
+                      <Bar dataKey="count" fill="#8884d8" />
+                    </BarChart>
+                  ) : (
+                    <LineChart data={responseCounts}>
+                      <XAxis dataKey="unit" />
+                      <YAxis allowDecimals={false} />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="count" stroke="#8884d8" />
+                    </LineChart>
+                  )}
                 </ResponsiveContainer>
               </div>
               <ul className="grid gap-2 md:grid-cols-2">
@@ -203,6 +236,40 @@ export default function SurveysPage() {
           ) : (
             <p className="text-center text-sm text-muted-foreground">Belum ada data survei.</p>
           )}
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Laporan Hasil Survei</CardTitle>
+          <CardDescription>
+            Tabel ini menampilkan semua hasil survei untuk ditinjau atau diunduh.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-4 flex flex-col items-start gap-2 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={handlePreview}
+                disabled={filteredSurveys.length === 0}
+              >
+                <Download className="mr-2 h-5 w-5" />
+                Unduh Laporan
+              </Button>
+              <Button size="lg" onClick={() => setIsSurveyDialogOpen(true)}>
+                <PlusCircle className="mr-2 h-5 w-5" />
+                Isi Survei Baru
+              </Button>
+            </div>
+          </div>
+          <SurveyTable
+            surveys={filteredSurveys}
+            onEdit={(s) => {
+              setEditingSurvey(s)
+              setIsSurveyDialogOpen(true)
+            }}
+          />
         </CardContent>
       </Card>
       <SurveyDialog open={isSurveyDialogOpen} onOpenChange={handleDialogChange} survey={editingSurvey} />

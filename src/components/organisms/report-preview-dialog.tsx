@@ -60,26 +60,94 @@ export function ReportPreviewDialog<TData>({
   })
   
   const handlePrint = () => {
+    if (!reportRef.current) return;
+
+    const chartContainers = Array.from(
+      reportRef.current.querySelectorAll('.recharts-responsive-container')
+    ) as HTMLElement[];
+    const chartSizes = chartContainers.map((el) => {
+      const { width, height } = el.getBoundingClientRect();
+      return { width, height };
+    });
+
+    const contentToPrint = reportRef.current.cloneNode(true) as HTMLDivElement;
+    const serializer = new XMLSerializer();
+    contentToPrint
+      .querySelectorAll('.recharts-responsive-container')
+      .forEach((container, idx) => {
+        const { width, height } = chartSizes[idx];
+        const svg = container.querySelector('svg');
+        if (svg) {
+          svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+          svg.setAttribute('width', `${width}`);
+          svg.setAttribute('height', `${height}`);
+
+          const svgString = serializer.serializeToString(svg);
+          const encoded = window.btoa(unescape(encodeURIComponent(svgString)));
+          const img = document.createElement('img');
+          img.src = `data:image/svg+xml;base64,${encoded}`;
+          img.width = width;
+          img.height = height;
+
+          container.parentNode?.replaceChild(img, container);
+        }
+      });
+
     const printWindow = window.open('', '', 'height=800,width=1200');
-    if (printWindow && reportRef.current) {
-        printWindow.document.write('<html><head><title>Cetak Laporan</title>');
-        printWindow.document.write('<style>');
-        printWindow.document.write(`
+    if (printWindow) {
+      printWindow.document.write('<html><head><title>Cetak Laporan</title>');
+      printWindow.document.write('<style>');
+      printWindow.document.write(`
           @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-          body { 
-            font-family: 'Inter', sans-serif; 
-            -webkit-print-color-adjust: exact !important; 
+          :root {
+            --background: 120 10% 97%;
+            --foreground: 240 10% 3.9%;
+            --card: 0 0% 100%;
+            --card-foreground: 240 10% 3.9%;
+            --popover: 0 0% 100%;
+            --popover-foreground: 240 10% 3.9%;
+            --primary: 124 51% 71%;
+            --primary-foreground: 125 45% 15%;
+            --secondary: 120 20% 92%;
+            --secondary-foreground: 240 10% 3.9%;
+            --muted: 120 20% 92%;
+            --muted-foreground: 240 3.8% 46.1%;
+            --accent: 122 40% 82%;
+            --accent-foreground: 125 45% 15%;
+            --destructive: 0 84.2% 60.2%;
+            --destructive-foreground: 0 0% 98%;
+            --border: 120 15% 88%;
+            --input: 120 15% 88%;
+            --ring: 124 51% 71%;
+            --chart-1: 124 51% 71%;
+            --chart-2: 130 45% 65%;
+            --chart-3: 135 40% 60%;
+            --chart-4: 120 40% 75%;
+            --chart-5: 115 45% 80%;
+            --radius: 0.5rem;
+            --sidebar-background: 220 10% 15%;
+            --sidebar-foreground: 0 0% 98%;
+            --sidebar-primary: 124 51% 71%;
+            --sidebar-primary-foreground: 125 45% 15%;
+            --sidebar-accent: 220 10% 25%;
+            --sidebar-accent-foreground: 0 0% 98%;
+            --sidebar-border: 220 10% 25%;
+            --sidebar-ring: 124 51% 71%;
+          }
+          body {
+            font-family: 'Inter', sans-serif;
+            -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
             color: #000;
           }
-          @page { 
-            size: landscape; 
-            margin: 20px; 
+          @page {
+            size: landscape;
+            margin: 20px;
           }
           .no-print { display: none; }
-          .print-page-break { 
-            page-break-after: always; 
-            margin-top: 2rem; 
+          .print-page-break {
+            page-break-after: always;
+            margin-top: 2rem;
             margin-bottom: 2rem;
           }
           .print-header {
@@ -91,7 +159,7 @@ export function ReportPreviewDialog<TData>({
               font-size: 1.5rem;
               font-weight: bold;
           }
-            .print-header p {
+          .print-header p {
               font-size: 0.875rem;
               color: #6B7280;
           }
@@ -107,29 +175,16 @@ export function ReportPreviewDialog<TData>({
           h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; border-bottom: 2px solid #eee; padding-bottom: 0.5rem; }
           .chart-description { font-size: 0.8rem; color: #6B7280; margin-top: -0.5rem; margin-bottom: 1rem;}
         `);
-        printWindow.document.write('</style>');
-        printWindow.document.write('</head><body class="bg-white">');
-        
-        const contentToPrint = reportRef.current.cloneNode(true) as HTMLDivElement;
-        
-        // Remove ResponsiveContainer wrappers for printing to allow charts to render statically
-        contentToPrint.querySelectorAll('.recharts-responsive-container').forEach(container => {
-          const wrapper = container.firstChild as HTMLElement;
-          if (wrapper) {
-            wrapper.style.width = '100%';
-            wrapper.style.height = '300px'; // fixed height for printing
-            container.parentNode?.replaceChild(wrapper, container);
-          }
-        });
-
-        printWindow.document.write(contentToPrint.innerHTML);
-        printWindow.document.write('</body></html>');
-        printWindow.document.close();
-        printWindow.focus();
-        setTimeout(() => { 
-            printWindow.print();
-            printWindow.close();
-        }, 500);
+      printWindow.document.write('</style>');
+      printWindow.document.write('</head><body class="bg-white">');
+      printWindow.document.write(contentToPrint.innerHTML);
+      printWindow.document.write('</body></html>');
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 500);
     }
   }
   

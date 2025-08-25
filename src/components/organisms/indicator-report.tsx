@@ -86,7 +86,7 @@ export function IndicatorReport({ indicators, category, title, description, show
         return null;
     };
     
-    const lineChartComponent = chartData && (
+    const lineChartComponent = chartData && chartData.length > 0 ? (
         <div style={{ width: '100%', height: 350 }}>
             <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
@@ -104,9 +104,11 @@ export function IndicatorReport({ indicators, category, title, description, show
                 </LineChart>
             </ResponsiveContainer>
         </div>
+    ) : (
+        <p className="text-center text-sm text-muted-foreground">Tidak ada data untuk periode ini.</p>
     )
 
-    const barChartComponent = chartData && (
+    const barChartComponent = chartData && chartData.length > 0 ? (
         <div style={{ width: '100%', height: 350 }}>
             <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
@@ -121,6 +123,8 @@ export function IndicatorReport({ indicators, category, title, description, show
                 </BarChart>
             </ResponsiveContainer>
         </div>
+    ) : (
+        <p className="text-center text-sm text-muted-foreground">Tidak ada data untuk periode ini.</p>
     )
 
 
@@ -173,6 +177,7 @@ export function IndicatorReport({ indicators, category, title, description, show
                 columns={reportColumns || []}
                 title={`Laporan Capaian ${title || `Indikator ${category}`}`}
                 description={reportDescription}
+                chartDescription={chartData && chartData.length > 0 ? reportDescription : undefined}
                 lineChart={lineChartComponent}
                 barChart={barChartComponent}
                 analysisTable={<AnalysisTable data={reportTableData || []} />}

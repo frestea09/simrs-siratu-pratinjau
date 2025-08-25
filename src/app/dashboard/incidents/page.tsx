@@ -149,33 +149,43 @@ export default function IncidentsPage() {
   const typesToShow = selectedType === "Semua" ? Object.keys(colorMap) : [selectedType]
 
   const lineChart = (
-    <ResponsiveContainer width="100%" height="100%">
-      <LineChart data={incidentChartData}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="period" />
-        <YAxis allowDecimals={false} />
-        <RechartsTooltip />
-        <Legend />
-        {typesToShow.map((t) => (
-          <Line key={t} type="monotone" dataKey={t} stroke={colorMap[t]} strokeWidth={2} />
-        ))}
-      </LineChart>
-    </ResponsiveContainer>
+    <div style={{ width: "100%", height: 350 }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={incidentChartData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="period" />
+          <YAxis allowDecimals={false} />
+          <RechartsTooltip />
+          <Legend />
+          {typesToShow.map((t) => (
+            <Line key={t} type="monotone" dataKey={t} stroke={colorMap[t]} strokeWidth={2} />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   )
 
   const barChart = (
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={incidentChartData}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="period" />
-        <YAxis allowDecimals={false} />
-        <RechartsTooltip />
-        <Legend />
-        {typesToShow.map((t) => (
-          <Bar key={t} dataKey={t} fill={colorMap[t]} />
-        ))}
-      </BarChart>
-    </ResponsiveContainer>
+    <div style={{ width: "100%", height: 350 }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={incidentChartData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="period" />
+          <YAxis allowDecimals={false} />
+          <RechartsTooltip />
+          <Legend />
+          {typesToShow.map((t) => (
+            <Bar key={t} dataKey={t} fill={colorMap[t]} />
+          ))}
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  )
+
+  const noDataMessage = (
+    <p className="flex h-full items-center justify-center text-sm text-muted-foreground">
+      Tidak ada data untuk periode ini.
+    </p>
   )
 
   const AddNewButton = () => (
@@ -240,7 +250,9 @@ export default function IncidentsPage() {
             </CardHeader>
             <CardContent>
               <div style={{ width: "100%", height: 300 }}>
-                {chartType === "line" ? lineChart : barChart}
+                {incidentChartData.length > 0
+                  ? (chartType === "line" ? lineChart : barChart)
+                  : noDataMessage}
               </div>
             </CardContent>
           </Card>
@@ -264,9 +276,13 @@ export default function IncidentsPage() {
             <CardContent>
               <IncidentTable
                 incidents={filteredIncidents}
-                lineChart={lineChart}
-                barChart={barChart}
-                chartDescription={getFilterDescription(filterType, selectedDate)}
+                lineChart={incidentChartData.length > 0 ? lineChart : noDataMessage}
+                barChart={incidentChartData.length > 0 ? barChart : noDataMessage}
+                chartDescription={
+                  incidentChartData.length > 0
+                    ? getFilterDescription(filterType, selectedDate)
+                    : undefined
+                }
               />
             </CardContent>
           </Card>

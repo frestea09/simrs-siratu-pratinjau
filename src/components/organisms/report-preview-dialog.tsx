@@ -5,7 +5,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
-import * as XLSX from "xlsx"
 import { format } from "date-fns"
 
 interface ReportPreviewDialogProps {
@@ -76,37 +75,47 @@ export function ReportPreviewDialog({
       ]
     })
 
-    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows])
     const severityIndex = columns.findIndex((c) => c.accessorKey === "severity")
-    if (severityIndex >= 0) {
-      const colorMap: Record<string, { fg: string; font: string; label: string }> = {
-        biru: { fg: "3B82F6", font: "FFFFFF", label: "BIRU (Rendah)" },
-        hijau: { fg: "22C55E", font: "FFFFFF", label: "HIJAU (Sedang)" },
-        kuning: { fg: "EAB308", font: "000000", label: "KUNING (Tinggi)" },
-        merah: { fg: "EF4444", font: "FFFFFF", label: "MERAH (Sangat Tinggi)" },
-      }
-      data.forEach((row, idx) => {
-        const sev = row["severity"]
-        const map = colorMap[sev]
-        if (!map) return
-        const cellRef = XLSX.utils.encode_cell({ r: idx + 1, c: severityIndex + 1 }) // +1 for No column
-        const cell = worksheet[cellRef]
-        if (cell) {
-          cell.v = map.label
-          cell.s = {
-            fill: { fgColor: { rgb: map.fg } },
-            font: { color: { rgb: map.font } },
-          }
-        }
-      })
+    const colorMap: Record<string, { bg: string; color: string; label: string }> = {
+      biru: { bg: "#3B82F6", color: "#FFFFFF", label: "BIRU (Rendah)" },
+      hijau: { bg: "#22C55E", color: "#FFFFFF", label: "HIJAU (Sedang)" },
+      kuning: { bg: "#EAB308", color: "#000000", label: "KUNING (Tinggi)" },
+      merah: { bg: "#EF4444", color: "#FFFFFF", label: "MERAH (Sangat Tinggi)" },
     }
 
-    worksheet["!cols"] = headers.map(() => ({ wch: 20 }))
+    let tableHtml = "<table><thead><tr>" + headers.map((h) => `<th>${h}</th>`).join("") + "</tr></thead><tbody>"
 
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan")
-    const fileName = (title ? title.replace(/\s+/g, "_") : "laporan") + ".xlsx"
-    XLSX.writeFile(workbook, fileName)
+    rows.forEach((row, rIdx) => {
+      tableHtml += "<tr>"
+      row.forEach((cell, cIdx) => {
+        let value = cell ?? ""
+        let style = ""
+        if (severityIndex >= 0 && cIdx === severityIndex + 1) {
+          const sev = data[rIdx]["severity"]
+          const map = colorMap[sev]
+          if (map) {
+            value = map.label
+            style = ` style="background-color:${map.bg};color:${map.color};"`
+          }
+        }
+        tableHtml += `<td${style}>${value}</td>`
+      })
+      tableHtml += "</tr>"
+    })
+
+    tableHtml += "</tbody></table>"
+
+    const fileName = (title ? title.replace(/\s+/g, "_") : "laporan") + ".xls"
+    const html = `<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></head><body>${tableHtml}</body></html>`
+    const blob = new Blob([html], { type: "application/vnd.ms-excel" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = fileName
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
   }, [csvData, onDownload, data, columns, title])
 
   const showDownload = !!csvData || (data && data.length > 0)

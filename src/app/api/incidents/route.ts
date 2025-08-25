@@ -23,16 +23,24 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const user = await getCurrentUser()
-  if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
+  if (!user)
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
 
-  const data = await req.json()
+  try {
+    const data = await req.json()
+    const incident = await prisma.incident.create({
+      data: {
+        ...data,
+        chronology: data.chronology ? formatChronology(data.chronology) : null,
+      },
+    })
 
-  const incident = await prisma.incident.create({
-    data: {
-      ...data,
-      chronology: data.chronology ? formatChronology(data.chronology) : null,
-    },
-  })
-
-  return NextResponse.json({ incident })
+    return NextResponse.json({ incident })
+  } catch (error) {
+    console.error("Failed to create incident", error)
+    return NextResponse.json(
+      { error: "Failed to create incident" },
+      { status: 500 }
+    )
+  }
 }

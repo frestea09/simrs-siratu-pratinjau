@@ -34,11 +34,13 @@ import { ReportPreviewDialog } from "./report-preview-dialog"
 import { IncidentAnalysisTable } from "./incident-analysis-table"
 
 type IncidentTableProps = {
-  incidents: Incident[];
-  onExport: (data: Incident[], columns: ColumnDef<Incident>[]) => void;
+  incidents: Incident[]
+  lineChart?: React.ReactNode
+  barChart?: React.ReactNode
+  chartDescription?: string
 }
 
-export function IncidentTable({ incidents, onExport }: IncidentTableProps) {
+export function IncidentTable({ incidents, lineChart, barChart, chartDescription }: IncidentTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [selectedIncident, setSelectedIncident] = React.useState<Incident | null>(null);
@@ -124,10 +126,10 @@ export function IncidentTable({ incidents, onExport }: IncidentTableProps) {
   })
   
   const handleExport = (data: Incident[], columns: ColumnDef<Incident>[]) => {
-    setReportData(data);
-    setReportColumns(columns);
-    setIsPreviewOpen(true);
-  };
+    setReportData(data)
+    setReportColumns(columns)
+    setIsPreviewOpen(true)
+  }
 
 
   return (
@@ -141,7 +143,16 @@ export function IncidentTable({ incidents, onExport }: IncidentTableProps) {
           }
           className="max-w-sm"
         />
-        <Button variant="outline" className="ml-auto" onClick={() => handleExport(table.getFilteredRowModel().rows.map(row => row.original), columns.filter(c => c.id !== 'actions'))}>
+        <Button
+          variant="outline"
+          className="ml-auto"
+          onClick={() =>
+            handleExport(
+              table.getFilteredRowModel().rows.map((row) => row.original),
+              columns.filter((c) => c.id !== "actions")
+            )
+          }
+        >
             <Download className="mr-2 h-4 w-4" />
             Unduh Laporan
         </Button>
@@ -199,6 +210,9 @@ export function IncidentTable({ incidents, onExport }: IncidentTableProps) {
           data={reportData || []}
           columns={reportColumns || []}
           title="Laporan Insiden Keselamatan"
+          lineChart={lineChart}
+          barChart={barChart}
+          chartDescription={chartDescription}
           analysisTable={<IncidentAnalysisTable data={reportData || []} />}
       />
     </div>

@@ -5,6 +5,7 @@ import { UserStoreProvider } from "@/store/user-store"
 import { LogStoreProvider } from "@/store/log-store.tsx"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { NotificationStoreProvider } from "@/store/notification-store.tsx"
+import QuillbotErrorHandler from "@/components/quillbot-error-handler"
 
 export const metadata: Metadata = {
   title: "SIRATU",
@@ -37,6 +38,7 @@ export default function RootLayout({
               <TooltipProvider>
                 {children}
                 <Toaster />
+                <QuillbotErrorHandler />
               </TooltipProvider>
             </NotificationStoreProvider>
           </LogStoreProvider>

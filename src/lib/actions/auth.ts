@@ -3,7 +3,7 @@
 
 import { z } from "zod"
 import { cookies } from "next/headers"
-import { prisma } from "@/lib/prisma"
+import { users } from "@/store/user-store" // Menggunakan data user dari store
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -13,11 +13,16 @@ const loginSchema = z.object({
 export async function login(formData: FormData) {
   const { email, password } = loginSchema.parse(Object.fromEntries(formData))
 
-  const user = await prisma.user.findUnique({ where: { email } })
-  if (!user || user.password !== password) {
+  // Mencari pengguna dari data mock di user-store
+  const user = users.find(
+    (u) => u.email === email && u.password === password
+  )
+
+  if (!user) {
     throw new Error("Invalid credentials")
   }
 
+  // Menyiapkan data sesi tanpa password
   const sessionUser = {
     id: user.id,
     email: user.email,
@@ -26,14 +31,18 @@ export async function login(formData: FormData) {
     unit: user.unit ?? null,
   }
 
+  // Menyimpan sesi di cookies
   const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-  cookies().set("session", JSON.stringify(sessionUser), { expires, httpOnly: true })
+  cookies().set("session", JSON.stringify(sessionUser), {
+    expires,
+    httpOnly: true,
+  })
 
   return sessionUser
 }
 
 export async function logout() {
-  // Destroy the session
+  // Menghapus sesi
   cookies().set("session", "", { expires: new Date(0) })
 }
 
@@ -46,8 +55,8 @@ export async function getCurrentUser() {
   if (!session) return null
 
   try {
-      return JSON.parse(session)
+    return JSON.parse(session)
   } catch (error) {
-      return null
+    return null
   }
 }

@@ -33,6 +33,8 @@ import {
   Loader2,
   Bell,
   Cog,
+  BookOpen,
+  HelpCircle,
 } from "lucide-react";
 import Link from "next/link";
 import favicon from "@/app/favicon.ico";
@@ -117,6 +119,8 @@ const adminNavItems: NavItemType[] = [
       { href: "/dashboard/users", icon: Users, label: "Manajemen Pengguna" },
       { href: "/dashboard/logs", icon: History, label: "Log Sistem" },
       { href: "/dashboard/settings", icon: Settings, label: "Pengaturan" },
+      { href: "/dashboard/user-guide", icon: BookOpen, label: "Panduan Pengguna" },
+      { href: "/dashboard/faq", icon: HelpCircle, label: "FAQ" },
     ],
   },
 ];

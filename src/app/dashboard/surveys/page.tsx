@@ -37,6 +37,7 @@ import { useRouter } from "next/navigation"
 
 export default function SurveysPage() {
   const surveys = useSurveyStore((state) => state.surveys)
+  const fetchSurveys = useSurveyStore((state) => state.fetchSurveys)
   const router = useRouter()
   const [isPreviewOpen, setIsPreviewOpen] = React.useState(false)
   const [csvData, setCsvData] = React.useState("")
@@ -147,6 +148,10 @@ export default function SurveysPage() {
     document.body.removeChild(a)
     setIsPreviewOpen(false)
   }
+
+  React.useEffect(() => {
+    fetchSurveys()
+  }, [fetchSurveys])
 
   const handleNewSurvey = () => router.push("/dashboard/surveys/new")
   const handleEditSurvey = (survey: SurveyResult) =>

@@ -115,6 +115,20 @@ model Risk {
   @@index([picId])
 }
 
+model Survey {
+  id                 String   @id @default(cuid())
+  unit               String
+  submissionDate     DateTime @default(now())
+  scores             Json
+  totalScore         Float
+  positivePercentage Float
+  neutralPercentage  Float
+  negativePercentage Float
+  answers            Json
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
 enum UserRole {
   ADMIN_SISTEM
   PIC_MUTU

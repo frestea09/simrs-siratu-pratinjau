@@ -181,7 +181,7 @@ export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
     }
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!unit) {
       toast({
         variant: "destructive",
@@ -193,13 +193,13 @@ export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
     }
     const results = calculateResults()
     if (isEdit && survey) {
-      updateSurvey(survey.id, results)
+      await updateSurvey(survey.id, results)
       toast({
         title: "Survei Berhasil Diperbarui",
         description: `Data survei dari unit ${survey.unit} telah diperbarui.`,
       })
     } else {
-      addSurvey(results)
+      await addSurvey(results)
       toast({
         title: "Survei Berhasil Disimpan",
         description:

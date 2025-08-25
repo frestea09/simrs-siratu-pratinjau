@@ -58,8 +58,8 @@ export function SurveyTable({ surveys, onEdit }: SurveyTableProps) {
     React.useState<SurveyResult | null>(null)
 
   const handleDelete = React.useCallback(
-    (survey: SurveyResult) => {
-      removeSurvey(survey.id)
+    async (survey: SurveyResult) => {
+      await removeSurvey(survey.id)
       toast({
         title: "Survei Dihapus",
         description: `Data survei dari unit ${survey.unit} telah dihapus.`,

@@ -8,20 +8,26 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { SurveyForm } from "@/components/organisms/survey-form"
+import * as React from "react"
 import { useParams, useRouter } from "next/navigation"
-import { useSurveyStore } from "@/store/survey-store"
+import type { SurveyResult } from "@/store/survey-store"
 
 export default function EditSurveyPage() {
   const params = useParams<{ id: string }>()
-  const survey = useSurveyStore((state) =>
-    state.surveys.find((s) => s.id === params.id)
-  )
   const router = useRouter()
+  const [survey, setSurvey] = React.useState<SurveyResult | null>(null)
 
-  if (!survey) {
-    router.push("/dashboard/surveys")
-    return null
-  }
+  React.useEffect(() => {
+    fetch(`/api/surveys/${params.id}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Not found")
+        return res.json()
+      })
+      .then(setSurvey)
+      .catch(() => router.push("/dashboard/surveys"))
+  }, [params.id, router])
+
+  if (!survey) return null
 
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">

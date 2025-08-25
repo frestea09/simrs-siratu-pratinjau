@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Download, PlusCircle } from "lucide-react"
+import { Download, PlusCircle, Users, Activity, ThumbsUp } from "lucide-react"
 import {
   Select,
   SelectContent,
@@ -35,6 +35,7 @@ export default function SurveysPage() {
   const [csvData, setCsvData] = React.useState("")
   const [filterUnit, setFilterUnit] = React.useState<string>("all")
   const [chartType, setChartType] = React.useState<"bar" | "line">("bar")
+  const [isPending, startTransition] = React.useTransition()
 
   const units = React.useMemo(() => {
     return Array.from(new Set(surveys.map((s) => s.unit)))
@@ -141,30 +142,41 @@ export default function SurveysPage() {
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">Survei Budaya Keselamatan</h2>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Ringkasan Survei</CardTitle>
-          <CardDescription>
-            Ikhtisar untuk memahami hasil survei dengan cepat.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-md border p-4 text-center">
-              <p className="text-sm text-muted-foreground">Jumlah Responden</p>
-              <p className="text-2xl font-bold">{totalRespondents}</p>
-            </div>
-            <div className="rounded-md border p-4 text-center">
-              <p className="text-sm text-muted-foreground">Skor Rata-rata</p>
-              <p className="text-2xl font-bold">{averageScore.toFixed(2)}</p>
-            </div>
-            <div className="rounded-md border p-4 text-center">
-              <p className="text-sm text-muted-foreground">Respons Positif</p>
-              <p className="text-2xl font-bold">{averagePositive.toFixed(1)}%</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div>
+        <h3 className="text-lg font-medium">Ringkasan Survei</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Ikhtisar untuk memahami hasil survei dengan cepat.
+        </p>
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card className="bg-muted/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Jumlah Responden</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalRespondents}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-muted/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Skor Rata-rata</CardTitle>
+              <Activity className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{averageScore.toFixed(2)}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-muted/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Respons Positif</CardTitle>
+              <ThumbsUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{averagePositive.toFixed(1)}%</div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
       <Card>
         <CardHeader>
           <CardTitle>Filter Data</CardTitle>
@@ -191,7 +203,10 @@ export default function SurveysPage() {
             <CardTitle>Dashboard Survei</CardTitle>
             <Select
               value={chartType}
-              onValueChange={(v) => setChartType(v as "bar" | "line")}
+              onValueChange={(v) =>
+                startTransition(() => setChartType(v as "bar" | "line"))
+              }
+              disabled={isPending}
             >
               <SelectTrigger className="w-[120px]">
                 <SelectValue placeholder="Tipe Grafik" />
@@ -207,7 +222,7 @@ export default function SurveysPage() {
           {responseCounts.length > 0 ? (
             <>
               <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" key={chartType}>
                   {chartType === "bar" ? (
                     <BarChart data={responseCounts}>
                       <XAxis dataKey="unit" />

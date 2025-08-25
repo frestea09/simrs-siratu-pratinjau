@@ -7,6 +7,9 @@ export type SurveyResponse = {
   id: string
   unit: string
   workDuration: string
+  unitDuration: string
+  weeklyHours: string
+  directPatientContact: string
   incidentsReported: string
   safetyRating: string
   comments?: string

@@ -20,7 +20,10 @@ export function SurveyResponseTable() {
     const header = [
       "Waktu",
       "Unit",
-      "Lama Bekerja",
+      "Lama di Unit",
+      "Lama di RS",
+      "Jam per Minggu",
+      "Kontak Pasien",
       "Jumlah Laporan",
       "Penilaian",
       "Komentar",
@@ -28,7 +31,10 @@ export function SurveyResponseTable() {
     const rows = responses.map((r) => [
       new Date(r.submittedAt).toLocaleDateString("id-ID"),
       r.unit,
+      r.unitDuration,
       r.workDuration,
+      r.weeklyHours,
+      r.directPatientContact,
       r.incidentsReported,
       r.safetyRating,
       r.comments ?? "",
@@ -67,7 +73,10 @@ export function SurveyResponseTable() {
               <TableHead>No</TableHead>
               <TableHead>Tanggal</TableHead>
               <TableHead>Unit</TableHead>
-              <TableHead>Lama Bekerja</TableHead>
+              <TableHead>Lama di Unit</TableHead>
+              <TableHead>Lama di RS</TableHead>
+              <TableHead>Jam/Minggu</TableHead>
+              <TableHead>Kontak Pasien</TableHead>
               <TableHead>Laporan</TableHead>
               <TableHead>Penilaian</TableHead>
               <TableHead>Komentar</TableHead>
@@ -76,7 +85,7 @@ export function SurveyResponseTable() {
           <TableBody>
             {responses.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center">
+                <TableCell colSpan={9} className="text-center">
                   Belum ada data.
                 </TableCell>
               </TableRow>
@@ -88,7 +97,10 @@ export function SurveyResponseTable() {
                     {new Date(r.submittedAt).toLocaleDateString("id-ID")}
                   </TableCell>
                   <TableCell>{r.unit}</TableCell>
+                  <TableCell>{r.unitDuration}</TableCell>
                   <TableCell>{r.workDuration}</TableCell>
+                  <TableCell>{r.weeklyHours}</TableCell>
+                  <TableCell>{r.directPatientContact}</TableCell>
                   <TableCell>{r.incidentsReported}</TableCell>
                   <TableCell>{r.safetyRating}</TableCell>
                   <TableCell>{r.comments || "-"}</TableCell>

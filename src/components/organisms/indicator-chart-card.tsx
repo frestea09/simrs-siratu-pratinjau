@@ -15,6 +15,7 @@ import {
   Legend,
   LabelList,
   Dot,
+  ReferenceLine,
 } from "recharts"
 import {
   Card,
@@ -32,6 +33,7 @@ type IndicatorChartCardProps = {
   filterType: string
   selectedIndicator: string
   chartType: 'line' | 'bar'
+  submissionDate?: Date
 }
 
 export function IndicatorChartCard({
@@ -40,6 +42,7 @@ export function IndicatorChartCard({
   filterType,
   selectedIndicator,
   chartType,
+  submissionDate,
 }: IndicatorChartCardProps) {
 
   const ChartTooltipContent = (props: any) => {
@@ -63,6 +66,14 @@ export function IndicatorChartCard({
     }
     return null
   }
+
+  const submissionLabel = React.useMemo(() => {
+    if (!submissionDate) return undefined
+    if (filterType === "daily") return format(submissionDate, "HH:mm")
+    if (["yearly", "3m", "6m", "1y"].includes(filterType))
+      return format(submissionDate, "MMM", { locale: IndonesianLocale })
+    return format(submissionDate, "dd MMM")
+  }, [submissionDate, filterType])
 
   const renderChart = () => {
     const ChartComponent = chartType === "line" ? LineChart : BarChart
@@ -106,6 +117,14 @@ export function IndicatorChartCard({
             strokeWidth={2}
             strokeDasharray="5 5"
             dot={false}
+          />
+        )}
+        {chartType === "line" && submissionLabel && (
+          <ReferenceLine
+            x={submissionLabel}
+            stroke="hsl(var(--ring))"
+            strokeDasharray="3 3"
+            label={{ position: "top", value: "Pengajuan" }}
           />
         )}
       </ChartComponent>

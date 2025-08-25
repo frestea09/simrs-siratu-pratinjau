@@ -22,13 +22,14 @@ type IndicatorDashboardTemplateProps = {
 
 
 export function IndicatorDashboardTemplate({ category, pageTitle }: IndicatorDashboardTemplateProps) {
-  const { indicators, fetchIndicators } = useIndicatorStore()
+  const { indicators, fetchIndicators, submittedIndicators, fetchSubmittedIndicators } = useIndicatorStore()
   const { currentUser } = useUserStore()
   const userIsCentral = currentUser ? centralRoles.includes(currentUser.role) : false
 
   React.useEffect(() => {
     fetchIndicators()
-  }, [fetchIndicators])
+    fetchSubmittedIndicators()
+  }, [fetchIndicators, fetchSubmittedIndicators])
 
   const categoryIndicators = React.useMemo(() => {
     return indicators.filter(i => i.category === category)
@@ -49,7 +50,7 @@ export function IndicatorDashboardTemplate({ category, pageTitle }: IndicatorDas
   }, [userIsCentral, currentUser]);
 
 
-  const {
+  const {  
     indicatorsForUnit,
     uniqueIndicatorNames,
     totalIndicators,
@@ -64,6 +65,12 @@ export function IndicatorDashboardTemplate({ category, pageTitle }: IndicatorDas
     filterType,
     selectedDate
   })
+
+  const submissionDate = React.useMemo(() => {
+    if (selectedIndicator === "Semua Indikator") return undefined
+    const indicator = submittedIndicators.find(i => i.name === selectedIndicator)
+    return indicator ? parseISO(indicator.submissionDate) : undefined
+  }, [submittedIndicators, selectedIndicator])
   
   const getChartDescription = () => {
     const base = selectedIndicator === "Semua Indikator"
@@ -107,6 +114,7 @@ export function IndicatorDashboardTemplate({ category, pageTitle }: IndicatorDas
           filterType={filterType}
           selectedIndicator={selectedIndicator}
           chartType={chartType}
+          submissionDate={submissionDate}
         />
 
         <IndicatorReport

@@ -21,6 +21,7 @@ export type FilterType =
   | "3m"
   | "6m"
   | "1y"
+  | "3y"
 
 export const calculateRatio = (
   indicator: Omit<Indicator, "id" | "ratio" | "status">
@@ -81,6 +82,8 @@ export const getFilterRange = (
       return { start: subMonths(now, 6), end: now }
     case "1y":
       return { start: subMonths(now, 12), end: now }
+    case "3y":
+      return { start: subMonths(now, 36), end: now }
     default:
       return { start: startOfMonth(now), end: endOfMonth(now) }
   }
@@ -115,6 +118,8 @@ export const getFilterDescription = (
       return `Menampilkan data untuk 6 Bulan Terakhir (${formatDateRange(start, end)}).`
     case "1y":
       return `Menampilkan data untuk 1 Tahun Terakhir (${formatDateRange(start, end)}).`
+    case "3y":
+      return `Menampilkan data untuk 3 Tahun Terakhir (${formatDateRange(start, end)}).`
     default:
       return "Menampilkan data."
   }

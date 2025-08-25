@@ -62,7 +62,7 @@ export function useIndicatorData({ allIndicators, selectedUnit, selectedIndicato
     const getGroupKey = (date: Date) => {
       if (filterType === "daily") return format(date, "HH:00")
       if (["monthly", "7d", "30d", "this_month"].includes(filterType)) return format(date, "yyyy-MM-dd")
-      if (["yearly", "3m", "6m", "1y"].includes(filterType)) return format(date, "yyyy-MM")
+      if (["yearly", "3m", "6m", "1y", "3y"].includes(filterType)) return format(date, "yyyy-MM")
       return format(date, "yyyy-MM-dd")
     }
 
@@ -89,7 +89,7 @@ export function useIndicatorData({ allIndicators, selectedUnit, selectedIndicato
         ...d,
         Capaian: parseFloat((d.Capaian / d.count).toFixed(1)),
         name: ["daily"].includes(filterType) ? format(d.date, "HH:mm")
-            : ["yearly", "3m", "6m", "1y"].includes(filterType) ? format(d.date, "MMM", { locale: IndonesianLocale })
+            : ["yearly", "3m", "6m", "1y", "3y"].includes(filterType) ? format(d.date, "MMM", { locale: IndonesianLocale })
             : format(d.date, "dd MMM"),
       }))
       .sort((a, b) => a.date.getTime() - b.date.getTime())

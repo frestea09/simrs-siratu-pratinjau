@@ -10,9 +10,8 @@ import {
 } from "@/components/ui/card"
 import { IncidentReportDialog } from "@/components/organisms/incident-report-dialog"
 import { IncidentTable } from "@/components/organisms/incident-table"
+import { IncidentFilterCard } from "@/components/organisms/incident-filter-card"
 import { useIncidentStore } from "@/store/incident-store"
-import { ColumnDef } from "@tanstack/react-table"
-import { ReportPreviewDialog } from "@/components/organisms/report-preview-dialog"
 import { useUserStore } from "@/store/user-store.tsx"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { PlusCircle, ShieldAlert } from "lucide-react"
@@ -21,6 +20,8 @@ import {
   ResponsiveContainer,
   LineChart,
   Line,
+  BarChart,
+  Bar,
   CartesianGrid,
   XAxis,
   YAxis,
@@ -28,25 +29,21 @@ import {
   Legend,
 } from "recharts"
 import { format } from "date-fns"
+import { getFilterRange, getFilterDescription, FilterType } from "@/lib/indicator-utils"
 
 export default function IncidentsPage() {
   const { currentUser } = useUserStore()
   const incidents = useIncidentStore((state) => state.incidents)
   const fetchIncidents = useIncidentStore((state) => state.fetchIncidents)
-  const [reportData, setReportData] = React.useState<any[] | null>(null)
-  const [reportColumns, setReportColumns] = React.useState<
-    ColumnDef<any>[] | null
-  >(null)
   const [isNewDialogOpen, setIsNewDialogOpen] = React.useState(false)
+  const [selectedType, setSelectedType] = React.useState<string>("Semua")
+  const [filterType, setFilterType] = React.useState<FilterType>("this_month")
+  const [selectedDate, setSelectedDate] = React.useState(new Date())
+  const [chartType, setChartType] = React.useState<"line" | "bar">("line")
 
   React.useEffect(() => {
     fetchIncidents()
   }, [fetchIncidents])
-
-  const handleExport = (data: any[], columns: ColumnDef<any>[]) => {
-    setReportData(data)
-    setReportColumns(columns)
-  }
 
   const dashboardRoles = [
     "Direktur",
@@ -63,14 +60,29 @@ export default function IncidentsPage() {
     currentUser?.role === "Admin Sistem"
 
   const incidentChartData = React.useMemo(() => {
-    const counts: Record<string, any> = {}
+    const { start, end } = getFilterRange(filterType, selectedDate)
+    const data: Record<string, any> = {}
+    const formatKey = (date: Date) => {
+      if (filterType === "daily")
+        return { key: format(date, "yyyy-MM-dd-HH"), label: format(date, "HH:mm") }
+      if (["7d", "30d", "this_month"].includes(filterType))
+        return { key: format(date, "yyyy-MM-dd"), label: format(date, "dd MMM") }
+      if (["3m", "6m", "1y"].includes(filterType))
+        return { key: format(date, "yyyy-MM"), label: format(date, "MMM yyyy") }
+      if (["3y", "yearly"].includes(filterType))
+        return { key: format(date, "yyyy"), label: format(date, "yyyy") }
+      return { key: format(date, "yyyy-MM-dd"), label: format(date, "dd MMM") }
+    }
+
     incidents.forEach((inc) => {
       const date = new Date(inc.date)
       if (isNaN(date.getTime())) return
-      const key = format(date, "yyyy-MM")
-      if (!counts[key]) {
-        counts[key] = {
-          month: format(date, "MMM yyyy"),
+      if (date < start || date > end) return
+      if (selectedType !== "Semua" && inc.type !== selectedType) return
+      const { key, label } = formatKey(date)
+      if (!data[key]) {
+        data[key] = {
+          period: label,
           KPC: 0,
           KNC: 0,
           KTC: 0,
@@ -78,12 +90,64 @@ export default function IncidentsPage() {
           Sentinel: 0,
         }
       }
-      counts[key][inc.type] += 1
+      data[key][inc.type] += 1
     })
-    return Object.keys(counts)
+    return Object.keys(data)
       .sort()
-      .map((key) => counts[key])
-  }, [incidents])
+      .map((key) => data[key])
+  }, [incidents, filterType, selectedDate, selectedType])
+
+  const filteredIncidents = React.useMemo(() => {
+    const { start, end } = getFilterRange(filterType, selectedDate)
+    return incidents.filter((inc) => {
+      const date = new Date(inc.date)
+      return (
+        date >= start &&
+        date <= end &&
+        (selectedType === "Semua" || inc.type === selectedType)
+      )
+    })
+  }, [incidents, filterType, selectedDate, selectedType])
+
+  const colorMap: Record<string, string> = {
+    KPC: "#8884d8",
+    KNC: "#82ca9d",
+    KTC: "#ffc658",
+    KTD: "#ff7300",
+    Sentinel: "#888888",
+  }
+
+  const typesToShow = selectedType === "Semua" ? Object.keys(colorMap) : [selectedType]
+
+  const lineChart = (
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart data={incidentChartData}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="period" />
+        <YAxis allowDecimals={false} />
+        <RechartsTooltip />
+        <Legend />
+        {typesToShow.map((t) => (
+          <Line key={t} type="monotone" dataKey={t} stroke={colorMap[t]} strokeWidth={2} />
+        ))}
+      </LineChart>
+    </ResponsiveContainer>
+  )
+
+  const barChart = (
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={incidentChartData}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="period" />
+        <YAxis allowDecimals={false} />
+        <RechartsTooltip />
+        <Legend />
+        {typesToShow.map((t) => (
+          <Bar key={t} dataKey={t} fill={colorMap[t]} />
+        ))}
+      </BarChart>
+    </ResponsiveContainer>
+  )
 
   const AddNewButton = () => (
     <Button size="lg" onClick={() => setIsNewDialogOpen(true)}>
@@ -102,57 +166,31 @@ export default function IncidentsPage() {
       </div>
 
       {canViewDashboard && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Dashboard Insiden</CardTitle>
-            <CardDescription>
-              Jumlah insiden per bulan berdasarkan jenis.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div style={{ width: "100%", height: 300 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={incidentChartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis allowDecimals={false} />
-                  <RechartsTooltip />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="KPC"
-                    stroke="#8884d8"
-                    strokeWidth={2}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="KNC"
-                    stroke="#82ca9d"
-                    strokeWidth={2}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="KTC"
-                    stroke="#ffc658"
-                    strokeWidth={2}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="KTD"
-                    stroke="#ff7300"
-                    strokeWidth={2}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="Sentinel"
-                    stroke="#888888"
-                    strokeWidth={2}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+        <>
+          <IncidentFilterCard
+            selectedType={selectedType}
+            setSelectedType={setSelectedType}
+            filterType={filterType}
+            setFilterType={setFilterType}
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            chartType={chartType}
+            setChartType={setChartType}
+          />
+          <Card>
+            <CardHeader>
+              <CardTitle>Dashboard Insiden</CardTitle>
+              <CardDescription>
+                {getFilterDescription(filterType, selectedDate)}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div style={{ width: "100%", height: 300 }}>
+                {chartType === "line" ? lineChart : barChart}
+              </div>
+            </CardContent>
+          </Card>
+        </>
       )}
 
       {canViewIncidents ? (
@@ -170,7 +208,12 @@ export default function IncidentsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <IncidentTable incidents={incidents} onExport={handleExport} />
+              <IncidentTable
+                incidents={filteredIncidents}
+                lineChart={lineChart}
+                barChart={barChart}
+                chartDescription={getFilterDescription(filterType, selectedDate)}
+              />
             </CardContent>
           </Card>
         </>

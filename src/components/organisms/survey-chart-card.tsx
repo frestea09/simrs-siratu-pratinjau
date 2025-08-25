@@ -31,7 +31,7 @@ export function SurveyChartCard({ data, chartType }: SurveyChartCardProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Dashboard Survei</CardTitle>
+        <CardTitle>Trend Pengisian Survei</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {data.length > 0 ? (

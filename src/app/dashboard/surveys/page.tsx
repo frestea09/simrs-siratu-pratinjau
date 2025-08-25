@@ -9,7 +9,14 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Download, PlusCircle, Users, Activity, ThumbsUp } from "lucide-react"
+import {
+  Download,
+  PlusCircle,
+  Users,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+} from "lucide-react"
 import { SurveyTable } from "@/components/organisms/survey-table"
 import { SurveyDialog } from "@/components/organisms/survey-dialog"
 import { ReportPreviewDialog } from "@/components/organisms/report-preview-dialog"
@@ -43,34 +50,28 @@ export default function SurveysPage() {
 
   const totalRespondents = filteredSurveys.length
 
-  const averageScore = React.useMemo(() => {
-    if (filteredSurveys.length === 0) return 0
-    return (
-      filteredSurveys.reduce((acc, s) => acc + s.totalScore, 0) /
-      filteredSurveys.length
-    )
-  }, [filteredSurveys])
-
-  const averagePositive = React.useMemo(() => {
-    if (filteredSurveys.length === 0) return 0
-    return (
-      filteredSurveys.reduce((acc, s) => acc + s.positivePercentage, 0) /
-      filteredSurveys.length
-    )
-  }, [filteredSurveys])
-
-  const responseCounts = React.useMemo(() => {
+  const chartData = React.useMemo(() => {
     const counts: Record<string, number> = {}
     filteredSurveys.forEach((s) => {
-      counts[s.unit] = (counts[s.unit] || 0) + 1
+      const month = format(new Date(s.submissionDate), "yyyy-MM")
+      counts[month] = (counts[month] || 0) + 1
     })
-    return Object.entries(counts).map(([unit, count]) => ({ unit, count }))
+    return Object.entries(counts)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, count]) => ({
+        name: format(new Date(`${month}-01`), "LLL yyyy"),
+        value: count,
+      }))
   }, [filteredSurveys])
 
-  const chartData = React.useMemo(
-    () => responseCounts.map(({ unit, count }) => ({ name: unit, value: count })),
-    [responseCounts]
-  )
+  const trendDirection = React.useMemo(() => {
+    if (chartData.length < 2) return "stabil"
+    const prev = chartData[chartData.length - 2].value
+    const last = chartData[chartData.length - 1].value
+    if (last > prev) return "meningkat"
+    if (last < prev) return "menurun"
+    return "stabil"
+  }, [chartData])
 
   const generateCSV = (data: SurveyResult[]) => {
     const headers = [
@@ -149,7 +150,7 @@ export default function SurveysPage() {
         <p className="mb-4 text-sm text-muted-foreground">
           Ikhtisar untuk memahami hasil survei dengan cepat.
         </p>
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2">
           <Card className="bg-muted/50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -164,26 +165,19 @@ export default function SurveysPage() {
           <Card className="bg-muted/50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Skor Rata-rata
+                Trend Responden
               </CardTitle>
-              <Activity className="h-4 w-4 text-muted-foreground" />
+              {trendDirection === "meningkat" ? (
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              ) : trendDirection === "menurun" ? (
+                <TrendingDown className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <Minus className="h-4 w-4 text-muted-foreground" />
+              )}
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {averageScore.toFixed(2)}
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-muted/50">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Respons Positif
-              </CardTitle>
-              <ThumbsUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {averagePositive.toFixed(1)}%
+              <div className="text-2xl font-bold capitalize">
+                {trendDirection}
               </div>
             </CardContent>
           </Card>

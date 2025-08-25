@@ -27,6 +27,10 @@ import { useSurveyStore } from "@/store/survey-store"
 import { useToast } from "@/hooks/use-toast"
 
 const formSchema = z.object({
+  name: z.string().min(1, "Wajib diisi"),
+  gender: z.string().min(1, "Wajib diisi"),
+  education: z.string().min(1, "Wajib diisi"),
+  profession: z.string().min(1, "Wajib diisi"),
   unit: z.string().min(1, "Wajib diisi"),
   workDuration: z.string().min(1, "Wajib diisi"),
   unitDuration: z.string().min(1, "Wajib diisi"),
@@ -47,6 +51,10 @@ export function SurveyForm({ onSuccess }: { onSuccess?: () => void }) {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      name: "",
+      gender: "",
+      education: "",
+      profession: "",
       unit: "",
       workDuration: "",
       unitDuration: "",
@@ -59,6 +67,7 @@ export function SurveyForm({ onSuccess }: { onSuccess?: () => void }) {
   })
 
   const steps: (keyof FormValues)[][] = [
+    ["name", "gender", "education", "profession"],
     [
       "unit",
       "unitDuration",
@@ -95,6 +104,84 @@ export function SurveyForm({ onSuccess }: { onSuccess?: () => void }) {
         className="space-y-4 text-lg"
       >
         {step === 0 && (
+          <>
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nama</FormLabel>
+                  <FormControl>
+                    <Input {...field} className="text-lg" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="gender"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Jenis Kelamin</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="text-lg">
+                        <SelectValue placeholder="Pilih jenis kelamin" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Laki-laki">Laki-laki</SelectItem>
+                      <SelectItem value="Perempuan">Perempuan</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="education"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Pendidikan Terakhir</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="text-lg">
+                        <SelectValue placeholder="Pilih pendidikan" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="SMP">SMP</SelectItem>
+                      <SelectItem value="SMA/SMK">SMA/SMK</SelectItem>
+                      <SelectItem value="D3">D3</SelectItem>
+                      <SelectItem value="S1">S1</SelectItem>
+                      <SelectItem value="S2">S2</SelectItem>
+                      <SelectItem value="S3">S3</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="profession"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Profesi</FormLabel>
+                  <Input {...field} className="text-lg" />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
+        )}
+
+        {step === 1 && (
           <>
             <FormField
               control={form.control}
@@ -214,7 +301,7 @@ export function SurveyForm({ onSuccess }: { onSuccess?: () => void }) {
           </>
         )}
 
-        {step === 1 && (
+        {step === 2 && (
           <>
             <FormField
               control={form.control}

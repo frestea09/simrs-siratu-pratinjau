@@ -19,6 +19,10 @@ export function SurveyResponseTable() {
     if (responses.length === 0) return
     const header = [
       "Waktu",
+      "Nama",
+      "Jenis Kelamin",
+      "Pendidikan",
+      "Profesi",
       "Unit",
       "Lama di Unit",
       "Lama di RS",
@@ -30,6 +34,10 @@ export function SurveyResponseTable() {
     ]
     const rows = responses.map((r) => [
       new Date(r.submittedAt).toLocaleDateString("id-ID"),
+      r.name,
+      r.gender,
+      r.education,
+      r.profession,
       r.unit,
       r.unitDuration,
       r.workDuration,
@@ -72,6 +80,10 @@ export function SurveyResponseTable() {
             <TableRow>
               <TableHead>No</TableHead>
               <TableHead>Tanggal</TableHead>
+              <TableHead>Nama</TableHead>
+              <TableHead>Jenis Kelamin</TableHead>
+              <TableHead>Pendidikan</TableHead>
+              <TableHead>Profesi</TableHead>
               <TableHead>Unit</TableHead>
               <TableHead>Lama di Unit</TableHead>
               <TableHead>Lama di RS</TableHead>
@@ -85,7 +97,7 @@ export function SurveyResponseTable() {
           <TableBody>
             {responses.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center">
+                <TableCell colSpan={13} className="text-center">
                   Belum ada data.
                 </TableCell>
               </TableRow>
@@ -96,6 +108,10 @@ export function SurveyResponseTable() {
                   <TableCell>
                     {new Date(r.submittedAt).toLocaleDateString("id-ID")}
                   </TableCell>
+                  <TableCell>{r.name}</TableCell>
+                  <TableCell>{r.gender}</TableCell>
+                  <TableCell>{r.education}</TableCell>
+                  <TableCell>{r.profession}</TableCell>
                   <TableCell>{r.unit}</TableCell>
                   <TableCell>{r.unitDuration}</TableCell>
                   <TableCell>{r.workDuration}</TableCell>

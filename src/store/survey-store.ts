@@ -5,6 +5,10 @@ import { persist } from "zustand/middleware"
 
 export type SurveyResponse = {
   id: string
+  name: string
+  gender: string
+  education: string
+  profession: string
   unit: string
   workDuration: string
   unitDuration: string

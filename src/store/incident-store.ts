@@ -60,8 +60,10 @@ export const useIncidentStore = create<IncidentState>((set) => ({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(incident),
     })
-    if (!res.ok) throw new Error("Failed to add incident")
-    const data = await res.json()
+    const data = await res.json().catch(() => null)
+    if (!res.ok) {
+      throw new Error(data?.error || "Failed to add incident")
+    }
     set((state) => ({ incidents: [data.incident, ...state.incidents] }))
     return data.incident.id
   },

@@ -144,8 +144,10 @@ export const useIndicatorStore = create<IndicatorState>((set, get) => ({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     })
-    if (!res.ok) throw new Error("Failed to add indicator")
-    const data = await res.json()
+    const data = await res.json().catch(() => null)
+    if (!res.ok) {
+      throw new Error(data?.error || "Failed to add indicator")
+    }
     const base = { ...indicator, id: data.indicator.id }
     const newIndicator: Indicator = {
       ...base,

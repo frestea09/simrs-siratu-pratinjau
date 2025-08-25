@@ -21,17 +21,46 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const data = await req.json()
-  const indicator = await prisma.indicator.create({
-    data: {
-      submissionId: data.submissionId,
-      period: data.period,
-      numerator: parseFloat(data.numerator),
-      denominator: parseFloat(data.denominator),
-      analysisNotes: data.analysisNotes,
-      followUpPlan: data.followUpPlan,
-    },
-    include: { submission: true }
-  })
-  return NextResponse.json({ indicator })
+  const user = await getCurrentUser()
+  if (!user)
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
+
+  try {
+    const data = await req.json()
+
+    const period = new Date(data.period)
+    const numerator = Number(data.numerator)
+    const denominator = Number(data.denominator)
+
+    if (
+      !data.submissionId ||
+      isNaN(period.getTime()) ||
+      isNaN(numerator) ||
+      isNaN(denominator)
+    ) {
+      return NextResponse.json(
+        { error: "Invalid indicator data" },
+        { status: 400 }
+      )
+    }
+
+    const indicator = await prisma.indicator.create({
+      data: {
+        submissionId: data.submissionId,
+        period,
+        numerator,
+        denominator,
+        analysisNotes: data.analysisNotes,
+        followUpPlan: data.followUpPlan,
+      },
+      include: { submission: true },
+    })
+    return NextResponse.json({ indicator })
+  } catch (error) {
+    console.error("Failed to create indicator", error)
+    return NextResponse.json(
+      { error: "Failed to create indicator" },
+      { status: 500 }
+    )
+  }
 }

@@ -39,18 +39,18 @@ export function Step1PatientData({ data, onUpdate }: StepProps) {
         <div className="space-y-6">
             <SectionTitle>Data Pasien (diisi oleh perawat)</SectionTitle>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                <FormInputText id="patientName" label="Nama Pasien" placeholder="Masukkan nama pasien" value={data.patientName} onChange={e => onUpdate({ patientName: e.target.value })}/>
-                <FormInputText id="medicalRecordNumber" label="No. Rekam Medis" placeholder="Masukkan nomor CM" value={data.medicalRecordNumber} onChange={e => onUpdate({ medicalRecordNumber: e.target.value })}/>
-                <FormInputRadio id="gender" label="Jenis Kelamin" items={genderOptions} value={data.gender} onValueChange={val => onUpdate({ gender: val })} />
-                <FormInputRadio id="age-group" label="Kelompok Umur" items={ageGroupOptions} orientation="vertical" value={data.ageGroup} onValueChange={val => onUpdate({ ageGroup: val })}/>
-                <FormInputSelect id="payer" label="Penanggung Biaya" placeholder="Pilih penanggung biaya" items={payerOptions} value={data.payer} onValueChange={val => onUpdate({ payer: val })} />
+                <FormInputText id="patientName" label="Nama Pasien" placeholder="Masukkan nama pasien" value={data.patientName ?? ""} onChange={e => onUpdate({ patientName: e.target.value })}/>
+                <FormInputText id="medicalRecordNumber" label="No. Rekam Medis" placeholder="Masukkan nomor CM" value={data.medicalRecordNumber ?? ""} onChange={e => onUpdate({ medicalRecordNumber: e.target.value })}/>
+                <FormInputRadio id="gender" label="Jenis Kelamin" items={genderOptions} value={data.gender ?? ""} onValueChange={val => onUpdate({ gender: val })} />
+                <FormInputRadio id="age-group" label="Kelompok Umur" items={ageGroupOptions} orientation="vertical" value={data.ageGroup ?? ""} onValueChange={val => onUpdate({ ageGroup: val })}/>
+                <FormInputSelect id="payer" label="Penanggung Biaya" placeholder="Pilih penanggung biaya" items={payerOptions} value={data.payer ?? ""} onValueChange={val => onUpdate({ payer: val })} />
             </div>
             <Separator />
             <SectionTitle>Informasi Perawatan</SectionTitle>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                 <FormInputDate id="entry-date" label="Tanggal Masuk RS" selected={data.entryDate ? new Date(data.entryDate) : undefined} onSelect={date => onUpdate({ entryDate: date?.toISOString() })}/>
-                <FormInputTime id="entry-time" label="Jam Masuk RS" value={data.entryTime} onChange={e => onUpdate({ entryTime: e.target.value })}/>
-                <FormInputSelect id="careRoom" label="Ruangan Perawatan" placeholder="Pilih ruangan" items={unitOptions} value={data.careRoom} onValueChange={val => onUpdate({ careRoom: val })} />
+                <FormInputTime id="entry-time" label="Jam Masuk RS" value={data.entryTime ?? ""} onChange={e => onUpdate({ entryTime: e.target.value })}/>
+                <FormInputSelect id="careRoom" label="Ruangan Perawatan" placeholder="Pilih ruangan" items={unitOptions} value={data.careRoom ?? ""} onValueChange={val => onUpdate({ careRoom: val })} />
             </div>
         </div>
     )

@@ -44,9 +44,10 @@ async function safeJson<T>(res: Response): Promise<T | null> {
   }
 }
 
-export const useSurveyStore = create<SurveyState>((set) => ({
+export const useSurveyStore = create<SurveyState>((set, get) => ({
   surveys: [],
   fetchSurveys: async () => {
+    if (get().surveys.length > 0) return
     const res = await fetch("/api/surveys")
     const data = (await safeJson<SurveyResult[]>(res)) ?? []
     set({ surveys: data })

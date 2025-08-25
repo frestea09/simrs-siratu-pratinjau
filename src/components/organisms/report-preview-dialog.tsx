@@ -71,20 +71,25 @@ export function ReportPreviewDialog<TData>({
     });
 
     const contentToPrint = reportRef.current.cloneNode(true) as HTMLDivElement;
+    const serializer = new XMLSerializer();
     contentToPrint
       .querySelectorAll('.recharts-responsive-container')
       .forEach((container, idx) => {
         const { width, height } = chartSizes[idx];
-        const wrapper = container.firstElementChild as HTMLElement | null;
-        if (wrapper) {
-          wrapper.style.width = `${width}px`;
-          wrapper.style.height = `${height}px`;
-          const svg = wrapper.querySelector('svg');
-          if (svg) {
-            svg.setAttribute('width', `${width}`);
-            svg.setAttribute('height', `${height}`);
-          }
-          container.parentNode?.replaceChild(wrapper, container);
+        const svg = container.querySelector('svg');
+        if (svg) {
+          svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+          svg.setAttribute('width', `${width}`);
+          svg.setAttribute('height', `${height}`);
+
+          const svgString = serializer.serializeToString(svg);
+          const encoded = window.btoa(unescape(encodeURIComponent(svgString)));
+          const img = document.createElement('img');
+          img.src = `data:image/svg+xml;base64,${encoded}`;
+          img.width = width;
+          img.height = height;
+
+          container.parentNode?.replaceChild(img, container);
         }
       });
 

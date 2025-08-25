@@ -50,12 +50,12 @@ type SurveyFormProps = {
 }
 
 export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
+  const { currentUser } = useUserStore();
   const [currentStep, setCurrentStep] = React.useState(0);
   const [answers, setAnswers] = React.useState<Answers>(() => survey?.answers ?? {});
-  const [unit, setUnit] = React.useState<string>(() => survey?.unit ?? "");
+  const [unit, setUnit] = React.useState<string>(() => survey?.unit ?? currentUser?.unit ?? "");
   const { addSurvey, updateSurvey } = useSurveyStore();
   const { toast } = useToast();
-  const { currentUser } = useUserStore();
   const isEdit = !!survey;
 
   const next = () => setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
@@ -157,12 +157,6 @@ export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
     }
     setOpen(false);
   };
-
-  React.useEffect(() => {
-    if(currentUser && currentUser.unit && !survey) {
-        setUnit(currentUser.unit)
-    }
-  }, [currentUser, survey])
 
   const renderStepContent = () => {
     if (currentStep === 0) {

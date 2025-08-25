@@ -60,11 +60,39 @@ export function ReportPreviewDialog<TData>({
   })
   
   const handlePrint = () => {
+    if (!reportRef.current) return;
+
+    const chartContainers = Array.from(
+      reportRef.current.querySelectorAll('.recharts-responsive-container')
+    ) as HTMLElement[];
+    const chartSizes = chartContainers.map((el) => {
+      const { width, height } = el.getBoundingClientRect();
+      return { width, height };
+    });
+
+    const contentToPrint = reportRef.current.cloneNode(true) as HTMLDivElement;
+    contentToPrint
+      .querySelectorAll('.recharts-responsive-container')
+      .forEach((container, idx) => {
+        const { width, height } = chartSizes[idx];
+        const wrapper = container.firstElementChild as HTMLElement | null;
+        if (wrapper) {
+          wrapper.style.width = `${width}px`;
+          wrapper.style.height = `${height}px`;
+          const svg = wrapper.querySelector('svg');
+          if (svg) {
+            svg.setAttribute('width', `${width}`);
+            svg.setAttribute('height', `${height}`);
+          }
+          container.parentNode?.replaceChild(wrapper, container);
+        }
+      });
+
     const printWindow = window.open('', '', 'height=800,width=1200');
-    if (printWindow && reportRef.current) {
-        printWindow.document.write('<html><head><title>Cetak Laporan</title>');
-        printWindow.document.write('<style>');
-        printWindow.document.write(`
+    if (printWindow) {
+      printWindow.document.write('<html><head><title>Cetak Laporan</title>');
+      printWindow.document.write('<style>');
+      printWindow.document.write(`
           @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
           :root {
             --background: 120 10% 97%;
@@ -142,29 +170,16 @@ export function ReportPreviewDialog<TData>({
           h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; border-bottom: 2px solid #eee; padding-bottom: 0.5rem; }
           .chart-description { font-size: 0.8rem; color: #6B7280; margin-top: -0.5rem; margin-bottom: 1rem;}
         `);
-        printWindow.document.write('</style>');
-        printWindow.document.write('</head><body class="bg-white">');
-        
-        const contentToPrint = reportRef.current.cloneNode(true) as HTMLDivElement;
-        
-        // Remove ResponsiveContainer wrappers for printing to allow charts to render statically
-        contentToPrint.querySelectorAll('.recharts-responsive-container').forEach(container => {
-          const wrapper = container.firstChild as HTMLElement;
-          if (wrapper) {
-            wrapper.style.width = '100%';
-            wrapper.style.height = '300px'; // fixed height for printing
-            container.parentNode?.replaceChild(wrapper, container);
-          }
-        });
-
-        printWindow.document.write(contentToPrint.innerHTML);
-        printWindow.document.write('</body></html>');
-        printWindow.document.close();
-        printWindow.focus();
-        setTimeout(() => { 
-            printWindow.print();
-            printWindow.close();
-        }, 500);
+      printWindow.document.write('</style>');
+      printWindow.document.write('</head><body class="bg-white">');
+      printWindow.document.write(contentToPrint.innerHTML);
+      printWindow.document.write('</body></html>');
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 500);
     }
   }
   

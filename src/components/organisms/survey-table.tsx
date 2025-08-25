@@ -33,7 +33,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "../ui/alert-dialog"
 import {
   DropdownMenu,
@@ -55,6 +54,8 @@ export function SurveyTable({ surveys, onEdit }: SurveyTableProps) {
   ])
   const { removeSurvey } = useSurveyStore()
   const { toast } = useToast()
+  const [surveyToDelete, setSurveyToDelete] =
+    React.useState<SurveyResult | null>(null)
 
   const handleDelete = React.useCallback(
     (survey: SurveyResult) => {
@@ -97,7 +98,7 @@ export function SurveyTable({ surveys, onEdit }: SurveyTableProps) {
         accessorKey: "totalScore",
         header: "Skor Rata-rata",
         cell: ({ row }) => (
-          <div className="font-semibold text-center">
+          <div className="text-center font-semibold">
             {(row.getValue("totalScore") as number).toFixed(2)} / 5.00
           </div>
         ),
@@ -120,50 +121,32 @@ export function SurveyTable({ surveys, onEdit }: SurveyTableProps) {
         cell: ({ row }) => {
           const survey = row.original
           return (
-            <AlertDialog>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-8 w-8 p-0">
-                    <span className="sr-only">Buka menu</span>
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onSelect={() => onEdit(survey)}>
-                    <Pencil className="mr-2 h-4 w-4" />
-                    Edit
-                  </DropdownMenuItem>
-                  <AlertDialogTrigger asChild>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                      <Trash2 className="mr-2 h-4 w-4 text-destructive" />
-                      <span className="text-destructive">Hapus</span>
-                    </DropdownMenuItem>
-                  </AlertDialogTrigger>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Anda yakin?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Aksi ini tidak dapat dibatalkan. Ini akan menghapus data hasil survei secara permanen.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Batal</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => handleDelete(survey)}
-                    className="bg-destructive hover:bg-destructive/90"
-                  >
-                    Hapus
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Buka menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onSelect={() => onEdit(survey)}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={() => setSurveyToDelete(survey)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Hapus
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )
         },
       },
     ],
-    [onEdit, handleDelete]
+    [onEdit]
   )
 
   const table = useReactTable({
@@ -217,7 +200,10 @@ export function SurveyTable({ surveys, onEdit }: SurveyTableProps) {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   Belum ada hasil survei yang dikirimkan.
                 </TableCell>
               </TableRow>
@@ -243,6 +229,32 @@ export function SurveyTable({ surveys, onEdit }: SurveyTableProps) {
           Berikutnya
         </Button>
       </div>
+      <AlertDialog
+        open={!!surveyToDelete}
+        onOpenChange={(open) => !open && setSurveyToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Anda yakin?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Aksi ini tidak dapat dibatalkan. Ini akan menghapus data hasil
+              survei secara permanen.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (surveyToDelete) handleDelete(surveyToDelete)
+                setSurveyToDelete(null)
+              }}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Hapus
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -31,6 +31,7 @@ import {
 import { SurveyTable } from "@/components/organisms/survey-table"
 import { ReportPreviewDialog } from "@/components/organisms/report-preview-dialog"
 import { SurveyResult, useSurveyStore } from "@/store/survey-store"
+import { HOSPITAL_UNITS } from "@/lib/constants"
 import { format } from "date-fns"
 import { useRouter } from "next/navigation"
 
@@ -72,7 +73,10 @@ export default function SurveysPage() {
     })
   }, [surveys, unit, range])
 
-  const data = React.useMemo(() => generateData(filteredSurveys), [filteredSurveys])
+  const data = React.useMemo(
+    () => generateData(filteredSurveys),
+    [filteredSurveys]
+  )
   const total = filteredSurveys.length
   const lineRef = React.useRef<HTMLDivElement>(null)
   const barRef = React.useRef<HTMLDivElement>(null)
@@ -166,8 +170,11 @@ export default function SurveysPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Semua Unit</SelectItem>
-              <SelectItem value="a">Unit A</SelectItem>
-              <SelectItem value="b">Unit B</SelectItem>
+              {HOSPITAL_UNITS.map((u) => (
+                <SelectItem key={u} value={u}>
+                  {u}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Select value={range} onValueChange={setRange}>
@@ -188,10 +195,17 @@ export default function SurveysPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Total Pengisi</CardTitle>
+          <CardTitle>
+            Total Pengisi{unit !== "all" ? ` Unit ${unit}` : ""}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-2xl font-bold">{total}</p>
+          {unit !== "all" && (
+            <p className="text-sm text-muted-foreground">
+              Total seluruh unit: {surveys.length}
+            </p>
+          )}
         </CardContent>
       </Card>
 

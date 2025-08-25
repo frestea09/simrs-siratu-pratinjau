@@ -40,6 +40,8 @@ export default function IncidentsPage() {
   const [filterType, setFilterType] = React.useState<FilterType>("this_month")
   const [selectedDate, setSelectedDate] = React.useState(new Date())
   const [chartType, setChartType] = React.useState<"line" | "bar">("line")
+  const [selectedRiskType, setSelectedRiskType] = React.useState<string>("Semua")
+  const [selectedRiskLevel, setSelectedRiskLevel] = React.useState<string>("Semua")
 
   React.useEffect(() => {
     fetchIncidents()
@@ -79,6 +81,10 @@ export default function IncidentsPage() {
       if (isNaN(date.getTime())) return
       if (date < start || date > end) return
       if (selectedType !== "Semua" && inc.type !== selectedType) return
+      if (selectedRiskType !== "Semua" && inc.patientImpact !== selectedRiskType)
+        return
+      if (selectedRiskLevel !== "Semua" && inc.severity !== selectedRiskLevel)
+        return
       const { key, label } = formatKey(date)
       if (!data[key]) {
         data[key] = {
@@ -95,7 +101,7 @@ export default function IncidentsPage() {
     return Object.keys(data)
       .sort()
       .map((key) => data[key])
-  }, [incidents, filterType, selectedDate, selectedType])
+  }, [incidents, filterType, selectedDate, selectedType, selectedRiskType, selectedRiskLevel])
 
   const filteredIncidents = React.useMemo(() => {
     const { start, end } = getFilterRange(filterType, selectedDate)
@@ -104,10 +110,33 @@ export default function IncidentsPage() {
       return (
         date >= start &&
         date <= end &&
-        (selectedType === "Semua" || inc.type === selectedType)
+        (selectedType === "Semua" || inc.type === selectedType) &&
+        (selectedRiskType === "Semua" || inc.patientImpact === selectedRiskType) &&
+        (selectedRiskLevel === "Semua" || inc.severity === selectedRiskLevel)
       )
     })
-  }, [incidents, filterType, selectedDate, selectedType])
+  }, [incidents, filterType, selectedDate, selectedType, selectedRiskType, selectedRiskLevel])
+
+  const filteredForCounts = React.useMemo(() => {
+    const { start, end } = getFilterRange(filterType, selectedDate)
+    return incidents.filter((inc) => {
+      const date = new Date(inc.date)
+      return (
+        date >= start &&
+        date <= end &&
+        (selectedRiskType === "Semua" || inc.patientImpact === selectedRiskType) &&
+        (selectedRiskLevel === "Semua" || inc.severity === selectedRiskLevel)
+      )
+    })
+  }, [incidents, filterType, selectedDate, selectedRiskType, selectedRiskLevel])
+
+  const incidentTypeCounts = React.useMemo(() => {
+    const counts = { KPC: 0, KNC: 0, KTC: 0, KTD: 0, Sentinel: 0 }
+    filteredForCounts.forEach((inc) => {
+      counts[inc.type as keyof typeof counts] += 1
+    })
+    return counts
+  }, [filteredForCounts])
 
   const colorMap: Record<string, string> = {
     KPC: "#8884d8",
@@ -170,6 +199,10 @@ export default function IncidentsPage() {
           <IncidentFilterCard
             selectedType={selectedType}
             setSelectedType={setSelectedType}
+            selectedRiskType={selectedRiskType}
+            setSelectedRiskType={setSelectedRiskType}
+            selectedRiskLevel={selectedRiskLevel}
+            setSelectedRiskLevel={setSelectedRiskLevel}
             filterType={filterType}
             setFilterType={setFilterType}
             selectedDate={selectedDate}
@@ -177,6 +210,27 @@ export default function IncidentsPage() {
             chartType={chartType}
             setChartType={setChartType}
           />
+          <Card>
+            <CardHeader>
+              <CardTitle>Ringkasan Jumlah Insiden</CardTitle>
+              <CardDescription>
+                {getFilterDescription(filterType, selectedDate)}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                {Object.entries(incidentTypeCounts).map(([type, count]) => (
+                  <div
+                    key={type}
+                    className="bg-muted/50 rounded-lg p-4 text-center"
+                  >
+                    <p className="text-sm font-medium">{type}</p>
+                    <p className="text-2xl font-bold">{count}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
           <Card>
             <CardHeader>
               <CardTitle>Dashboard Insiden</CardTitle>

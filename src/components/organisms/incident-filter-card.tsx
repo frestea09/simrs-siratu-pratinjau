@@ -33,6 +33,10 @@ import type { FilterType } from "@/lib/indicator-utils"
 type IncidentFilterCardProps = {
   selectedType: string
   setSelectedType: (type: string) => void
+  selectedRiskType: string
+  setSelectedRiskType: (type: string) => void
+  selectedRiskLevel: string
+  setSelectedRiskLevel: (level: string) => void
   filterType: FilterType
   setFilterType: (type: FilterType) => void
   selectedDate: Date
@@ -42,10 +46,23 @@ type IncidentFilterCardProps = {
 }
 
 const INCIDENT_TYPES = ["Semua", "KPC", "KNC", "KTC", "KTD", "Sentinel"]
+const RISK_TYPES = [
+  "Semua",
+  "Kematian",
+  "Cedera ireversibel / Cedera Berat",
+  "Cedera reversibel / Cedera Sedang",
+  "Cedera Ringan",
+  "Tidak ada cedera",
+]
+const RISK_LEVELS = ["Semua", "biru", "hijau", "kuning", "merah"]
 
 export function IncidentFilterCard({
   selectedType,
   setSelectedType,
+  selectedRiskType,
+  setSelectedRiskType,
+  selectedRiskLevel,
+  setSelectedRiskLevel,
   filterType,
   setFilterType,
   selectedDate,
@@ -168,7 +185,7 @@ export function IncidentFilterCard({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="space-y-2">
             <Label>Jenis Insiden</Label>
             <Select value={selectedType} onValueChange={setSelectedType}>
@@ -179,6 +196,44 @@ export function IncidentFilterCard({
                 {INCIDENT_TYPES.map((t) => (
                   <SelectItem key={t} value={t}>
                     {t}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Jenis Risiko</Label>
+            <Select value={selectedRiskType} onValueChange={setSelectedRiskType}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Pilih jenis risiko" />
+              </SelectTrigger>
+              <SelectContent>
+                {RISK_TYPES.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {t}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Tingkat Risiko</Label>
+            <Select value={selectedRiskLevel} onValueChange={setSelectedRiskLevel}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Pilih tingkat risiko" />
+              </SelectTrigger>
+              <SelectContent>
+                {RISK_LEVELS.map((l) => (
+                  <SelectItem key={l} value={l}>
+                    {l === "biru"
+                      ? "BIRU (Rendah)"
+                      : l === "hijau"
+                      ? "HIJAU (Sedang)"
+                      : l === "kuning"
+                      ? "KUNING (Tinggi)"
+                      : l === "merah"
+                      ? "MERAH (Sangat Tinggi)"
+                      : l}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -224,15 +279,13 @@ export function IncidentFilterCard({
               </div>
             </div>
           </div>
-          <div className="space-y-2">
-            {showCustomFilterInput && (
-              <>
-                <Label>Filter Kustom</Label>
-                <div>{renderFilterInput()}</div>
-              </>
-            )}
-          </div>
         </div>
+        {showCustomFilterInput && (
+          <div className="space-y-2">
+            <Label>Filter Kustom</Label>
+            <div>{renderFilterInput()}</div>
+          </div>
+        )}
       </CardContent>
     </Card>
   )

@@ -110,6 +110,15 @@ export function IncidentTable({ incidents, lineChart, barChart, chartDescription
     },
   ], []);
 
+  const exportColumns: ColumnDef<Incident>[] = React.useMemo(() =>
+    columns
+      .filter((c) => c.id !== "actions")
+      .map((c) =>
+        c.accessorKey === "date" ? { ...c, header: "Tanggal Lapor" } : c
+      ),
+    [columns]
+  )
+
   const table = useReactTable({
     data: incidents,
     columns,
@@ -125,9 +134,9 @@ export function IncidentTable({ incidents, lineChart, barChart, chartDescription
     }
   })
   
-  const handleExport = (data: Incident[], columns: ColumnDef<Incident>[]) => {
+  const handleExport = (data: Incident[]) => {
     setReportData(data)
-    setReportColumns(columns)
+    setReportColumns(exportColumns)
     setIsPreviewOpen(true)
   }
 
@@ -148,8 +157,7 @@ export function IncidentTable({ incidents, lineChart, barChart, chartDescription
           className="ml-auto"
           onClick={() =>
             handleExport(
-              table.getFilteredRowModel().rows.map((row) => row.original),
-              columns.filter((c) => c.id !== "actions")
+              table.getFilteredRowModel().rows.map((row) => row.original)
             )
           }
         >

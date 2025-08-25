@@ -25,9 +25,33 @@ const DetailItem = ({ label, value }: { label: string, value: React.ReactNode })
 const FullWidthDetailItem = ({ label, value }: { label: string, value: React.ReactNode }) => (
     <div className="md:col-span-2">
         <p className="text-muted-foreground">{label}</p>
-        <p className="font-medium whitespace-pre-wrap leading-relaxed text-justify">{value || "-"}</p>
+        {typeof value === "string" || value === undefined || value === null ? (
+            <p className="font-medium whitespace-pre-wrap leading-relaxed text-justify">{value || "-"}</p>
+        ) : (
+            value
+        )}
     </div>
 )
+
+const ChronologyList = ({ text }: { text: string }) => {
+    const steps = formatChronology(text)
+        .split("\n")
+        .filter(Boolean)
+
+    if (steps.length === 0) {
+        return <p className="font-medium">-</p>
+    }
+
+    return (
+        <ol className="list-decimal pl-6 space-y-1 text-sm">
+            {steps.map((step, index) => (
+                <li key={index} className="leading-relaxed text-justify">
+                    {step}
+                </li>
+            ))}
+        </ol>
+    )
+}
 
 type IncidentDetailDialogProps = {
     incident: Incident | null
@@ -66,7 +90,7 @@ export const IncidentDetailDialog = ({ incident, open, onOpenChange }: IncidentD
                          <DetailItem label="Insiden Mengenai" value={incident.incidentSubject} />
                          <DetailItem label="Lokasi Insiden" value={incident.incidentLocation} />
                          <DetailItem label="Unit Terkait" value={incident.relatedUnit} />
-                         <FullWidthDetailItem label="Kronologis Insiden" value={formatChronology(incident.chronology || "")} />
+                         <FullWidthDetailItem label="Kronologis Insiden" value={<ChronologyList text={incident.chronology || ""} />} />
                     </DetailSection>
                     <Separator />
                     <DetailSection title="Tindak Lanjut & Analisis">

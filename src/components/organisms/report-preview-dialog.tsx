@@ -66,20 +66,55 @@ export function ReportPreviewDialog<TData>({
         printWindow.document.write('<style>');
         printWindow.document.write(`
           @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-          body { 
-            font-family: 'Inter', sans-serif; 
-            -webkit-print-color-adjust: exact !important; 
+          :root {
+            --background: 120 10% 97%;
+            --foreground: 240 10% 3.9%;
+            --card: 0 0% 100%;
+            --card-foreground: 240 10% 3.9%;
+            --popover: 0 0% 100%;
+            --popover-foreground: 240 10% 3.9%;
+            --primary: 124 51% 71%;
+            --primary-foreground: 125 45% 15%;
+            --secondary: 120 20% 92%;
+            --secondary-foreground: 240 10% 3.9%;
+            --muted: 120 20% 92%;
+            --muted-foreground: 240 3.8% 46.1%;
+            --accent: 122 40% 82%;
+            --accent-foreground: 125 45% 15%;
+            --destructive: 0 84.2% 60.2%;
+            --destructive-foreground: 0 0% 98%;
+            --border: 120 15% 88%;
+            --input: 120 15% 88%;
+            --ring: 124 51% 71%;
+            --chart-1: 124 51% 71%;
+            --chart-2: 130 45% 65%;
+            --chart-3: 135 40% 60%;
+            --chart-4: 120 40% 75%;
+            --chart-5: 115 45% 80%;
+            --radius: 0.5rem;
+            --sidebar-background: 220 10% 15%;
+            --sidebar-foreground: 0 0% 98%;
+            --sidebar-primary: 124 51% 71%;
+            --sidebar-primary-foreground: 125 45% 15%;
+            --sidebar-accent: 220 10% 25%;
+            --sidebar-accent-foreground: 0 0% 98%;
+            --sidebar-border: 220 10% 25%;
+            --sidebar-ring: 124 51% 71%;
+          }
+          body {
+            font-family: 'Inter', sans-serif;
+            -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
             color: #000;
           }
-          @page { 
-            size: landscape; 
-            margin: 20px; 
+          @page {
+            size: landscape;
+            margin: 20px;
           }
           .no-print { display: none; }
-          .print-page-break { 
-            page-break-after: always; 
-            margin-top: 2rem; 
+          .print-page-break {
+            page-break-after: always;
+            margin-top: 2rem;
             margin-bottom: 2rem;
           }
           .print-header {
@@ -91,7 +126,7 @@ export function ReportPreviewDialog<TData>({
               font-size: 1.5rem;
               font-weight: bold;
           }
-            .print-header p {
+          .print-header p {
               font-size: 0.875rem;
               color: #6B7280;
           }

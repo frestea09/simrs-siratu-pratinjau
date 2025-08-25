@@ -44,66 +44,88 @@ export function ReportPreviewDialog({
     getCoreRowModel: getCoreRowModel(),
   })
 
+
   const handleDownload = React.useCallback(() => {
     if (csvData && onDownload) {
       onDownload()
       return
     }
 
-    if (!data || !columns) return
+    if (!data) return
 
-    const headers = ["No", ...columns.map((col) => {
-      if (typeof col.header === "string") return col.header
-      if (col.accessorKey) return String(col.accessorKey)
-      if (col.id) return String(col.id)
-      return ""
-    })]
-
-    const rows = data.map((row, idx) => {
-      return [
-        idx + 1,
-        ...columns.map((col) => {
-          const key = col.accessorKey as string
-          let value = row[key]
-          if (key === "date" && value) {
-            try {
-              value = format(new Date(value), "yyyy-MM-dd")
-            } catch (_) {}
-          }
-          return value
-        }),
-      ]
-    })
-
-    const severityIndex = columns.findIndex((c) => c.accessorKey === "severity")
-    const colorMap: Record<string, { bg: string; color: string; label: string }> = {
-      biru: { bg: "#3B82F6", color: "#FFFFFF", label: "BIRU (Rendah)" },
-      hijau: { bg: "#22C55E", color: "#FFFFFF", label: "HIJAU (Sedang)" },
-      kuning: { bg: "#EAB308", color: "#000000", label: "KUNING (Tinggi)" },
-      merah: { bg: "#EF4444", color: "#FFFFFF", label: "MERAH (Sangat Tinggi)" },
+    const colorMap: Record<string, { bg: string; color: string }> = {
+      biru: { bg: "#3B82F6", color: "#FFFFFF" },
+      hijau: { bg: "#22C55E", color: "#FFFFFF" },
+      kuning: { bg: "#EAB308", color: "#000000" },
+      merah: { bg: "#EF4444", color: "#FFFFFF" },
     }
 
-    let tableHtml = "<table><thead><tr>" + headers.map((h) => `<th>${h}</th>`).join("") + "</tr></thead><tbody>"
+    const headerHtml = `
+      <tr>
+        <th rowspan="2">No</th>
+        <th rowspan="2">Ruangan</th>
+        <th rowspan="2">Tanggal Kejadian</th>
+        <th rowspan="2">Identitas Pasien ( Nama & No RM)</th>
+        <th rowspan="2">Kronologis</th>
+        <th rowspan="2">Tipe Insiden</th>
+        <th colspan="4">Kejadian</th>
+        <th colspan="4">Risk Grading Matrik</th>
+        <th rowspan="2">Tindakan</th>
+        <th rowspan="2">Rekomendasi</th>
+        <th rowspan="2">Laporan unit</th>
+      </tr>
+      <tr>
+        <th>KPC</th>
+        <th>KNC</th>
+        <th>KTD</th>
+        <th>Sentinel</th>
+        <th>Biru</th>
+        <th>Hijau</th>
+        <th>Kuning</th>
+        <th>Merah</th>
+      </tr>
+    `
 
-    rows.forEach((row, rIdx) => {
-      tableHtml += "<tr>"
-      row.forEach((cell, cIdx) => {
-        let value = cell ?? ""
-        let style = ""
-        if (severityIndex >= 0 && cIdx === severityIndex + 1) {
-          const sev = data[rIdx]["severity"]
+    const rowsHtml = data
+      .map((row, idx) => {
+        const kejadian = row["kejadian"]
+        const severity = row["severity"]
+        const sevCells = ["biru", "hijau", "kuning", "merah"].map((sev) => {
           const map = colorMap[sev]
-          if (map) {
-            value = map.label
-            style = ` style="background-color:${map.bg};color:${map.color};"`
+          const check = severity === sev ? "✓" : ""
+          return `<td style="background-color:${map.bg};color:${map.color};text-align:center">${check}</td>`
+        })
+
+        const fmtDate = (value: any) => {
+          try {
+            return value ? format(new Date(value), "yyyy-MM-dd") : ""
+          } catch {
+            return ""
           }
         }
-        tableHtml += `<td${style}>${value}</td>`
-      })
-      tableHtml += "</tr>"
-    })
 
-    tableHtml += "</tbody></table>"
+        return `
+          <tr>
+            <td>${idx + 1}</td>
+            <td>${row["ruangan"] ?? ""}</td>
+            <td>${fmtDate(row["date"])}</td>
+            <td>${[row["nama_pasien"], row["no_rm"]].filter(Boolean).join(" / ")}</td>
+            <td>${row["kronologis"] ?? ""}</td>
+            <td>${row["type"] ?? ""}</td>
+            <td>${kejadian === "kpc" ? "✓" : ""}</td>
+            <td>${kejadian === "knc" ? "✓" : ""}</td>
+            <td>${kejadian === "ktd" ? "✓" : ""}</td>
+            <td>${kejadian === "sentinel" ? "✓" : ""}</td>
+            ${sevCells.join("")}
+            <td>${row["tindakan"] ?? ""}</td>
+            <td>${row["rekomendasi"] ?? ""}</td>
+            <td>${row["laporan_unit"] ?? ""}</td>
+          </tr>
+        `
+      })
+      .join("")
+
+    const tableHtml = `<table border="1"><thead>${headerHtml}</thead><tbody>${rowsHtml}</tbody></table>`
 
     const fileName = (title ? title.replace(/\s+/g, "_") : "laporan") + ".xls"
     const html = `<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></head><body>${tableHtml}</body></html>`
@@ -116,13 +138,13 @@ export function ReportPreviewDialog({
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
-  }, [csvData, onDownload, data, columns, title])
+  }, [csvData, onDownload, data, title])
 
   const showDownload = !!csvData || (data && data.length > 0)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-auto">
         <DialogHeader>
           {title && <DialogTitle>{title}</DialogTitle>}
           {(description || chartDescription) && (
@@ -130,7 +152,7 @@ export function ReportPreviewDialog({
           )}
         </DialogHeader>
         {csvData ? (
-          <div className="max-h-96 overflow-auto rounded border bg-muted p-4">
+          <div className="max-h-[60vh] overflow-auto rounded border bg-muted p-4">
             <pre className="whitespace-pre-wrap text-xs">{csvData}</pre>
           </div>
         ) : (
@@ -139,7 +161,7 @@ export function ReportPreviewDialog({
             {barChart}
             {analysisTable}
             {table.getRowModel().rows.length > 0 && (
-              <div className="max-h-96 overflow-auto rounded border">
+              <div className="max-h-[60vh] overflow-auto rounded border">
                 <Table>
                   <TableHeader>
                     {table.getHeaderGroups().map((headerGroup) => (

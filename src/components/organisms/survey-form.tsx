@@ -25,6 +25,19 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { useSurveyStore } from "@/store/survey-store"
 import { useToast } from "@/hooks/use-toast"
+import {
+  RadioGroup,
+  RadioGroupItem,
+} from "@/components/ui/radio-group"
+import { Label } from "@/components/ui/label"
+
+const likertOptions = [
+  "Sangat Setuju",
+  "Setuju",
+  "Netral",
+  "Tidak Setuju",
+  "Sangat Tidak Setuju",
+]
 
 const formSchema = z.object({
   name: z.string().min(1, "Wajib diisi"),
@@ -36,6 +49,11 @@ const formSchema = z.object({
   unitDuration: z.string().min(1, "Wajib diisi"),
   weeklyHours: z.string().min(1, "Wajib diisi"),
   directPatientContact: z.string().min(1, "Wajib diisi"),
+  managerPraise: z.string().min(1, "Wajib diisi"),
+  managerSuggestions: z.string().min(1, "Wajib diisi"),
+  managerPressure: z.string().min(1, "Wajib diisi"),
+  managerIgnore: z.string().min(1, "Wajib diisi"),
+  managerAware: z.string().min(1, "Wajib diisi"),
   incidentsReported: z.string().min(1, "Wajib diisi"),
   safetyRating: z.string().min(1, "Wajib diisi"),
   comments: z.string().optional(),
@@ -60,6 +78,11 @@ export function SurveyForm({ onSuccess }: { onSuccess?: () => void }) {
       unitDuration: "",
       weeklyHours: "",
       directPatientContact: "",
+      managerPraise: "",
+      managerSuggestions: "",
+      managerPressure: "",
+      managerIgnore: "",
+      managerAware: "",
       incidentsReported: "",
       safetyRating: "",
       comments: "",
@@ -74,6 +97,13 @@ export function SurveyForm({ onSuccess }: { onSuccess?: () => void }) {
       "workDuration",
       "weeklyHours",
       "directPatientContact",
+    ],
+    [
+      "managerPraise",
+      "managerSuggestions",
+      "managerPressure",
+      "managerIgnore",
+      "managerAware",
     ],
     ["incidentsReported", "safetyRating", "comments"],
   ]
@@ -302,6 +332,166 @@ export function SurveyForm({ onSuccess }: { onSuccess?: () => void }) {
         )}
 
         {step === 2 && (
+          <>
+            <FormField
+              control={form.control}
+              name="managerPraise"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Manajer saya memberikan pujian jika melihat pekerjaan
+                    diselesaikan sesuai prosedur keselamatan pasien.
+                  </FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      className="grid gap-2"
+                    >
+                      {likertOptions.map((opt) => (
+                        <div
+                          className="flex items-center space-x-2 text-lg"
+                          key={opt}
+                        >
+                          <RadioGroupItem value={opt} id={`praise-${opt}`} />
+                          <Label htmlFor={`praise-${opt}`}>{opt}</Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="managerSuggestions"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Manajer saya serius mempertimbangkan saran dari staf
+                    untuk meningkatkan keselamatan pasien.
+                  </FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      className="grid gap-2"
+                    >
+                      {likertOptions.map((opt) => (
+                        <div
+                          className="flex items-center space-x-2 text-lg"
+                          key={opt}
+                        >
+                          <RadioGroupItem value={opt} id={`suggest-${opt}`} />
+                          <Label htmlFor={`suggest-${opt}`}>{opt}</Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="managerPressure"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Ketika tekanan pekerjaan meningkat, manajer saya
+                    menginginkan kami bekerja lebih cepat meski harus
+                    mengambil jalan pintas.
+                  </FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      className="grid gap-2"
+                    >
+                      {likertOptions.map((opt) => (
+                        <div
+                          className="flex items-center space-x-2 text-lg"
+                          key={opt}
+                        >
+                          <RadioGroupItem value={opt} id={`pressure-${opt}`} />
+                          <Label htmlFor={`pressure-${opt}`}>{opt}</Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="managerIgnore"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Manajer saya mengabaikan masalah keselamatan pasien yang
+                    terjadi berulang.
+                  </FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      className="grid gap-2"
+                    >
+                      {likertOptions.map((opt) => (
+                        <div
+                          className="flex items-center space-x-2 text-lg"
+                          key={opt}
+                        >
+                          <RadioGroupItem value={opt} id={`ignore-${opt}`} />
+                          <Label htmlFor={`ignore-${opt}`}>{opt}</Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="managerAware"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Manajer saya sangat mengetahui masalah keselamatan pasien
+                    di unit saya.
+                  </FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      className="grid gap-2"
+                    >
+                      {likertOptions.map((opt) => (
+                        <div
+                          className="flex items-center space-x-2 text-lg"
+                          key={opt}
+                        >
+                          <RadioGroupItem value={opt} id={`aware-${opt}`} />
+                          <Label htmlFor={`aware-${opt}`}>{opt}</Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
+        )}
+
+        {step === 3 && (
           <>
             <FormField
               control={form.control}

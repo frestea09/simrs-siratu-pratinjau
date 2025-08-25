@@ -28,6 +28,11 @@ export function SurveyResponseTable() {
       "Lama di RS",
       "Jam per Minggu",
       "Kontak Pasien",
+      "Pujian Manajer",
+      "Saran Keselamatan",
+      "Tekanan Kerja",
+      "Mengabaikan Masalah",
+      "Pemahaman Manajer",
       "Jumlah Laporan",
       "Penilaian",
       "Komentar",
@@ -43,6 +48,11 @@ export function SurveyResponseTable() {
       r.workDuration,
       r.weeklyHours,
       r.directPatientContact,
+      r.managerPraise,
+      r.managerSuggestions,
+      r.managerPressure,
+      r.managerIgnore,
+      r.managerAware,
       r.incidentsReported,
       r.safetyRating,
       r.comments ?? "",
@@ -89,6 +99,11 @@ export function SurveyResponseTable() {
               <TableHead>Lama di RS</TableHead>
               <TableHead>Jam/Minggu</TableHead>
               <TableHead>Kontak Pasien</TableHead>
+              <TableHead>Pujian Manajer</TableHead>
+              <TableHead>Saran</TableHead>
+              <TableHead>Tekanan</TableHead>
+              <TableHead>Masalah Diabaikan</TableHead>
+              <TableHead>Pemahaman</TableHead>
               <TableHead>Laporan</TableHead>
               <TableHead>Penilaian</TableHead>
               <TableHead>Komentar</TableHead>
@@ -97,7 +112,7 @@ export function SurveyResponseTable() {
           <TableBody>
             {responses.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={13} className="text-center">
+                <TableCell colSpan={19} className="text-center">
                   Belum ada data.
                 </TableCell>
               </TableRow>
@@ -117,6 +132,11 @@ export function SurveyResponseTable() {
                   <TableCell>{r.workDuration}</TableCell>
                   <TableCell>{r.weeklyHours}</TableCell>
                   <TableCell>{r.directPatientContact}</TableCell>
+                  <TableCell>{r.managerPraise}</TableCell>
+                  <TableCell>{r.managerSuggestions}</TableCell>
+                  <TableCell>{r.managerPressure}</TableCell>
+                  <TableCell>{r.managerIgnore}</TableCell>
+                  <TableCell>{r.managerAware}</TableCell>
                   <TableCell>{r.incidentsReported}</TableCell>
                   <TableCell>{r.safetyRating}</TableCell>
                   <TableCell>{r.comments || "-"}</TableCell>

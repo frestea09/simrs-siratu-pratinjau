@@ -14,6 +14,11 @@ export type SurveyResponse = {
   unitDuration: string
   weeklyHours: string
   directPatientContact: string
+  managerPraise: string
+  managerSuggestions: string
+  managerPressure: string
+  managerIgnore: string
+  managerAware: string
   incidentsReported: string
   safetyRating: string
   comments?: string

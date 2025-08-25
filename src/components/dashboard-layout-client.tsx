@@ -101,12 +101,9 @@ const navItems: NavItemType[] = [
     icon: ClipboardCheck,
     subItems: [
       {
-        label: "Survei Budaya",
+        href: "/dashboard/surveys",
         icon: ClipboardCheck,
-        subItems: [
-          { href: "/dashboard/surveys", icon: ListChecks, label: "Laporan" },
-          { href: "/dashboard/surveys/dashboard", icon: BarChart3, label: "Dashboard" },
-        ],
+        label: "Survei Budaya",
       },
       { href: "/dashboard/risks", icon: BarChart3, label: "Manajemen Risiko" },
     ],

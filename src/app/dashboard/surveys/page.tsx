@@ -16,6 +16,14 @@ import { SurveyDialog } from "@/components/organisms/survey-dialog"
 import { ReportPreviewDialog } from "@/components/organisms/report-preview-dialog"
 import { SurveyResult, useSurveyStore } from "@/store/survey-store"
 import { format } from "date-fns"
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from "recharts"
 
 export default function SurveysPage() {
   const surveys = useSurveyStore((state) => state.surveys)
@@ -36,6 +44,14 @@ export default function SurveysPage() {
         : surveys.filter((s) => s.unit === filterUnit),
     [surveys, filterUnit]
   )
+
+  const responseCounts = React.useMemo(() => {
+    const counts: Record<string, number> = {}
+    surveys.forEach((s) => {
+      counts[s.unit] = (counts[s.unit] || 0) + 1
+    })
+    return Object.entries(counts).map(([unit, count]) => ({ unit, count }))
+  }, [surveys])
 
   const generateCSV = (data: SurveyResult[]) => {
     const headers = ["ID", "Tanggal Pengisian", "Unit Kerja", "Total Skor", "Rata-rata Dimensi"];
@@ -153,6 +169,40 @@ export default function SurveysPage() {
               setIsSurveyDialogOpen(true)
             }}
           />
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Dashboard Survei</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col items-center justify-center rounded-md border p-4">
+            <p className="text-sm text-muted-foreground">Total Responden</p>
+            <p className="text-3xl font-bold">{surveys.length}</p>
+          </div>
+          {responseCounts.length > 0 ? (
+            <>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={responseCounts}>
+                    <XAxis dataKey="unit" />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip />
+                    <Bar dataKey="count" fill="#8884d8" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <ul className="grid gap-2 md:grid-cols-2">
+                {responseCounts.map((item) => (
+                  <li key={item.unit} className="text-sm">
+                    <span className="font-medium">{item.unit}:</span> {item.count} responden
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <p className="text-center text-sm text-muted-foreground">Belum ada data survei.</p>
+          )}
         </CardContent>
       </Card>
       <SurveyDialog open={isSurveyDialogOpen} onOpenChange={handleDialogChange} survey={editingSurvey} />

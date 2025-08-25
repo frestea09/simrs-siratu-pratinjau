@@ -5,19 +5,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Download, PlusCircle } from "lucide-react"
 import { SurveyTable } from "@/components/organisms/survey-table"
-import { useSurveyStore } from "@/store/survey-store"
 import { SurveyDialog } from "@/components/organisms/survey-dialog"
+import { ReportPreviewDialog } from "@/components/organisms/report-preview-dialog"
+import { SurveyResult, useSurveyStore } from "@/store/survey-store"
 import { format } from "date-fns"
 
 export default function SurveysPage() {
   const surveys = useSurveyStore((state) => state.surveys)
   const [isSurveyDialogOpen, setIsSurveyDialogOpen] = React.useState(false)
+  const [editingSurvey, setEditingSurvey] = React.useState<SurveyResult | null>(null)
+  const [isPreviewOpen, setIsPreviewOpen] = React.useState(false)
+  const [csvData, setCsvData] = React.useState("")
 
-  const downloadCSV = () => {
-    // Basic CSV generation
+  const generateCSV = () => {
     const headers = ["ID", "Tanggal Pengisian", "Unit Kerja", "Total Skor", "Rata-rata Dimensi"];
     const csvRows = [headers.join(",")];
-    
+
     surveys.forEach(survey => {
       const avgScore = Object.values(survey.scores).reduce((acc, dim) => acc + dim.score, 0) / Object.keys(survey.scores).length;
       const row = [
@@ -30,7 +33,16 @@ export default function SurveysPage() {
       csvRows.push(row);
     });
 
-    const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
+    return csvRows.join("\n");
+  };
+
+  const handlePreview = () => {
+    setCsvData(generateCSV());
+    setIsPreviewOpen(true);
+  };
+
+  const downloadCSV = () => {
+    const blob = new Blob([csvData], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.setAttribute("hidden", "");
@@ -39,8 +51,15 @@ export default function SurveysPage() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    setIsPreviewOpen(false);
   };
 
+  const handleDialogChange = (open: boolean) => {
+    if (!open) {
+      setEditingSurvey(null);
+    }
+    setIsSurveyDialogOpen(open);
+  };
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -57,7 +76,7 @@ export default function SurveysPage() {
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="lg" onClick={downloadCSV} disabled={surveys.length === 0}>
+              <Button variant="outline" size="lg" onClick={handlePreview} disabled={surveys.length === 0}>
                   <Download className="mr-2 h-5 w-5" />
                   Unduh Laporan
               </Button>
@@ -69,10 +88,11 @@ export default function SurveysPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <SurveyTable surveys={surveys} />
+          <SurveyTable surveys={surveys} onEdit={(s) => { setEditingSurvey(s); setIsSurveyDialogOpen(true); }} />
         </CardContent>
       </Card>
-      <SurveyDialog open={isSurveyDialogOpen} onOpenChange={setIsSurveyDialogOpen} />
+      <SurveyDialog open={isSurveyDialogOpen} onOpenChange={handleDialogChange} survey={editingSurvey} />
+      <ReportPreviewDialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen} csvData={csvData} onDownload={downloadCSV} />
     </div>
   );
 }

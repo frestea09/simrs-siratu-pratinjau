@@ -149,33 +149,37 @@ export default function IncidentsPage() {
   const typesToShow = selectedType === "Semua" ? Object.keys(colorMap) : [selectedType]
 
   const lineChart = (
-    <ResponsiveContainer width="100%" height="100%">
-      <LineChart data={incidentChartData}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="period" />
-        <YAxis allowDecimals={false} />
-        <RechartsTooltip />
-        <Legend />
-        {typesToShow.map((t) => (
-          <Line key={t} type="monotone" dataKey={t} stroke={colorMap[t]} strokeWidth={2} />
-        ))}
-      </LineChart>
-    </ResponsiveContainer>
+    <div style={{ width: "100%", height: 350 }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={incidentChartData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="period" />
+          <YAxis allowDecimals={false} />
+          <RechartsTooltip />
+          <Legend />
+          {typesToShow.map((t) => (
+            <Line key={t} type="monotone" dataKey={t} stroke={colorMap[t]} strokeWidth={2} />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   )
 
   const barChart = (
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={incidentChartData}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="period" />
-        <YAxis allowDecimals={false} />
-        <RechartsTooltip />
-        <Legend />
-        {typesToShow.map((t) => (
-          <Bar key={t} dataKey={t} fill={colorMap[t]} />
-        ))}
-      </BarChart>
-    </ResponsiveContainer>
+    <div style={{ width: "100%", height: 350 }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={incidentChartData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="period" />
+          <YAxis allowDecimals={false} />
+          <RechartsTooltip />
+          <Legend />
+          {typesToShow.map((t) => (
+            <Bar key={t} dataKey={t} fill={colorMap[t]} />
+          ))}
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
   )
 
   const noDataMessage = (

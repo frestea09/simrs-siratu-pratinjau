@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { surveyResultSchema } from "@/lib/validations/survey"
 
+export const runtime = "nodejs"
+
 export async function GET(
   req: Request,
   { params }: { params: { id: string } }

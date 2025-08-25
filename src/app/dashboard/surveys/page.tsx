@@ -41,11 +41,39 @@ export default function SurveysPage() {
   const [csvData, setCsvData] = React.useState("")
   const [unit, setUnit] = React.useState("all")
   const [range, setRange] = React.useState("7d")
-  const data = React.useMemo(() => generateData(range), [range])
-  const total = React.useMemo(
-    () => data.reduce((sum, d) => sum + d.count, 0),
-    [data]
-  )
+
+  const filteredSurveys = React.useMemo(() => {
+    const now = new Date()
+    const start = new Date(now)
+    switch (range) {
+      case "7d":
+        start.setDate(now.getDate() - 6)
+        break
+      case "40d":
+        start.setDate(now.getDate() - 39)
+        break
+      case "1m":
+        start.setMonth(now.getMonth() - 1)
+        break
+      case "3m":
+        start.setMonth(now.getMonth() - 3)
+        break
+      case "6m":
+        start.setMonth(now.getMonth() - 6)
+        break
+      case "1y":
+        start.setFullYear(now.getFullYear() - 1)
+        break
+    }
+    return surveys.filter((s) => {
+      if (unit !== "all" && s.unit !== unit) return false
+      const date = new Date(s.submissionDate)
+      return date >= start && date <= now
+    })
+  }, [surveys, unit, range])
+
+  const data = React.useMemo(() => generateData(filteredSurveys), [filteredSurveys])
+  const total = filteredSurveys.length
   const lineRef = React.useRef<HTMLDivElement>(null)
   const barRef = React.useRef<HTMLDivElement>(null)
 
@@ -160,10 +188,16 @@ export default function SurveysPage() {
 
       <Card>
         <CardHeader>
+          <CardTitle>Total Pengisi</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-2xl font-bold">{total}</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Tren Pengisian</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Total Pengisi: {total}
-          </p>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -249,7 +283,7 @@ export default function SurveysPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <SurveyTable surveys={surveys} onEdit={handleEditSurvey} />
+          <SurveyTable surveys={filteredSurveys} onEdit={handleEditSurvey} />
         </CardContent>
       </Card>
       <ReportPreviewDialog
@@ -262,37 +296,16 @@ export default function SurveysPage() {
   )
 }
 
-function generateData(range: string) {
-  const points: { label: string; count: number }[] = []
-  const now = new Date()
-  const length = 10
-  for (let i = length - 1; i >= 0; i--) {
-    const date = new Date(now)
-    switch (range) {
-      case "7d":
-        date.setDate(now.getDate() - i)
-        break
-      case "40d":
-        date.setDate(now.getDate() - i * 4)
-        break
-      case "1m":
-        date.setDate(now.getDate() - i * 3)
-        break
-      case "3m":
-        date.setMonth(now.getMonth() - i)
-        break
-      case "6m":
-        date.setMonth(now.getMonth() - i * 2)
-        break
-      case "1y":
-        date.setMonth(now.getMonth() - i * 3)
-        break
-    }
-    const label = date.toLocaleDateString("id-ID", {
-      month: "short",
-      day: "numeric",
-    })
-    points.push({ label, count: Math.floor(Math.random() * 20) + 1 })
-  }
-  return points
+function generateData(surveys: SurveyResult[]) {
+  const counts = new Map<string, number>()
+  surveys.forEach((s) => {
+    const key = format(new Date(s.submissionDate), "yyyy-MM-dd")
+    counts.set(key, (counts.get(key) ?? 0) + 1)
+  })
+  return Array.from(counts.entries())
+    .sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime())
+    .map(([key, count]) => ({
+      label: format(new Date(key), "dd MMM"),
+      count,
+    }))
 }

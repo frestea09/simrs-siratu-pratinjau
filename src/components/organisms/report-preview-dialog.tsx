@@ -88,7 +88,7 @@ export function ReportPreviewDialog({
 
     const rowsHtml = data
       .map((row, idx) => {
-        const kejadian = row["kejadian"]
+        const incidentType = (row["type"] || "").toLowerCase()
         const severity = row["severity"]
         const sevCells = ["biru", "hijau", "kuning", "merah"].map((sev) => {
           const map = colorMap[sev]
@@ -107,19 +107,19 @@ export function ReportPreviewDialog({
         return `
           <tr>
             <td>${idx + 1}</td>
-            <td>${row["ruangan"] ?? ""}</td>
-            <td>${fmtDate(row["date"])}</td>
-            <td>${[row["nama_pasien"], row["no_rm"]].filter(Boolean).join(" / ")}</td>
-            <td>${row["kronologis"] ?? ""}</td>
+            <td>${row["incidentLocation"] ?? row["careRoom"] ?? ""}</td>
+            <td>${fmtDate(row["incidentDate"])}</td>
+            <td>${[row["patientName"], row["medicalRecordNumber"]].filter(Boolean).join(" / ")}</td>
+            <td>${row["chronology"] ?? ""}</td>
             <td>${row["type"] ?? ""}</td>
-            <td>${kejadian === "kpc" ? "✓" : ""}</td>
-            <td>${kejadian === "knc" ? "✓" : ""}</td>
-            <td>${kejadian === "ktd" ? "✓" : ""}</td>
-            <td>${kejadian === "sentinel" ? "✓" : ""}</td>
+            <td>${incidentType === "kpc" ? "✓" : ""}</td>
+            <td>${incidentType === "knc" ? "✓" : ""}</td>
+            <td>${incidentType === "ktd" || incidentType === "ktc" ? "✓" : ""}</td>
+            <td>${incidentType === "sentinel" ? "✓" : ""}</td>
             ${sevCells.join("")}
-            <td>${row["tindakan"] ?? ""}</td>
-            <td>${row["rekomendasi"] ?? ""}</td>
-            <td>${row["laporan_unit"] ?? ""}</td>
+            <td>${row["firstAction"] ?? ""}</td>
+            <td>${row["followUpPlan"] ?? ""}</td>
+            <td>${row["relatedUnit"] ?? ""}</td>
           </tr>
         `
       })

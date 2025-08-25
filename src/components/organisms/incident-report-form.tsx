@@ -44,6 +44,16 @@ export function IncidentReportForm({ setOpen, incident }: IncidentReportFormProp
     const handleSave = async () => {
         const finalData = { ...formData } as Omit<Incident, 'id' | 'date' | 'status'>;
 
+        Object.keys(finalData).forEach((key) => {
+            // @ts-ignore
+            if (finalData[key] === '') delete finalData[key]
+        })
+
+        if (!finalData.type || !finalData.severity) {
+            toast({ title: "Data Belum Lengkap", description: "Jenis insiden dan grading risiko wajib diisi." });
+            return;
+        }
+
         if (isEditMode && incident.id) {
             await updateIncident(incident.id, finalData)
             addLog({ user: currentUser?.name || 'System', action: 'UPDATE_INCIDENT', details: `Laporan insiden ${incident.id} diperbarui.` })

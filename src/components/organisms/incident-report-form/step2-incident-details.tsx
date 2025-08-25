@@ -37,13 +37,13 @@ export function Step2IncidentDetails({ data, onUpdate }: StepProps) {
             <SectionTitle>Rincian Kejadian</SectionTitle>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                 <FormInputDate id="incident-date" label="Tanggal Insiden" selected={data.incidentDate ? new Date(data.incidentDate) : undefined} onSelect={date => onUpdate({ incidentDate: date?.toISOString() })} />
-                <FormInputTime id="incident-time" label="Jam Insiden" value={data.incidentTime} onChange={e => onUpdate({ incidentTime: e.target.value })} />
+                <FormInputTime id="incident-time" label="Jam Insiden" value={data.incidentTime ?? ""} onChange={e => onUpdate({ incidentTime: e.target.value })} />
             </div>
-            <FormInputTextarea id="chronology" label="Kronologis Insiden" placeholder="Jelaskan secara singkat bagaimana insiden terjadi." value={data.chronology} onChange={e => onUpdate({ chronology: e.target.value })} containerClassName="grid grid-cols-1 md:grid-cols-form-label-full gap-x-4" />
-            <FormInputSelect id="type" label="Jenis Insiden" placeholder="Pilih jenis insiden" items={incidentTypeOptions} value={data.type} onValueChange={val => onUpdate({ type: val })} containerClassName="grid grid-cols-1 md:grid-cols-form-label-full gap-x-4" />
-            <FormInputText id="incidentSubject" label="Insiden mengenai" placeholder="Contoh: Pasien, Keluarga Pasien, Pengunjung" value={data.incidentSubject} onChange={e => onUpdate({ incidentSubject: e.target.value })} />
-            <FormInputSelect id="incidentLocation" label="Lokasi Insiden" placeholder="Pilih lokasi insiden" items={incidentLocationOptions} value={data.incidentLocation} onValueChange={val => onUpdate({ incidentLocation: val })} />
-            <FormInputSelect id="relatedUnit" label="Unit Terkait Insiden" placeholder="Pilih unit" items={unitOptions} value={data.relatedUnit} onValueChange={val => onUpdate({ relatedUnit: val })} />
+            <FormInputTextarea id="chronology" label="Kronologis Insiden" placeholder="Jelaskan secara singkat bagaimana insiden terjadi." value={data.chronology ?? ""} onChange={e => onUpdate({ chronology: e.target.value })} containerClassName="grid grid-cols-1 md:grid-cols-form-label-full gap-x-4" />
+            <FormInputSelect id="type" label="Jenis Insiden" placeholder="Pilih jenis insiden" items={incidentTypeOptions} value={data.type ?? ""} onValueChange={val => onUpdate({ type: val })} containerClassName="grid grid-cols-1 md:grid-cols-form-label-full gap-x-4" />
+            <FormInputText id="incidentSubject" label="Insiden mengenai" placeholder="Contoh: Pasien, Keluarga Pasien, Pengunjung" value={data.incidentSubject ?? ""} onChange={e => onUpdate({ incidentSubject: e.target.value })} />
+            <FormInputSelect id="incidentLocation" label="Lokasi Insiden" placeholder="Pilih lokasi insiden" items={incidentLocationOptions} value={data.incidentLocation ?? ""} onValueChange={val => onUpdate({ incidentLocation: val })} />
+            <FormInputSelect id="relatedUnit" label="Unit Terkait Insiden" placeholder="Pilih unit" items={unitOptions} value={data.relatedUnit ?? ""} onValueChange={val => onUpdate({ relatedUnit: val })} />
         </div>
     )
 }

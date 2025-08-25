@@ -9,6 +9,7 @@ import { SurveyDialog } from "@/components/organisms/survey-dialog"
 import { ReportPreviewDialog } from "@/components/organisms/report-preview-dialog"
 import { SurveyResult, useSurveyStore } from "@/store/survey-store"
 import { format } from "date-fns"
+import { SurveyDashboard } from "@/components/organisms/survey-dashboard"
 
 export default function SurveysPage() {
   const surveys = useSurveyStore((state) => state.surveys)
@@ -66,6 +67,7 @@ export default function SurveysPage() {
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">Survei Budaya Keselamatan</h2>
       </div>
+      <SurveyDashboard />
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">

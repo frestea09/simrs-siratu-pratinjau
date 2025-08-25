@@ -40,10 +40,8 @@ export default function EditSurveyPage() {
         </CardHeader>
         <CardContent>
           <SurveyForm
-            setOpen={(open) => {
-              if (!open) router.push("/dashboard/surveys")
-            }}
             survey={survey}
+            onSuccess={() => router.push("/dashboard/surveys")}
           />
         </CardContent>
       </Card>

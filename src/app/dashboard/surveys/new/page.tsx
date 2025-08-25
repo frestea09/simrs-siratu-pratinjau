@@ -33,11 +33,7 @@ export default function NewSurveyPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <SurveyForm
-            setOpen={(open) => {
-              if (!open) router.push("/dashboard/surveys")
-            }}
-          />
+          <SurveyForm onSuccess={() => router.push("/dashboard/surveys")} />
         </CardContent>
       </Card>
     </div>

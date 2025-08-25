@@ -26,11 +26,15 @@ const unitOptions = HOSPITAL_UNITS.map((unit) => ({ value: unit, label: unit }))
 // --- Komponen Formulir Utama ---
 
 type SurveyFormProps = {
-  setOpen: (open: boolean) => void
+  /**
+   * Callback yang dipanggil setelah survei tersimpan atau diperbarui.
+   * Biasanya digunakan untuk melakukan redirect atau menutup dialog.
+   */
+  onSuccess?: () => void
   survey?: SurveyResult
 }
 
-export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
+export function SurveyForm({ onSuccess, survey }: SurveyFormProps) {
   const [currentStep, setCurrentStep] = React.useState(0)
   const [steps, setSteps] = React.useState(INITIAL_STEPS)
   const [dimensions, setDimensions] = React.useState<
@@ -206,7 +210,7 @@ export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
           "Terima kasih atas partisipasi Anda dalam meningkatkan budaya keselamatan pasien.",
       })
     }
-    setOpen(false)
+    onSuccess?.()
   }
 
   React.useEffect(() => {

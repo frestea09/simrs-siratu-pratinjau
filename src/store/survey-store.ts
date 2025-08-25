@@ -65,7 +65,7 @@ export const useSurveyStore = create<SurveyState>()(
             updateSurvey: (id, surveyData) => {
                 set((state) => ({
                     surveys: state.surveys.map((survey) =>
-                        survey.id === id ? { ...survey, ...surveyData } : survey
+                        survey.id === id ? { ...survey, ...surveyData, id: survey.id, submissionDate: survey.submissionDate } : survey
                     ),
                 }));
             },

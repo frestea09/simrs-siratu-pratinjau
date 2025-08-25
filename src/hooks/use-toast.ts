@@ -5,7 +5,8 @@ import * as React from "react"
 
 import type { ToastActionElement, ToastProps } from "@/components/ui/toast"
 
-const TOAST_LIMIT = 3
+// Limit to a single toast at a time to avoid overwhelming the UI
+const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 5000
 
 type ToasterToast = ToastProps & {

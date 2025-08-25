@@ -3,23 +3,36 @@
 import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
 
+function ensureSurveyModel() {
+  if (!(prisma as any).surveyResult) {
+    throw new Error(
+      "SurveyResult model is missing from Prisma client. Run `prisma generate` to update the client."
+    )
+  }
+  return (prisma as any).surveyResult as typeof prisma.surveyResult
+}
+
 export async function getSurveys() {
-  return prisma.surveyResult.findMany({
+  const survey = ensureSurveyModel()
+  return survey.findMany({
     orderBy: { submissionDate: "desc" },
   })
 }
 
 export async function getSurvey(id: string) {
-  return prisma.surveyResult.findUnique({ where: { id } })
+  const survey = ensureSurveyModel()
+  return survey.findUnique({ where: { id } })
 }
 
 export async function createSurvey(data: any) {
-  await prisma.surveyResult.create({ data })
+  const survey = ensureSurveyModel()
+  await survey.create({ data })
   revalidatePath("/dashboard/surveys")
 }
 
 export async function updateSurvey(id: string, data: any) {
-  await prisma.surveyResult.update({
+  const survey = ensureSurveyModel()
+  await survey.update({
     where: { id },
     data,
   })
@@ -27,6 +40,7 @@ export async function updateSurvey(id: string, data: any) {
 }
 
 export async function removeSurvey(id: string) {
-  await prisma.surveyResult.delete({ where: { id } })
+  const survey = ensureSurveyModel()
+  await survey.delete({ where: { id } })
   revalidatePath("/dashboard/surveys")
 }

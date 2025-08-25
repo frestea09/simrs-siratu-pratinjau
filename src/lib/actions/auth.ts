@@ -1,4 +1,3 @@
-
 "use server"
 
 import { z } from "zod"
@@ -27,18 +26,24 @@ export async function login(formData: FormData) {
   }
 
   const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-  cookies().set("session", JSON.stringify(sessionUser), { expires, httpOnly: true })
+  const cookieStore = await cookies()
+  cookieStore.set("session", JSON.stringify(sessionUser), {
+    expires,
+    httpOnly: true,
+  })
 
   return sessionUser
 }
 
 export async function logout() {
   // Destroy the session
-  cookies().set("session", "", { expires: new Date(0) })
+  const cookieStore = await cookies()
+  cookieStore.set("session", "", { expires: new Date(0) })
 }
 
 export async function getSession() {
-  return cookies().get("session")?.value
+  const cookieStore = await cookies()
+  return cookieStore.get("session")?.value
 }
 
 export async function getCurrentUser() {
@@ -46,8 +51,8 @@ export async function getCurrentUser() {
   if (!session) return null
 
   try {
-      return JSON.parse(session)
+    return JSON.parse(session)
   } catch (error) {
-      return null
+    return null
   }
 }

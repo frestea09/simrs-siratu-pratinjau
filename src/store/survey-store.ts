@@ -34,11 +34,21 @@ type SurveyState = {
   ) => Promise<void>
 }
 
+async function safeJson<T>(res: Response): Promise<T | null> {
+  const text = await res.text()
+  if (!text) return null
+  try {
+    return JSON.parse(text) as T
+  } catch {
+    return null
+  }
+}
+
 export const useSurveyStore = create<SurveyState>((set) => ({
   surveys: [],
   fetchSurveys: async () => {
     const res = await fetch("/api/surveys")
-    const data: SurveyResult[] = await res.json()
+    const data = (await safeJson<SurveyResult[]>(res)) ?? []
     set({ surveys: data })
   },
   addSurvey: async (surveyData) => {
@@ -47,8 +57,10 @@ export const useSurveyStore = create<SurveyState>((set) => ({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(surveyData),
     })
-    const survey: SurveyResult = await res.json()
-    set((state) => ({ surveys: [survey, ...state.surveys] }))
+    const survey = await safeJson<SurveyResult>(res)
+    if (survey) {
+      set((state) => ({ surveys: [survey, ...state.surveys] }))
+    }
   },
   removeSurvey: async (id) => {
     await fetch(`/api/surveys/${id}`, { method: "DELETE" })
@@ -60,10 +72,11 @@ export const useSurveyStore = create<SurveyState>((set) => ({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(surveyData),
     })
-    const survey: SurveyResult = await res.json()
-    set((state) => ({
-      surveys: state.surveys.map((s) => (s.id === id ? survey : s)),
-    }))
+    const survey = await safeJson<SurveyResult>(res)
+    if (survey) {
+      set((state) => ({
+        surveys: state.surveys.map((s) => (s.id === id ? survey : s)),
+      }))
+    }
   },
 }))
-

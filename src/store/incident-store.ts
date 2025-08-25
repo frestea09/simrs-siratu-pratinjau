@@ -1,6 +1,6 @@
 "use client"
 
-import { create } from "zustand"
+import { createWithEqualityFn } from "zustand/traditional"
 
 export type IncidentStatus = "Investigasi" | "Selesai"
 
@@ -44,7 +44,7 @@ type IncidentState = {
   removeIncident: (id: string) => Promise<void>
 }
 
-export const useIncidentStore = create<IncidentState>((set) => ({
+export const useIncidentStore = createWithEqualityFn<IncidentState>()((set) => ({
   incidents: [],
 
   fetchIncidents: async () => {

@@ -1,7 +1,7 @@
 
 "use client"
 
-import { create } from 'zustand'
+import { createWithEqualityFn } from 'zustand/traditional'
 import React, { createContext, useContext, useRef } from 'react';
 
 type LogAction = 
@@ -35,7 +35,7 @@ type LogState = {
   addLog: (log: Omit<SystemLog, 'id' | 'timestamp'>) => void;
 }
 
-const createLogStore = () => create<LogState>()(
+const createLogStore = () => createWithEqualityFn<LogState>()(
     (set) => ({
         logs: [],
         addLog: (log) =>

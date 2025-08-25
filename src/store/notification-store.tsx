@@ -1,6 +1,6 @@
 "use client"
 
-import { create } from "zustand"
+import { createWithEqualityFn } from "zustand/traditional"
 import { persist, createJSONStorage } from "zustand/middleware"
 import { shallow } from "zustand/shallow"
 import React, { createContext, useContext, useRef } from "react"
@@ -30,7 +30,7 @@ type NotificationState = {
 }
 
 const createNotificationStore = () =>
-  create<NotificationState>()(
+  createWithEqualityFn<NotificationState>()(
     persist(
       (set, get) => ({
         notifications: [],

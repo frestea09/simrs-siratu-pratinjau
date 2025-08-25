@@ -5,17 +5,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Download, PlusCircle } from "lucide-react"
 import { SurveyTable } from "@/components/organisms/survey-table"
-import { SurveyDialog } from "@/components/organisms/survey-dialog"
 import { ReportPreviewDialog } from "@/components/organisms/report-preview-dialog"
-import { SurveyResult, useSurveyStore } from "@/store/survey-store"
+import { SurveyResult } from "@/types/survey"
+import { getSurveys, removeSurvey } from "@/lib/actions/surveys"
 import { format } from "date-fns"
+import { useRouter } from "next/navigation"
 
 export default function SurveysPage() {
-  const surveys = useSurveyStore((state) => state.surveys)
-  const [isSurveyDialogOpen, setIsSurveyDialogOpen] = React.useState(false)
-  const [editingSurvey, setEditingSurvey] = React.useState<SurveyResult | null>(null)
+  const [surveys, setSurveys] = React.useState<SurveyResult[]>([])
   const [isPreviewOpen, setIsPreviewOpen] = React.useState(false)
   const [csvData, setCsvData] = React.useState("")
+  const router = useRouter()
+
+  const fetchSurveys = React.useCallback(async () => {
+    const data = await getSurveys()
+    setSurveys(data)
+  }, [])
+
+  React.useEffect(() => {
+    fetchSurveys()
+  }, [fetchSurveys])
 
   const generateCSV = () => {
     const headers = ["ID", "Tanggal Pengisian", "Unit Kerja", "Total Skor", "Rata-rata Dimensi"];
@@ -54,12 +63,10 @@ export default function SurveysPage() {
     setIsPreviewOpen(false);
   };
 
-  const handleDialogChange = (open: boolean) => {
-    if (!open) {
-      setEditingSurvey(null);
-    }
-    setIsSurveyDialogOpen(open);
-  };
+  const handleDelete = React.useCallback(async (id: string) => {
+    await removeSurvey(id)
+    await fetchSurveys()
+  }, [fetchSurveys])
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -80,7 +87,7 @@ export default function SurveysPage() {
                   <Download className="mr-2 h-5 w-5" />
                   Unduh Laporan
               </Button>
-              <Button size="lg" onClick={() => setIsSurveyDialogOpen(true)}>
+              <Button size="lg" onClick={() => router.push("/dashboard/surveys/new") }>
                   <PlusCircle className="mr-2 h-5 w-5" />
                   Isi Survei Baru
               </Button>
@@ -88,10 +95,13 @@ export default function SurveysPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <SurveyTable surveys={surveys} onEdit={(s) => { setEditingSurvey(s); setIsSurveyDialogOpen(true); }} />
+          <SurveyTable
+            surveys={surveys}
+            onEdit={(s) => router.push(`/dashboard/surveys/${s.id}/edit`)}
+            onDelete={handleDelete}
+          />
         </CardContent>
       </Card>
-      <SurveyDialog open={isSurveyDialogOpen} onOpenChange={handleDialogChange} survey={editingSurvey} />
       <ReportPreviewDialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen} csvData={csvData} onDownload={downloadCSV} />
     </div>
   );

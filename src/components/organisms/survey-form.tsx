@@ -4,16 +4,18 @@
 import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { Stepper } from "@/components/molecules/stepper"
-import { SurveyResult, useSurveyStore } from "@/store/survey-store"
+import { SurveyResult } from "@/types/survey"
 import { useToast } from "@/hooks/use-toast"
 import { useUserStore } from "@/store/user-store.tsx"
 import { SURVEY_QUESTIONS, SurveyDimension, SurveyQuestion } from "@/lib/survey-questions"
+import { createSurvey, updateSurvey } from "@/lib/actions/surveys"
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group"
 import { Label } from "../ui/label"
 import { Combobox } from "../ui/combobox"
 import { HOSPITAL_UNITS } from "@/lib/constants"
 import { Alert, AlertDescription } from "../ui/alert"
 import { Info } from "lucide-react"
+import { Progress } from "../ui/progress"
 
 // --- Tipe Data ---
 type Answers = Record<string, string>; // { "A1": "sangat_setuju", "A2": "setuju", ... }
@@ -47,16 +49,17 @@ const unitOptions = HOSPITAL_UNITS.map(unit => ({ value: unit, label: unit }));
 type SurveyFormProps = {
   setOpen: (open: boolean) => void;
   survey?: SurveyResult;
+  onSaved: () => Promise<void> | void;
 }
 
-export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
+export function SurveyForm({ setOpen, survey, onSaved }: SurveyFormProps) {
+  const { currentUser } = useUserStore();
   const [currentStep, setCurrentStep] = React.useState(0);
   const [answers, setAnswers] = React.useState<Answers>(() => survey?.answers ?? {});
-  const [unit, setUnit] = React.useState<string>(() => survey?.unit ?? "");
-  const { addSurvey, updateSurvey } = useSurveyStore();
+  const [unit, setUnit] = React.useState<string>(() => survey?.unit ?? currentUser?.unit ?? "");
   const { toast } = useToast();
-  const { currentUser } = useUserStore();
   const isEdit = !!survey;
+  const progress = (currentStep / (steps.length - 1)) * 100;
 
   const next = () => setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
   const prev = () => setCurrentStep((prev) => (prev > 0 ? prev - 1 : prev));
@@ -131,7 +134,7 @@ export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
     };
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!unit) {
       toast({
         variant: "destructive",
@@ -143,26 +146,21 @@ export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
     }
     const results = calculateResults();
     if (isEdit && survey) {
-      updateSurvey(survey.id, results);
+      await updateSurvey(survey.id, results);
       toast({
         title: "Survei Berhasil Diperbarui",
         description: `Data survei dari unit ${survey.unit} telah diperbarui.`,
       });
     } else {
-      addSurvey(results);
+      await createSurvey(results);
       toast({
         title: "Survei Berhasil Disimpan",
         description: "Terima kasih atas partisipasi Anda dalam meningkatkan budaya keselamatan pasien.",
       });
     }
+    await onSaved();
     setOpen(false);
   };
-
-  React.useEffect(() => {
-    if(currentUser && currentUser.unit && !survey) {
-        setUnit(currentUser.unit)
-    }
-  }, [currentUser, survey])
 
   const renderStepContent = () => {
     if (currentStep === 0) {
@@ -198,11 +196,18 @@ export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
     <div className="flex flex-col md:flex-row gap-8 p-1">
       <Stepper steps={steps} currentStep={currentStep} setCurrentStep={setCurrentStep} />
       <div className="flex-1">
+        <Progress value={progress} className="mb-4" />
         <div className="max-h-[65vh] min-h-[300px] overflow-y-auto pr-4 pl-1 space-y-8">
           {renderStepContent()}
         </div>
         <div className="flex justify-between items-center pt-5 mt-5 border-t">
-          <div>{currentStep > 0 && <Button variant="outline" onClick={prev}>Kembali</Button>}</div>
+          <div>
+            {currentStep > 0 ? (
+              <Button variant="outline" onClick={prev}>Kembali</Button>
+            ) : (
+              <Button variant="outline" onClick={() => setOpen(false)}>Batal</Button>
+            )}
+          </div>
           <div>
             {currentStep < steps.length - 1 ? (
               <Button onClick={next}>Lanjutkan</Button>

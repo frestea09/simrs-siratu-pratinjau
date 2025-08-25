@@ -43,20 +43,20 @@ type QuestionItemProps = {
   questionNumber: number
 }
 
-function QuestionItem({
+const OPTIONS = [
+  { value: "sangat_setuju", label: "Sangat Setuju" },
+  { value: "setuju", label: "Setuju" },
+  { value: "netral", label: "Netral" },
+  { value: "tidak_setuju", label: "Tidak Setuju" },
+  { value: "sangat_tidak_setuju", label: "Sangat Tidak Setuju" },
+]
+
+const QuestionItem = React.memo(function QuestionItem({
   question,
   value,
   onChange,
   questionNumber,
 }: QuestionItemProps) {
-  const options = [
-    { value: "sangat_setuju", label: "Sangat Setuju" },
-    { value: "setuju", label: "Setuju" },
-    { value: "netral", label: "Netral" },
-    { value: "tidak_setuju", label: "Tidak Setuju" },
-    { value: "sangat_tidak_setuju", label: "Sangat Tidak Setuju" },
-  ]
-
   return (
     <div className="space-y-3 rounded-lg border p-4">
       <Label className="text-base font-semibold leading-snug">
@@ -75,7 +75,7 @@ function QuestionItem({
         onValueChange={(val) => onChange(question.id, val)}
         className="flex flex-wrap gap-x-6 gap-y-2 pt-2"
       >
-        {options.map((opt) => (
+        {OPTIONS.map((opt) => (
           <div key={opt.value} className="flex items-center space-x-2">
             <RadioGroupItem
               value={opt.value}
@@ -92,4 +92,6 @@ function QuestionItem({
       </RadioGroup>
     </div>
   )
-}
+})
+
+QuestionItem.displayName = "QuestionItem"

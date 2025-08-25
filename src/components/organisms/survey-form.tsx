@@ -6,11 +6,7 @@ import { Stepper } from "@/components/molecules/stepper"
 import { SurveyResult, useSurveyStore } from "@/store/survey-store"
 import { useToast } from "@/hooks/use-toast"
 import { useUserStore } from "@/store/user-store.tsx"
-import {
-  SURVEY_QUESTIONS,
-  SurveyDimension,
-  SurveyQuestion,
-} from "@/lib/survey-questions"
+import type { SurveyDimension, SurveyQuestion } from "@/lib/survey-questions"
 import { Combobox } from "../ui/combobox"
 import { HOSPITAL_UNITS } from "@/lib/constants"
 import dynamic from "next/dynamic"
@@ -20,35 +16,7 @@ type Answers = Record<string, string> // { "A1": "sangat_setuju", "A2": "setuju"
 
 // --- Struktur & Konten Formulir ---
 
-// Mengelompokkan pertanyaan berdasarkan dimensi
-const dimensions: {
-  id: SurveyDimension
-  title: string
-  questions: SurveyQuestion[]
-}[] = Object.entries(
-  SURVEY_QUESTIONS.reduce(
-    (acc, q) => {
-      if (!acc[q.dimension]) {
-        acc[q.dimension] = []
-      }
-      acc[q.dimension].push(q)
-      return acc
-    },
-    {} as Record<SurveyDimension, SurveyQuestion[]>
-  )
-).map(([dimension, questions]) => ({
-  id: dimension as SurveyDimension,
-  title: questions[0].dimension, // Ambil judul dari pertanyaan pertama
-  questions,
-}))
-
-const steps = [
-  { id: "01", name: "Unit Kerja" },
-  ...dimensions.map((dim, index) => ({
-    id: (index + 2).toString().padStart(2, "0"),
-    name: dim.title,
-  })),
-]
+const INITIAL_STEPS = [{ id: "01", name: "Unit Kerja" }]
 
 const SurveyStep = dynamic(() => import("./survey-step"))
 
@@ -63,6 +31,12 @@ type SurveyFormProps = {
 
 export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
   const [currentStep, setCurrentStep] = React.useState(0)
+  const [steps, setSteps] = React.useState(INITIAL_STEPS)
+  const [dimensions, setDimensions] = React.useState<
+    { id: SurveyDimension; title: string; questions: SurveyQuestion[] }[]
+  >([])
+  const [questions, setQuestions] = React.useState<SurveyQuestion[]>([])
+  const [loadingQuestions, setLoadingQuestions] = React.useState(false)
   const [answers, setAnswers] = React.useState<Answers>(
     () => survey?.answers ?? {}
   )
@@ -72,8 +46,45 @@ export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
   const { currentUser } = useUserStore()
   const isEdit = !!survey
 
-  const next = () =>
+  const loadQuestions = React.useCallback(async () => {
+    setLoadingQuestions(true)
+    const { SURVEY_QUESTIONS } = await import("@/lib/survey-questions")
+    setQuestions(SURVEY_QUESTIONS)
+
+    const grouped = Object.entries(
+      SURVEY_QUESTIONS.reduce(
+        (acc, q) => {
+          if (!acc[q.dimension]) {
+            acc[q.dimension] = []
+          }
+          acc[q.dimension].push(q)
+          return acc
+        },
+        {} as Record<SurveyDimension, SurveyQuestion[]>
+      )
+    ).map(([dimension, qs]) => ({
+      id: dimension as SurveyDimension,
+      title: qs[0].dimension,
+      questions: qs,
+    }))
+
+    setDimensions(grouped)
+    setSteps([
+      { id: "01", name: "Unit Kerja" },
+      ...grouped.map((dim, index) => ({
+        id: (index + 2).toString().padStart(2, "0"),
+        name: dim.title,
+      })),
+    ])
+    setLoadingQuestions(false)
+  }, [])
+
+  const next = async () => {
+    if (currentStep === 0 && steps.length === 1) {
+      await loadQuestions()
+    }
     setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev))
+  }
   const prev = () => setCurrentStep((prev) => (prev > 0 ? prev - 1 : prev))
 
   const handleAnswerChange = (questionId: string, value: string) => {
@@ -85,7 +96,7 @@ export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
     let totalPositive = 0
     let totalNeutral = 0
     let totalNegative = 0
-    const totalQuestions = SURVEY_QUESTIONS.length
+    const totalQuestions = questions.length
 
     const scoresByDimension: Record<
       string,
@@ -98,7 +109,7 @@ export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
       }
     > = {}
 
-    SURVEY_QUESTIONS.forEach((q) => {
+    questions.forEach((q) => {
       const answer = answers[q.id]
       if (!answer) return // Lewati jika tidak dijawab
 
@@ -198,7 +209,21 @@ export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
     }
   }, [currentUser, survey])
 
+  React.useEffect(() => {
+    if (survey) {
+      loadQuestions()
+    }
+  }, [survey, loadQuestions])
+
   const renderStepContent = () => {
+    if (loadingQuestions) {
+      return (
+        <div className="flex h-full items-center justify-center">
+          <p>Memuat pertanyaan...</p>
+        </div>
+      )
+    }
+
     if (currentStep === 0) {
       return (
         <div className="space-y-4">

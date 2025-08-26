@@ -4,6 +4,7 @@ import * as React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Download, PlusCircle } from "lucide-react"
+import Link from "next/link"
 import { SurveyTable } from "@/components/organisms/survey-table"
 import { SurveyDialog } from "@/components/organisms/survey-dialog"
 import { ReportPreviewDialog } from "@/components/organisms/report-preview-dialog"
@@ -76,21 +77,21 @@ export default function SurveysPage() {
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="lg" onClick={handlePreview} disabled={surveys.length === 0}>
-                  <Download className="mr-2 h-5 w-5" />
-                  Unduh Laporan
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={handlePreview}
+                disabled={surveys.length === 0}
+              >
+                <Download className="mr-2 h-5 w-5" />
+                Unduh Laporan
               </Button>
-              <SurveyDialog
-                open={isSurveyDialogOpen}
-                onOpenChange={handleDialogChange}
-                survey={editingSurvey}
-                trigger={
-                  <Button size="lg">
-                    <PlusCircle className="mr-2 h-5 w-5" />
-                    Isi Survei Baru
-                  </Button>
-                }
-              />
+              <Link href="/dashboard/surveys/new">
+                <Button size="lg">
+                  <PlusCircle className="mr-2 h-5 w-5" />
+                  Isi Survei Baru
+                </Button>
+              </Link>
             </div>
           </div>
         </CardHeader>
@@ -99,6 +100,11 @@ export default function SurveysPage() {
         </CardContent>
       </Card>
       <ReportPreviewDialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen} csvData={csvData} onDownload={downloadCSV} />
+      <SurveyDialog
+        open={isSurveyDialogOpen}
+        onOpenChange={handleDialogChange}
+        survey={editingSurvey}
+      />
     </div>
   );
 }

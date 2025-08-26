@@ -21,6 +21,7 @@ interface ReportPreviewDialogProps {
   barChart?: React.ReactNode
   analysisTable?: React.ReactNode
   children?: React.ReactNode
+  exportAsPdf?: boolean
 }
 
 export function ReportPreviewDialog({
@@ -36,7 +37,8 @@ export function ReportPreviewDialog({
   lineChart,
   barChart,
   analysisTable,
-  children
+  children,
+  exportAsPdf,
 }: ReportPreviewDialogProps) {
   const table = useReactTable({
     data: data || [],
@@ -44,8 +46,23 @@ export function ReportPreviewDialog({
     getCoreRowModel: getCoreRowModel(),
   })
 
+  const contentRef = React.useRef<HTMLDivElement>(null)
+
 
   const handleDownload = React.useCallback(() => {
+    if (exportAsPdf) {
+      const content = contentRef.current
+      if (!content) return
+      const printWindow = window.open("", "", "width=800,height=600")
+      if (!printWindow) return
+      printWindow.document.write(`<!DOCTYPE html><html><head><title>${title ?? "Laporan"}</title><style>body{font-family:sans-serif;padding:16px;font-size:14px;}h1,h2{font-size:20px;margin-bottom:12px;}table{width:100%;border-collapse:collapse;margin-top:16px;}th,td{border:1px solid #ccc;padding:8px;text-align:left;}</style></head><body>${content.innerHTML}</body></html>`)
+      printWindow.document.close()
+      printWindow.focus()
+      printWindow.print()
+      printWindow.close()
+      return
+    }
+
     if (csvData && onDownload) {
       onDownload()
       return
@@ -138,70 +155,70 @@ export function ReportPreviewDialog({
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
-  }, [csvData, onDownload, data, title])
+  }, [exportAsPdf, csvData, onDownload, data, title])
 
   const showDownload = !!csvData || (data && data.length > 0)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-auto">
-        <DialogHeader>
-          {title && <DialogTitle>{title}</DialogTitle>}
-          {(description || chartDescription) && (
-            <DialogDescription>{description || chartDescription}</DialogDescription>
-          )}
-        </DialogHeader>
-        {csvData ? (
-          <div className="max-h-[60vh] overflow-auto rounded border bg-muted p-4">
-            <pre className="whitespace-pre-wrap text-xs">{csvData}</pre>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {lineChart}
-            {barChart}
-            {analysisTable}
-            {table.getRowModel().rows.length > 0 && (
-              <div className="max-h-[60vh] overflow-auto rounded border">
-                <Table>
-                  <TableHeader>
-                    {table.getHeaderGroups().map((headerGroup) => (
-                      <TableRow key={headerGroup.id}>
-                        <TableHead>No</TableHead>
-                        {headerGroup.headers.map((header) => (
-                          <TableHead key={header.id}>
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(header.column.columnDef.header, header.getContext())}
-                          </TableHead>
-                        ))}
-                      </TableRow>
-                    ))}
-                  </TableHeader>
-                  <TableBody>
-                    {table.getRowModel().rows.map((row, i) => (
-                      <TableRow key={row.id}>
-                        <TableCell>{i + 1}</TableCell>
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id}>
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+        <div ref={contentRef}>
+          <DialogHeader>
+            {title && <DialogTitle>{title}</DialogTitle>}
+            {(description || chartDescription) && (
+              <DialogDescription>{description || chartDescription}</DialogDescription>
             )}
-            {children}
-          </div>
-        )}
+          </DialogHeader>
+          {csvData ? (
+            <div className="max-h-[60vh] overflow-auto rounded border bg-muted p-4">
+              <pre className="whitespace-pre-wrap text-xs">{csvData}</pre>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {analysisTable}
+              {lineChart}
+              {barChart}
+              {table.getRowModel().rows.length > 0 && (
+                <div className="max-h-[60vh] overflow-auto rounded border">
+                  <Table>
+                    <TableHeader>
+                      {table.getHeaderGroups().map((headerGroup) => (
+                        <TableRow key={headerGroup.id}>
+                          <TableHead>No</TableHead>
+                          {headerGroup.headers.map((header) => (
+                            <TableHead key={header.id}>
+                              {header.isPlaceholder
+                                ? null
+                                : flexRender(header.column.columnDef.header, header.getContext())}
+                            </TableHead>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </TableHeader>
+                    <TableBody>
+                      {table.getRowModel().rows.map((row, i) => (
+                        <TableRow key={row.id}>
+                          <TableCell>{i + 1}</TableCell>
+                          {row.getVisibleCells().map((cell) => (
+                            <TableCell key={cell.id}>
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+              {children}
+            </div>
+          )}
+        </div>
         <div className="flex justify-end gap-2 pt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Tutup
           </Button>
-          {showDownload && (
-            <Button onClick={handleDownload}>Unduh</Button>
-          )}
+          {showDownload && <Button onClick={handleDownload}>Unduh</Button>}
         </div>
       </DialogContent>
     </Dialog>

@@ -200,6 +200,7 @@ export default function SurveysPage() {
         lineChart={lineChart}
         barChart={barChart}
         analysisTable={analysisTable}
+        exportAsPdf
       />
       <SurveyDialog
         open={isSurveyDialogOpen}

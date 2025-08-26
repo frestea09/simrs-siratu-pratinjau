@@ -2,7 +2,7 @@
 
 import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
-import { shallow } from "zustand/shallow"
+import { useShallow } from "zustand/react/shallow"
 import React, { createContext, useContext, useRef } from "react"
 import type { User, UserRole } from "./user-store.tsx"
 
@@ -149,5 +149,8 @@ export function useNotificationStore<T = NotificationState>(
       "useNotificationStore must be used within a NotificationStoreProvider"
     )
   }
-  return store(selector ?? ((s) => s as unknown as T), shallow)
+  const wrappedSelector = useShallow(
+    selector ?? ((s: NotificationState) => s as unknown as T)
+  )
+  return store(wrappedSelector)
 }

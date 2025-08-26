@@ -80,10 +80,17 @@ export default function SurveysPage() {
                   <Download className="mr-2 h-5 w-5" />
                   Unduh Laporan
               </Button>
-              <Button size="lg" onClick={() => setIsSurveyDialogOpen(true)}>
-                  <PlusCircle className="mr-2 h-5 w-5" />
-                  Isi Survei Baru
-              </Button>
+              <SurveyDialog
+                open={isSurveyDialogOpen}
+                onOpenChange={handleDialogChange}
+                survey={editingSurvey}
+                trigger={
+                  <Button size="lg">
+                    <PlusCircle className="mr-2 h-5 w-5" />
+                    Isi Survei Baru
+                  </Button>
+                }
+              />
             </div>
           </div>
         </CardHeader>
@@ -91,7 +98,6 @@ export default function SurveysPage() {
           <SurveyTable surveys={surveys} onEdit={(s) => { setEditingSurvey(s); setIsSurveyDialogOpen(true); }} />
         </CardContent>
       </Card>
-      <SurveyDialog open={isSurveyDialogOpen} onOpenChange={handleDialogChange} survey={editingSurvey} />
       <ReportPreviewDialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen} csvData={csvData} onDownload={downloadCSV} />
     </div>
   );

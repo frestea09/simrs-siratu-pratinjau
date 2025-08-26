@@ -58,11 +58,12 @@ const unitOptions = HOSPITAL_UNITS.map((unit) => ({ value: unit, label: unit }))
 // --- Komponen Formulir Utama ---
 
 type SurveyFormProps = {
-  setOpen: (open: boolean) => void
   survey?: SurveyResult
+  onCancel?: () => void
+  onSuccess?: () => void
 }
 
-export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
+export function SurveyForm({ survey, onCancel, onSuccess }: SurveyFormProps) {
   const [currentStep, setCurrentStep] = React.useState(0)
   const [answers, setAnswers] = React.useState<Answers>(
     () => survey?.answers ?? {}
@@ -193,7 +194,7 @@ export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
           "Terima kasih atas partisipasi Anda dalam meningkatkan budaya keselamatan pasien.",
       })
     }
-    setOpen(false)
+    onSuccess?.()
   }
 
   React.useEffect(() => {
@@ -231,7 +232,13 @@ export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
         </div>
         <div className="mt-5 flex items-center justify-between border-t pt-5">
           <div>
-            {currentStep > 0 && (
+            {currentStep === 0 ? (
+              onCancel && (
+                <Button variant="outline" onClick={onCancel}>
+                  Batal
+                </Button>
+              )
+            ) : (
               <Button variant="outline" onClick={prev}>
                 Kembali
               </Button>
@@ -239,10 +246,10 @@ export function SurveyForm({ setOpen, survey }: SurveyFormProps) {
           </div>
           <div>
             {currentStep < steps.length - 1 ? (
-              <Button onClick={next}>Lanjutkan</Button>
+              <Button onClick={next}>Lanjut</Button>
             ) : (
               <Button onClick={handleSave} size="lg">
-                Selesai & Simpan Survei
+                Simpan Survei
               </Button>
             )}
           </div>

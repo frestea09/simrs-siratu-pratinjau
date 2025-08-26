@@ -25,7 +25,11 @@ export function SurveyDialog({ open, onOpenChange, survey, trigger }: SurveyDial
             {isEdit ? 'Perbarui jawaban survei sesuai kebutuhan.' : 'Isi semua pertanyaan sesuai dengan opini Anda. Survei ini bersifat anonim.'}
           </DialogDescription>
         </DialogHeader>
-        <SurveyForm setOpen={onOpenChange} survey={survey ?? undefined} />
+        <SurveyForm
+          survey={survey ?? undefined}
+          onCancel={() => onOpenChange(false)}
+          onSuccess={() => onOpenChange(false)}
+        />
       </DialogContent>
     </Dialog>
   )

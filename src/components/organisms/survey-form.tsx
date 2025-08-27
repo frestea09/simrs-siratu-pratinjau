@@ -45,6 +45,7 @@ const dimensions: {
   questions,
 }))
 
+// Membuat langkah-langkah untuk Stepper
 const steps = [
   { id: "01", name: "Unit Kerja" },
   ...dimensions.map((dim, index) => ({
@@ -52,6 +53,15 @@ const steps = [
     name: dim.title,
   })),
 ]
+
+// Menghitung nomor awal untuk setiap langkah/dimensi
+const stepStartQuestionNumber: number[] = [1]; // Step 0 (Unit) tidak punya pertanyaan
+let currentQuestionNumber = 1;
+dimensions.forEach(dim => {
+    stepStartQuestionNumber.push(currentQuestionNumber);
+    currentQuestionNumber += dim.questions.length;
+});
+
 
 const unitOptions = HOSPITAL_UNITS.map((unit) => ({ value: unit, label: unit }))
 
@@ -214,7 +224,7 @@ export function SurveyForm({ survey, onCancel, onSuccess }: SurveyFormProps) {
         dimension={dimension}
         answers={answers}
         onChange={handleAnswerChange}
-        startNumber={(currentStep - 1) * 5 + 1}
+        startNumber={stepStartQuestionNumber[currentStep]}
       />
     )
   }, [answers, currentStep, handleAnswerChange, unit])

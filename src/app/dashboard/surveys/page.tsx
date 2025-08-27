@@ -1,7 +1,13 @@
 "use client"
 
 import * as React from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Download, PlusCircle } from "lucide-react"
 import Link from "next/link"
@@ -21,6 +27,7 @@ import {
   YAxis,
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
+  Legend,
 } from "recharts"
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table"
 
@@ -74,13 +81,13 @@ export default function SurveysPage() {
     return Object.entries(map)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([date, { total, count }]) => ({
-        date,
-        score: Number((total / count).toFixed(2)),
+        date: format(new Date(date), "dd MMM"),
+        "Skor Rata-rata": Number((total / count).toFixed(2)),
       }))
   }, [surveys])
 
   const barChartData = React.useMemo(
-    () => unitSummary.map((u) => ({ unit: u.unit, count: u.count })),
+    () => unitSummary.map((u) => ({ unit: u.unit, "Jumlah Responden": u.count })),
     [unitSummary]
   )
 
@@ -88,31 +95,46 @@ export default function SurveysPage() {
     lineChartData.length > 0 ? (
       <div style={{ width: "100%", height: 300 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={lineChartData}>
+          <LineChart data={lineChartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="date" />
             <YAxis domain={[0, 5]} />
             <RechartsTooltip />
-            <Line type="monotone" dataKey="score" stroke="#8884d8" strokeWidth={2} />
+            <Legend />
+            <Line
+              type="monotone"
+              dataKey="Skor Rata-rata"
+              stroke="hsl(var(--primary))"
+              strokeWidth={2}
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>
-    ) : undefined
+    ) : (
+      <div className="flex h-[300px] items-center justify-center text-muted-foreground">
+        Belum ada data untuk menampilkan grafik tren skor.
+      </div>
+    )
 
   const barChart =
     barChartData.length > 0 ? (
       <div style={{ width: "100%", height: 300 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={barChartData}>
+          <BarChart data={barChartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="unit" />
+            <XAxis dataKey="unit" angle={-45} textAnchor="end" height={60} />
             <YAxis allowDecimals={false} />
             <RechartsTooltip />
-            <Bar dataKey="count" fill="hsl(var(--chart-1))" />
+            <Legend />
+            <Bar dataKey="Jumlah Responden" fill="hsl(var(--chart-1))" />
           </BarChart>
         </ResponsiveContainer>
       </div>
-    ) : undefined
+    ) : (
+       <div className="flex h-[300px] items-center justify-center text-muted-foreground">
+        Belum ada data untuk menampilkan grafik jumlah responden.
+      </div>
+    )
 
   const overallAverage = React.useMemo(() => {
     if (surveys.length === 0) return 0
@@ -124,12 +146,12 @@ export default function SurveysPage() {
       <Table>
         <TableBody>
           <TableRow>
-            <TableCell className="font-medium">Total Survei</TableCell>
-            <TableCell>{surveys.length}</TableCell>
+            <TableCell className="font-medium">Total Survei Diterima</TableCell>
+            <TableCell className="text-right">{surveys.length}</TableCell>
           </TableRow>
           <TableRow>
-            <TableCell className="font-medium">Rata-rata Skor</TableCell>
-            <TableCell>{overallAverage.toFixed(2)}</TableCell>
+            <TableCell className="font-medium">Skor Rata-rata Keseluruhan</TableCell>
+            <TableCell className="text-right">{overallAverage.toFixed(2)} dari 5.00</TableCell>
           </TableRow>
         </TableBody>
       </Table>
@@ -152,6 +174,33 @@ export default function SurveysPage() {
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">Survei Budaya Keselamatan</h2>
       </div>
+
+       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+          <Card className="col-span-full lg:col-span-4">
+            <CardHeader>
+              <CardTitle>Tren Skor Rata-rata</CardTitle>
+              <CardDescription>
+                Grafik ini menunjukkan tren skor rata-rata dari semua survei yang masuk dari waktu ke waktu.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {lineChart}
+            </CardContent>
+          </Card>
+          <Card className="col-span-full lg:col-span-3">
+            <CardHeader>
+              <CardTitle>Jumlah Responden per Unit</CardTitle>
+              <CardDescription>
+                Grafik ini menampilkan jumlah partisipasi survei dari masing-masing unit kerja.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {barChart}
+            </CardContent>
+          </Card>
+        </div>
+
+
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -195,12 +244,11 @@ export default function SurveysPage() {
         onOpenChange={setIsPreviewOpen}
         data={unitSummary}
         columns={reportColumns}
-        title="Ringkasan Hasil Survei"
-        description="Bagian ini menunjukkan jumlah survei dan nilai rata-rata di tiap unit. Grafik di bawah memudahkan membaca hasilnya."
+        title="Ringkasan Hasil Survei Budaya Keselamatan Pasien"
+        description="Laporan ini berisi ringkasan data, visualisasi tren, dan data tabular dari hasil survei yang telah dikumpulkan."
         lineChart={lineChart}
         barChart={barChart}
         analysisTable={analysisTable}
-        exportAsPdf
       />
       <SurveyDialog
         open={isSurveyDialogOpen}

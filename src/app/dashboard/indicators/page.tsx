@@ -49,10 +49,9 @@ export default function IndicatorsPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Pengajuan Indikator (INM, IMP-RS, IMPU, SPM)</CardTitle>
+              <CardTitle>Pengajuan Indikator Mutu</CardTitle>
               <CardDescription>
-                Daftar semua indikator yang telah diajukan beserta status
-                verifikasinya.
+                Ajukan, kelola, dan lihat status verifikasi semua indikator (INM, IMP-RS, IMPU, SPM) di sini.
                 {currentUser?.unit &&
                   !userCanSeeAll &&
                   ` (Hanya menampilkan untuk Unit: ${currentUser.unit})`}

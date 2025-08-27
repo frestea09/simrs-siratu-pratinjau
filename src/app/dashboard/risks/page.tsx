@@ -57,7 +57,7 @@ export default function RisksPage() {
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-            <h2 className="text-3xl font-bold tracking-tight">Register Risiko</h2>
+            <h2 className="text-3xl font-bold tracking-tight">Manajemen Risiko</h2>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                  <Card>
@@ -150,9 +150,9 @@ export default function RisksPage() {
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div>
-                        <CardTitle>Daftar Risiko Teridentifikasi</CardTitle>
+                        <CardTitle>Register Risiko</CardTitle>
                         <CardDescription>
-                            Kelola semua risiko yang telah diidentifikasi di seluruh unit kerja.
+                            Kelola dan monitor semua risiko yang telah diidentifikasi di seluruh unit kerja.
                         </CardDescription>
                         </div>
                         <div className="flex items-center gap-2">

@@ -78,22 +78,24 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background">
       <Card className="mx-auto w-full max-w-sm">
         <CardHeader>
-          <div className="mb-4 flex items-center justify-center">
+          <div className="mb-4 flex items-center justify-center gap-3">
             <Image
-              className="h-8 w-8 text-primary"
+              className="h-10 w-10 text-primary"
               src={favicon}
               alt="logorsud"
             />
-            <CardTitle className="text-2xl">SIRATU</CardTitle>
+            <div>
+              <CardTitle className="text-2xl">Selamat Datang di SIRATU</CardTitle>
+              <CardDescription>
+                Sistem Informasi Rapor Mutu RSUD Oto Iskandar Dinata
+              </CardDescription>
+            </div>
           </div>
-          <CardDescription>
-            Sistem Informasi Rapor Mutu - RSUD Oto Iskandar Dinata
-          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email Pengguna</Label>
               <Input
                 id="email"
                 name="email"
@@ -107,12 +109,6 @@ export default function LoginPage() {
             <div className="grid gap-2">
               <div className="flex items-center">
                 <Label htmlFor="password">Password</Label>
-                <Link
-                  href="#"
-                  className="ml-auto inline-block text-sm underline"
-                >
-                  Lupa password?
-                </Link>
               </div>
               <div className="relative">
                 <Input
@@ -143,7 +139,7 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full" disabled={isLoading} size="lg">
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isLoading ? "Memproses..." : "Login"}
             </Button>
@@ -151,7 +147,7 @@ export default function LoginPage() {
           {users.length > 0 && (
             <Alert className="mt-4">
                 <Users className="h-4 w-4" />
-                <AlertTitle>Akun Demo</AlertTitle>
+                <AlertTitle>Akun Demo (untuk coba-coba)</AlertTitle>
                 <AlertDescription>
                 <ul className="mt-2 list-disc space-y-1 pl-5 text-xs">
                     {users.map((user: any) => (

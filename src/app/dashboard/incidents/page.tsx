@@ -195,7 +195,7 @@ export default function IncidentsPage() {
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">
-          Manajemen Insiden Keselamatan
+          Insiden Keselamatan Pasien
         </h2>
         {!canViewIncidents && <AddNewButton />}
       </div>
@@ -239,7 +239,7 @@ export default function IncidentsPage() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>Dashboard Insiden</CardTitle>
+              <CardTitle>Grafik Tren Insiden</CardTitle>
               <CardDescription>
                 {getFilterDescription(filterType, selectedDate)}
               </CardDescription>
@@ -261,9 +261,9 @@ export default function IncidentsPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Laporan Insiden</CardTitle>
+                  <CardTitle>Daftar Laporan Insiden</CardTitle>
                   <CardDescription>
-                    Daftar insiden keselamatan yang dilaporkan.
+                    Kelola dan investigasi semua insiden keselamatan yang telah dilaporkan.
                   </CardDescription>
                 </div>
                 <AddNewButton />
@@ -286,7 +286,7 @@ export default function IncidentsPage() {
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>Pelaporan Insiden</CardTitle>
+            <CardTitle>Pelaporan Insiden Anonim</CardTitle>
             <CardDescription>
               Gunakan tombol di pojok kanan atas untuk melaporkan insiden baru
               secara anonim.

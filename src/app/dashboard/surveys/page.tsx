@@ -156,9 +156,9 @@ export default function SurveysPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Laporan Hasil Survei</CardTitle>
+              <CardTitle>Hasil Survei Budaya Keselamatan</CardTitle>
               <CardDescription>
-                Tabel dan grafik ringkas untuk membantu semua orang memahami hasil survei.
+                Lihat ringkasan dan hasil dari semua survei yang telah diisi oleh staf.
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">

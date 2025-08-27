@@ -65,10 +65,10 @@ const navItems: NavItemType[] = [
   {
     href: "/dashboard/overview",
     icon: LayoutDashboard,
-    label: "Dashboard",
+    label: "Ringkasan Dasbor",
   },
   {
-    label: "Layanan",
+    label: "Peningkatan Mutu",
     icon: HeartPulse,
     subItems: [
       {
@@ -77,7 +77,7 @@ const navItems: NavItemType[] = [
         label: "Manajemen Indikator",
       },
       {
-        label: "Indikator Mutu",
+        label: "Dasbor Indikator",
         icon: Activity,
         subItems: [
           { href: "/dashboard/spm", icon: ListChecks, label: "SPM" },
@@ -91,11 +91,11 @@ const navItems: NavItemType[] = [
         icon: ShieldAlert,
         label: "Insiden Keselamatan",
       },
-      { href: "/dashboard/reports", icon: FileText, label: "Laporan" },
+      { href: "/dashboard/reports", icon: FileText, label: "Laporan Tahunan" },
     ],
   },
   {
-    label: "Manajemen",
+    label: "Manajemen Pendukung",
     icon: ClipboardCheck,
     subItems: [
       {
@@ -115,8 +115,8 @@ const adminNavItems: NavItemType[] = [
     subItems: [
       { href: "/dashboard/notifications", icon: Bell, label: "Notifikasi" },
       { href: "/dashboard/users", icon: Users, label: "Manajemen Pengguna" },
-      { href: "/dashboard/logs", icon: History, label: "Log Sistem" },
-      { href: "/dashboard/settings", icon: Settings, label: "Pengaturan" },
+      { href: "/dashboard/logs", icon: History, label: "Log Aktivitas" },
+      { href: "/dashboard/settings", icon: Settings, label: "Pengaturan Akun" },
     ],
   },
 ];
@@ -243,7 +243,7 @@ export default function DashboardClientLayout({
             <div className="flex items-center w-full py-3">
               <SidebarTrigger className="md:hidden" />
               <h1 className="text-3xl font-bold flex-1">
-                {currentPage?.label || "Dashboard"}
+                {currentPage?.label || "Ringkasan Dasbor"}
               </h1>
               <div className="ml-auto flex items-center gap-2">
                 <NotificationPopover />

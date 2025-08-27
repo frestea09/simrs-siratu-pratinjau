@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import * as React from "react"
@@ -157,9 +156,14 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
             description: `Pengajuan untuk "${submissionData.name}" telah berhasil diperbarui.`,
         })
     } else {
+        const autoStatus: SubmittedIndicator['status'] = ['INM', 'IMP-RS', 'SPM'].includes(submissionData.category)
+          ? 'Diverifikasi'
+          : 'Menunggu Persetujuan';
+
         const newId = await submitIndicator({
             ...(submissionData as any),
             submittedById: currentUser?.id || '',
+            status: autoStatus,
         })
         addLog({
             user: currentUser?.name || "System",

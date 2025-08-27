@@ -1,6 +1,8 @@
+
 "use client"
 
 import { create } from "zustand"
+import { formatChronology } from "@/lib/utils"
 
 export type IncidentStatus = "Investigasi" | "Selesai"
 
@@ -48,45 +50,37 @@ export const useIncidentStore = create<IncidentState>((set) => ({
   incidents: [],
 
   fetchIncidents: async () => {
-    const res = await fetch("/api/incidents")
-    if (!res.ok) return
-    const data = await res.json()
-    set({ incidents: data.incidents })
+    // No-op, data is now managed in the store
   },
 
-  addIncident: async (incident) => {
-    const res = await fetch("/api/incidents", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(incident),
-    })
-    const data = await res.json().catch(() => null)
-    if (!res.ok) {
-      throw new Error(data?.error || "Failed to add incident")
+  addIncident: async (incidentData) => {
+    const newIncident: Incident = {
+      ...incidentData,
+      id: `INC-${Date.now()}`,
+      date: new Date().toISOString(),
+      status: "Investigasi",
+      chronology: incidentData.chronology ? formatChronology(incidentData.chronology) : undefined,
     }
-    set((state) => ({ incidents: [data.incident, ...state.incidents] }))
-    return data.incident.id
+    set((state) => ({ incidents: [newIncident, ...state.incidents] }))
+    return newIncident.id
   },
 
   updateIncident: async (id, incidentData) => {
-    await fetch(`/api/incidents/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(incidentData),
-    })
     set((state) => ({
-      incidents: state.incidents.map((inc) =>
-        inc.id === id ? { ...inc, ...incidentData } : inc
-      ),
+      incidents: state.incidents.map((inc) => {
+        if (inc.id === id) {
+          const updatedData = { ...inc, ...incidentData };
+          if (incidentData.chronology !== undefined) {
+            updatedData.chronology = formatChronology(incidentData.chronology);
+          }
+          return updatedData;
+        }
+        return inc;
+      }),
     }))
   },
 
   updateIncidentStatus: async (id, status) => {
-    await fetch(`/api/incidents/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status }),
-    })
     set((state) => ({
       incidents: state.incidents.map((inc) =>
         inc.id === id ? { ...inc, status } : inc
@@ -95,10 +89,8 @@ export const useIncidentStore = create<IncidentState>((set) => ({
   },
 
   removeIncident: async (id) => {
-    await fetch(`/api/incidents/${id}`, { method: "DELETE" })
     set((state) => ({
       incidents: state.incidents.filter((inc) => inc.id !== id),
     }))
   },
 }))
-

@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -34,7 +35,6 @@ import { getFilterRange, getFilterDescription, FilterType } from "@/lib/indicato
 export default function IncidentsPage() {
   const { currentUser } = useUserStore()
   const incidents = useIncidentStore((state) => state.incidents)
-  const fetchIncidents = useIncidentStore((state) => state.fetchIncidents)
   const [isNewDialogOpen, setIsNewDialogOpen] = React.useState(false)
   const [selectedType, setSelectedType] = React.useState<string>("Semua")
   const [filterType, setFilterType] = React.useState<FilterType>("this_month")
@@ -42,10 +42,6 @@ export default function IncidentsPage() {
   const [chartType, setChartType] = React.useState<"line" | "bar">("line")
   const [selectedRiskType, setSelectedRiskType] = React.useState<string>("Semua")
   const [selectedRiskLevel, setSelectedRiskLevel] = React.useState<string>("Semua")
-
-  React.useEffect(() => {
-    fetchIncidents()
-  }, [fetchIncidents])
 
   const dashboardRoles = [
     "Direktur",

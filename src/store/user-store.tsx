@@ -1,20 +1,9 @@
+
 "use client"
 
 import { create } from "zustand"
 import React, { createContext, useContext, useEffect, useRef } from "react"
 import { useNotificationStore } from "./notification-store"
-import type { UserRole as DbUserRole } from "@prisma/client"
-
-const roleMap: Record<DbUserRole, UserRole> = {
-  ADMIN_SISTEM: "Admin Sistem",
-  PIC_MUTU: "PIC Mutu",
-  PJ_RUANGAN: "PJ Ruangan",
-  KEPALA_UNIT_INSTALASI: "Kepala Unit/Instalasi",
-  DIREKTUR: "Direktur",
-  SUB_KOMITE_PENINGKATAN_MUTU: "Sub. Komite Peningkatan Mutu",
-  SUB_KOMITE_KESELAMATAN_PASIEN: "Sub. Komite Keselamatan Pasien",
-  SUB_KOMITE_MANAJEMEN_RISIKO: "Sub. Komite Manajemen Risiko",
-}
 
 export type UserRole =
   | "Admin Sistem"
@@ -35,51 +24,41 @@ export type User = {
   unit?: string
 }
 
+const initialUsers: Omit<User, 'id'>[] = [
+    { name: "Admin Sistem", email: "admin@sim.rs", password: "123456", role: "Admin Sistem" },
+    { name: "Delina (PIC Mutu)", email: "delina@sim.rs", password: "123456", role: "PIC Mutu", unit: "PPI" },
+    { name: "Deti (PJ Ruangan)", email: "deti@sim.rs", password: "123456", role: "PJ Ruangan", unit: "RANAP" },
+    { name: "Devin (Keselamatan Pasien)", email: "devin@sim.rs", password: "123456", role: "Sub. Komite Keselamatan Pasien" },
+    { name: "Deka (Kepala Unit)", email: "deka@sim.rs", password: "123456", role: "Kepala Unit/Instalasi", unit: "IGD" },
+    { name: "Dr. Direktur", email: "dir@sim.rs", password: "123456", role: "Direktur" },
+    { name: "Dion (Peningkatan Mutu)", email: "dion@sim.rs", password: "123456", role: "Sub. Komite Peningkatan Mutu" },
+    { name: "Dara (Manajemen Risiko)", email: "dara@sim.rs", password: "123456", role: "Sub. Komite Manajemen Risiko" },
+];
+
+
 type UserState = {
   users: User[]
   currentUser: User | null
-  fetchUsers: () => Promise<void>
+  fetchUsers: () => Promise<void> // Kept for potential future API integration
   fetchCurrentUser: () => Promise<void>
   addUser: (user: Omit<User, "id">) => string
   updateUser: (id: string, data: Partial<Omit<User, "id">>) => void
   removeUser: (id: string) => void
-  setCurrentUser: (user: User) => void
+  setCurrentUser: (user: User | null) => void
   clearCurrentUser: () => void
 }
 
 const createUserStore = () =>
   create<UserState>()((set, get) => ({
-    users: [],
+    users: initialUsers.map((u, i) => ({...u, id: `user-${i+1}`})),
     currentUser: null,
     fetchUsers: async () => {
-      const res = await fetch("/api/users")
-      if (res.ok) {
-        const data = await res.json()
-        set({ users: data.users })
-      }
+      // This is now a no-op but kept for architecture consistency
     },
     fetchCurrentUser: async () => {
-      try {
-        const res = await fetch("/api/session")
-        if (res.ok) {
-          const data = await res.json()
-          if (data.user) {
-            set({
-              currentUser: {
-                id: data.user.id,
-                name: data.user.name,
-                email: data.user.email,
-                role: roleMap[data.user.role as DbUserRole],
-                unit: data.user.unit ?? undefined,
-              },
-            })
-          } else {
-            set({ currentUser: null })
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch current user", error)
-      }
+       // In a real app, this would fetch from a session endpoint.
+       // Here we just ensure it's null on initial load.
+       set({ currentUser: null });
     },
     addUser: (user) => {
       const newId = `user-${Date.now()}-${Math.random()}`
@@ -115,10 +94,10 @@ export const UserStoreProvider = ({
     storeRef.current = createUserStore()
   }
 
-  useEffect(() => {
-    storeRef.current?.getState().fetchUsers()
-    storeRef.current?.getState().fetchCurrentUser()
-  }, [])
+  // No initial fetch needed as data is in-memory
+  // useEffect(() => {
+  //   storeRef.current?.getState().fetchCurrentUser()
+  // }, [])
 
   return (
     <UserStoreContext.Provider value={storeRef.current}>
@@ -134,13 +113,11 @@ export const useUserStore = (): UserState => {
   }
 
   const userState = store((state) => state)
-  // Subscribe only to the setter to avoid re-render loops when notifications update
   const setNotificationsForUser = useNotificationStore(
     (state) => state.setNotificationsForUser
   )
 
   useEffect(() => {
-    // When the current user changes, re-filter the notifications
     setNotificationsForUser(userState.currentUser, userState.users)
   }, [userState.currentUser, userState.users, setNotificationsForUser])
 

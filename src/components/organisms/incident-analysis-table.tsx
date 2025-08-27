@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge"
 import { Incident } from "@/store/incident-store"
 import { format, parseISO } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
+import { formatChronology } from "@/lib/utils"
 
 const incidentTypeMap: { [key: string]: string } = {
     'KPC': 'Kondisi Potensial Cedera (KPC)', 'KNC': 'Kejadian Nyaris Cedera (KNC)',
@@ -27,19 +28,40 @@ const incidentTypeMap: { [key: string]: string } = {
     'Sentinel': 'Kejadian Sentinel',
 };
 
+const ChronologyList = ({ text }: { text: string }) => {
+    const steps = formatChronology(text)
+        .split("\n")
+        .filter(Boolean)
+
+    if (steps.length === 0) {
+        return <p className="text-sm text-muted-foreground">-</p>
+    }
+
+    return (
+        <ol className="list-decimal pl-4 space-y-1 text-sm">
+            {steps.map((step, index) => (
+                <li key={index} className="leading-relaxed">
+                    {step}
+                </li>
+            ))}
+        </ol>
+    )
+}
+
 const columns: ColumnDef<Incident>[] = [
     {
         accessorKey: "id",
-        header: "ID Insiden",
-        cell: ({ row }) => <div className="font-medium">{row.getValue("id")}</div>,
-    },
-    {
-        accessorKey: "type",
-        header: "Jenis Insiden",
+        header: "ID Insiden & Jenis",
         cell: ({ row }) => {
-            const type = row.getValue("type") as Incident['type'];
-            return <Badge variant="outline">{incidentTypeMap[type] || type}</Badge>;
-        }
+            const type = row.original.type;
+            return (
+                <div>
+                    <div className="font-medium">{row.original.id}</div>
+                     <Badge variant="outline">{incidentTypeMap[type] || type}</Badge>
+                </div>
+            )
+        },
+        size: 150
     },
     {
         accessorKey: "date",
@@ -48,16 +70,25 @@ const columns: ColumnDef<Incident>[] = [
             const dateValue = row.getValue("date") as string;
             return <div>{format(parseISO(dateValue), "d MMM yyyy", { locale: IndonesianLocale })}</div>
         },
+        size: 120
+    },
+    {
+        accessorKey: "chronology",
+        header: "Kronologis Insiden",
+        cell: ({ row }) => <ChronologyList text={row.getValue("chronology") || ""} />,
+        size: 300,
     },
     {
         accessorKey: "analysisNotes",
         header: "Catatan Analisis",
         cell: ({ row }) => <div className="text-sm whitespace-pre-wrap">{row.getValue("analysisNotes") || "-"}</div>,
+        size: 250,
     },
     {
         accessorKey: "followUpPlan",
         header: "Rencana Tindak Lanjut",
         cell: ({ row }) => <div className="text-sm whitespace-pre-wrap">{row.getValue("followUpPlan") || "-"}</div>,
+        size: 250,
     },
 ];
 
@@ -81,7 +112,7 @@ export function IncidentAnalysisTable({ data }: IncidentAnalysisTableProps) {
                 <TableRow key={headerGroup.id} className="bg-gray-100">
                 {headerGroup.headers.map((header) => {
                     return (
-                    <TableHead key={header.id} className="font-bold text-black">
+                    <TableHead key={header.id} className="font-bold text-black" style={{width: header.getSize() ? `${header.getSize()}px` : undefined}}>
                         {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                     </TableHead>
                     )

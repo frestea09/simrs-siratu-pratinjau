@@ -19,6 +19,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { Input } from "./input"
 
 type ComboboxProps = {
     options: { value: string; label: string }[];
@@ -27,42 +28,61 @@ type ComboboxProps = {
     onSelect: (value: string) => void;
     value?: string;
     disabled?: boolean;
+    id?: string;
 }
 
-export function Combobox({ options, placeholder, searchPlaceholder, onSelect, value, disabled = false }: ComboboxProps) {
+export function Combobox({ options, placeholder, searchPlaceholder, onSelect, value, disabled = false, id }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
+  const [inputValue, setInputValue] = React.useState(value || "")
+
+  React.useEffect(() => {
+    setInputValue(value || "")
+  }, [value])
+  
+  const handleSelect = (currentValue: string) => {
+    const selectedOption = options.find(opt => opt.value.toLowerCase() === currentValue.toLowerCase());
+    const finalValue = selectedOption ? selectedOption.value : currentValue;
+    onSelect(finalValue);
+    setInputValue(finalValue);
+    setOpen(false);
+  };
+
+  const handleManualInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+  }
+
+  const handleBlur = () => {
+    // To allow CommandItem onSelect to fire first, we delay the blur logic
+    setTimeout(() => {
+      onSelect(inputValue)
+    }, 100)
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between"
-          disabled={disabled}
-        >
-          {value
-            ? options.find((option) => option.value === value)?.label
-            : placeholder}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
+         <Input
+            id={id}
+            value={inputValue}
+            onChange={handleManualInput}
+            onFocus={() => setOpen(true)}
+            onBlur={handleBlur}
+            placeholder={placeholder}
+            className="w-full"
+            disabled={disabled}
+          />
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
         <Command>
           <CommandInput placeholder={searchPlaceholder} />
           <CommandList>
-            <CommandEmpty>Tidak ada hasil.</CommandEmpty>
+            <CommandEmpty>Tidak ada hasil. Anda bisa mengetik lokasi baru.</CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
                   value={option.value}
-                  onSelect={(currentValue) => {
-                    const selectedValue = options.find(opt => opt.label.toLowerCase() === currentValue)?.value || currentValue;
-                    onSelect(selectedValue === value ? "" : selectedValue)
-                    setOpen(false)
-                  }}
+                  onSelect={handleSelect}
                 >
                   <Check
                     className={cn(

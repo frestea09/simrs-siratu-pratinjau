@@ -69,6 +69,17 @@ export default function OverviewPage() {
   const totalIncidents = incidents.length
   const totalUsers = users.length
 
+  const incidentTypeCounts = React.useMemo(() => {
+    const counts = { KPC: 0, KNC: 0, KTC: 0, KTD: 0, Sentinel: 0 }
+    if (canViewIncidentData) {
+      incidents.forEach((inc) => {
+        counts[inc.type as keyof typeof counts] += 1
+      });
+    }
+    return counts
+  }, [incidents, canViewIncidentData])
+
+
   // -- Chart Data --
   const chartData = React.useMemo(() => {
     const monthlyAverages: { [key: string]: { total: number; count: number } } = {}
@@ -178,6 +189,33 @@ export default function OverviewPage() {
             </CardContent>
           </Card>
         )}
+      </div>
+      <div className="grid grid-cols-1 gap-4">
+        <Card>
+            <CardHeader>
+              <CardTitle>Ringkasan Jumlah Insiden</CardTitle>
+              <CardDescription>
+                Total keseluruhan insiden yang telah dilaporkan.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+            {canViewIncidentData ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                {Object.entries(incidentTypeCounts).map(([type, count]) => (
+                  <div
+                    key={type}
+                    className="bg-muted/50 rounded-lg p-4 text-center"
+                  >
+                    <p className="text-sm font-medium">{type}</p>
+                    <p className="text-2xl font-bold">{count}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+                <p className="text-sm text-muted-foreground">Data insiden hanya dapat dilihat oleh Sub. Komite Keselamatan Pasien dan Admin Sistem.</p>
+            )}
+            </CardContent>
+          </Card>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4">

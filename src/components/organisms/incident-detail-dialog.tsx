@@ -62,6 +62,10 @@ type IncidentDetailDialogProps = {
 export const IncidentDetailDialog = ({ incident, open, onOpenChange }: IncidentDetailDialogProps) => {
     if (!incident) return null;
 
+    const displayLocation = incident.incidentLocation === 'Lainnya' 
+        ? `Lainnya: ${incident.incidentLocationOther || '(tidak disebutkan)'}` 
+        : incident.incidentLocation;
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-3xl">
@@ -88,7 +92,7 @@ export const IncidentDetailDialog = ({ incident, open, onOpenChange }: IncidentD
                          <DetailItem label="Jam Insiden" value={incident.incidentTime} />
                          <DetailItem label="Jenis Insiden" value={incident.type} />
                          <DetailItem label="Insiden Mengenai" value={incident.incidentSubject} />
-                         <DetailItem label="Lokasi Insiden" value={incident.incidentLocation} />
+                         <DetailItem label="Lokasi Insiden" value={displayLocation} />
                          <DetailItem label="Unit Terkait" value={incident.relatedUnit} />
                          <FullWidthDetailItem label="Kronologis Insiden" value={<ChronologyList text={incident.chronology || ""} />} />
                     </DetailSection>

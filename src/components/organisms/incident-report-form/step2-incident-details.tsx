@@ -11,6 +11,7 @@ import { FormInputText } from "@/components/molecules/form-input-text"
 import { HOSPITAL_UNITS } from "@/lib/constants"
 import { Combobox } from "@/components/ui/combobox"
 import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
     <h3 className="font-semibold text-lg text-primary">{children}</h3>
@@ -44,16 +45,29 @@ export function Step2IncidentDetails({ data, onUpdate }: StepProps) {
             <FormInputTextarea id="chronology" label="Kronologis Insiden" placeholder="Jelaskan secara singkat bagaimana insiden terjadi." value={data.chronology ?? ""} onChange={e => onUpdate({ chronology: e.target.value })} containerClassName="grid grid-cols-1 md:grid-cols-form-label-full gap-x-4" />
             <FormInputSelect id="type" label="Jenis Insiden" placeholder="Pilih jenis insiden" items={incidentTypeOptions} value={data.type ?? ""} onValueChange={val => onUpdate({ type: val })} containerClassName="grid grid-cols-1 md:grid-cols-form-label-full gap-x-4" />
             <FormInputText id="incidentSubject" label="Insiden mengenai" placeholder="Contoh: Pasien, Keluarga Pasien, Pengunjung" value={data.incidentSubject ?? ""} onChange={e => onUpdate({ incidentSubject: e.target.value })} />
-             <div className="grid grid-cols-1 md:grid-cols-form-label gap-x-4 gap-y-2 items-center">
-                <Label htmlFor="incidentLocation" className="text-right">Lokasi Insiden</Label>
-                <Combobox
-                    id="incidentLocation"
-                    options={incidentLocationOptions}
-                    value={data.incidentLocation ?? ""}
-                    onSelect={(val) => onUpdate({ incidentLocation: val })}
-                    placeholder="Pilih atau ketik lokasi"
-                    searchPlaceholder="Cari lokasi..."
-                />
+             <div className="grid grid-cols-1 md:grid-cols-form-label gap-x-4 gap-y-2 items-start">
+                <Label htmlFor="incidentLocation" className="text-right pt-2">Lokasi Insiden</Label>
+                <div className="space-y-2">
+                    <Combobox
+                        id="incidentLocation"
+                        options={incidentLocationOptions}
+                        value={data.incidentLocation ?? ""}
+                        onSelect={(val) => onUpdate({ incidentLocation: val })}
+                        placeholder="Pilih atau ketik lokasi"
+                        searchPlaceholder="Cari lokasi..."
+                    />
+                    {data.incidentLocation === 'Lainnya' && (
+                         <div className="grid w-full items-center gap-1.5">
+                            <Label htmlFor="incidentLocationOther">Lokasi Lainnya (mohon sebutkan)</Label>
+                            <Input
+                                id="incidentLocationOther"
+                                placeholder="Contoh: Area Parkir Belakang"
+                                value={data.incidentLocationOther ?? ""}
+                                onChange={e => onUpdate({ incidentLocationOther: e.target.value })}
+                            />
+                        </div>
+                    )}
+                </div>
             </div>
             <FormInputSelect id="relatedUnit" label="Unit Terkait Insiden" placeholder="Pilih unit" items={unitOptions} value={data.relatedUnit ?? ""} onValueChange={val => onUpdate({ relatedUnit: val })} />
         </div>

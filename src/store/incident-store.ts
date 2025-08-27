@@ -24,6 +24,7 @@ export type Incident = {
   type: "KPC" | "KNC" | "KTC" | "KTD" | "Sentinel"
   incidentSubject?: string
   incidentLocation?: string
+  incidentLocationOther?: string
   relatedUnit?: string
   firstAction?: string
   firstActionBy?: string

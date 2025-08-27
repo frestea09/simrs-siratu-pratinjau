@@ -130,21 +130,7 @@ export default function DashboardClientLayout({
   const router = useRouter();
   const { currentUser, clearCurrentUser } = useUserStore();
   const { addLog } = useLogStore();
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [previousPath, setPreviousPath] = React.useState(pathname);
-
-  React.useEffect(() => {
-    if (pathname !== previousPath) {
-      setIsLoading(true);
-      const timer = setTimeout(() => {
-        setIsLoading(false);
-        setPreviousPath(pathname);
-      }, 300); // Simulate loading time
-
-      return () => clearTimeout(timer);
-    }
-  }, [pathname, previousPath]);
-
+  
   const handleLogout = async () => {
     if (currentUser) {
       addLog({
@@ -189,7 +175,6 @@ export default function DashboardClientLayout({
   );
   return (
     <>
-      <LoadingOverlay isLoading={isLoading} />
       <SidebarProvider>
         <Sidebar
           collapsible="icon"

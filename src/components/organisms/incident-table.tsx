@@ -207,9 +207,8 @@ export function IncidentTable({ incidents, lineChart, barChart, chartDescription
        <ReportPreviewDialog
           open={isPreviewOpen}
           onOpenChange={setIsPreviewOpen}
-          data={table.getFilteredRowModel().rows.map((row) => row.original)}
-          columns={exportColumns}
           title="Laporan Insiden Keselamatan"
+          description="Laporan ini berisi ringkasan visual dan data tabular dari insiden yang telah difilter."
           lineChart={lineChart}
           barChart={barChart}
           chartDescription={chartDescription}

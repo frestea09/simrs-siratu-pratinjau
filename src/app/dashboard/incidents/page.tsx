@@ -245,7 +245,7 @@ export default function IncidentsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div style={{ width: "100%", height: 300 }}>
+              <div style={{ width: "100%", height: 350 }}>
                 {incidentChartData.length > 0
                   ? (chartType === "line" ? lineChart : barChart)
                   : noDataMessage}

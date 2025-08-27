@@ -118,7 +118,12 @@ export function ReportPreviewDialog({
         
         <div ref={contentRef} className="flex-1 overflow-y-auto pr-6 -mr-6 space-y-6">
             {children}
-             {analysisTable}
+            {analysisTable && (
+                 <div className="print-page">
+                    <h3 className="text-lg font-semibold mb-2">Analisis dan Rencana Tindak Lanjut</h3>
+                    {analysisTable}
+                </div>
+            )}
               {lineChart && (
                 <div className="print-page">
                     <h3 className="text-lg font-semibold mb-2">Grafik Garis</h3>

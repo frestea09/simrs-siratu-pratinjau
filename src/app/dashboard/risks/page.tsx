@@ -176,7 +176,7 @@ export default function RisksPage() {
                 open={isReportOpen}
                 onOpenChange={setIsReportOpen}
                 title="Laporan Register Risiko"
-                data={[]}
+                description="Laporan ini terdiri dari beberapa bagian: ringkasan visual, daftar risiko aktif yang perlu ditindaklanjuti, dan register risiko lengkap sebagai lampiran."
             >
                 <div className="print-page">
                     <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">

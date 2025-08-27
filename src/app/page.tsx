@@ -87,7 +87,7 @@ export default function LoginPage() {
             <div>
               <CardTitle className="text-2xl">Selamat Datang di SIRATU</CardTitle>
               <CardDescription>
-                Sistem Informasi Rapor Mutu RSUD Oto Iskandar Dinata
+                Sistem Informasi Pelaporan Indikator Mutu
               </CardDescription>
             </div>
           </div>

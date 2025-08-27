@@ -153,8 +153,6 @@ export default function ReportsPage() {
         <ReportPreviewDialog
           open={isPreviewOpen}
           onOpenChange={setPreviewOpen}
-          data={[]}
-          columns={[]}
           title={`Laporan Rekapitulasi Capaian Mutu Tahun ${selectedYear}`}
         >
             <div className="space-y-8">

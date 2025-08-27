@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next"
 import "./globals.css"
 import { Toaster } from "@/components/ui/toaster"
@@ -8,7 +9,7 @@ import { NotificationStoreProvider } from "@/store/notification-store.tsx"
 
 export const metadata: Metadata = {
   title: "SIRATU",
-  description: "Sistem Informasi Rapor Mutu RSUD Oto Iskandar Dinata",
+  description: "Sistem Informasi Pelaporan Indikator Mutu",
 }
 
 export default function RootLayout({

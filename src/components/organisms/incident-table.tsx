@@ -46,8 +46,6 @@ export function IncidentTable({ incidents, lineChart, barChart, chartDescription
   const [selectedIncident, setSelectedIncident] = React.useState<Incident | null>(null);
   const [isDetailOpen, setIsDetailOpen] = React.useState(false);
 
-  const [reportData, setReportData] = React.useState<any[] | null>(null)
-  const [reportColumns, setReportColumns] = React.useState<ColumnDef<any>[] | null>(null)
   const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
 
 
@@ -134,9 +132,7 @@ export function IncidentTable({ incidents, lineChart, barChart, chartDescription
     }
   })
   
-  const handleExport = (data: Incident[]) => {
-    setReportData(data)
-    setReportColumns(exportColumns)
+  const handleExport = () => {
     setIsPreviewOpen(true)
   }
 
@@ -155,11 +151,7 @@ export function IncidentTable({ incidents, lineChart, barChart, chartDescription
         <Button
           variant="outline"
           className="ml-auto"
-          onClick={() =>
-            handleExport(
-              table.getFilteredRowModel().rows.map((row) => row.original)
-            )
-          }
+          onClick={handleExport}
         >
             <Download className="mr-2 h-4 w-4" />
             Unduh Laporan
@@ -215,13 +207,13 @@ export function IncidentTable({ incidents, lineChart, barChart, chartDescription
        <ReportPreviewDialog
           open={isPreviewOpen}
           onOpenChange={setIsPreviewOpen}
-          data={reportData || []}
-          columns={reportColumns || []}
+          data={table.getFilteredRowModel().rows.map((row) => row.original)}
+          columns={exportColumns}
           title="Laporan Insiden Keselamatan"
           lineChart={lineChart}
           barChart={barChart}
           chartDescription={chartDescription}
-          analysisTable={<IncidentAnalysisTable data={reportData || []} />}
+          analysisTable={<IncidentAnalysisTable data={table.getFilteredRowModel().rows.map((row) => row.original)} />}
       />
     </div>
   )

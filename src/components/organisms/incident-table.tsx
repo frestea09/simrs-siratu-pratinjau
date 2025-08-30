@@ -13,7 +13,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDown, Download } from "lucide-react"
+import { ArrowUpDown, Download, FileText } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -32,6 +32,7 @@ import { ActionsCell } from "./incident-table/actions-cell"
 import { cn } from "@/lib/utils"
 import { ReportPreviewDialog } from "./report-preview-dialog"
 import { IncidentAnalysisTable } from "./incident-analysis-table"
+import { SkpReportDialog } from "./skp-report-dialog"
 
 type IncidentTableProps = {
   incidents: Incident[]
@@ -47,6 +48,7 @@ export function IncidentTable({ incidents, lineChart, barChart, chartDescription
   const [isDetailOpen, setIsDetailOpen] = React.useState(false);
 
   const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
+  const [isSkpReportOpen, setIsSkpReportOpen] = React.useState(false);
 
 
   const handleViewDetails = (incident: Incident) => {
@@ -139,7 +141,7 @@ export function IncidentTable({ incidents, lineChart, barChart, chartDescription
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
+      <div className="flex items-center py-4 gap-2 flex-wrap">
         <Input
           placeholder="Cari berdasarkan jenis insiden..."
           value={(table.getColumn("type")?.getFilterValue() as string) ?? ""}
@@ -148,14 +150,21 @@ export function IncidentTable({ incidents, lineChart, barChart, chartDescription
           }
           className="max-w-sm"
         />
-        <Button
-          variant="outline"
-          className="ml-auto"
-          onClick={handleExport}
-        >
-            <Download className="mr-2 h-4 w-4" />
-            Unduh Laporan
-        </Button>
+        <div className="ml-auto flex items-center gap-2">
+            <Button
+                variant="outline"
+                onClick={handleExport}
+                >
+                <Download className="mr-2 h-4 w-4" />
+                Unduh Daftar Insiden
+            </Button>
+            <Button
+                onClick={() => setIsSkpReportOpen(true)}
+                >
+                <FileText className="mr-2 h-4 w-4" />
+                Laporan SKP Triwulan
+            </Button>
+        </div>
       </div>
       <div className="rounded-md border">
         <Table>
@@ -214,6 +223,7 @@ export function IncidentTable({ incidents, lineChart, barChart, chartDescription
           chartDescription={chartDescription}
           analysisTable={<IncidentAnalysisTable data={table.getFilteredRowModel().rows.map((row) => row.original)} />}
       />
+      <SkpReportDialog open={isSkpReportOpen} onOpenChange={setIsSkpReportOpen} />
     </div>
   )
 }

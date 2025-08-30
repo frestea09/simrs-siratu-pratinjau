@@ -6,6 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatChronology(text: string) {
+  if (!text) return "";
   return text
     .split(/\r?\n/)
     .map((line) => {

@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { Incident } from "@/store/incident-store"
-import { formatChronology } from "@/lib/utils"
+import { formatChronology, cn } from "@/lib/utils"
+import { Badge } from "../ui/badge"
 
 const DetailSection = ({ title, children }: { title: string, children: React.ReactNode }) => (
     <div className="space-y-2">
@@ -51,6 +52,22 @@ const ChronologyList = ({ text }: { text: string }) => {
             ))}
         </ol>
     )
+}
+
+const SeverityBadge = ({ severity }: { severity: Incident['severity'] }) => {
+    const severityMap: Record<Incident['severity'], string> = {
+        biru: "BIRU (Rendah)",
+        hijau: "HIJAU (Sedang)",
+        kuning: "KUNING (Tinggi)",
+        merah: "MERAH (Sangat Tinggi)",
+    }
+    const colorMap: Record<Incident['severity'], string> = {
+        biru: "bg-blue-500 text-white border-blue-500 hover:bg-blue-500/80",
+        hijau: "bg-green-500 text-white border-green-500 hover:bg-green-500/80",
+        kuning: "bg-yellow-500 text-yellow-900 border-yellow-500 hover:bg-yellow-500/80",
+        merah: "bg-red-500 text-white border-red-500 hover:bg-red-500/80",
+    }
+    return <Badge variant="outline" className={cn("text-base", colorMap[severity])}>{severityMap[severity]}</Badge>
 }
 
 type IncidentDetailDialogProps = {
@@ -102,7 +119,7 @@ export const IncidentDetailDialog = ({ incident, open, onOpenChange }: IncidentD
                          <DetailItem label="Tindakan Dilakukan Oleh" value={incident.firstActionBy} />
                          <DetailItem label="Akibat Insiden Terhadap Pasien" value={incident.patientImpact} />
                          <DetailItem label="Pernah Terjadi di Unit Lain?" value={incident.hasHappenedBefore} />
-                         <DetailItem label="Grading Risiko" value={incident.severity} />
+                         <DetailItem label="Grading Risiko" value={<SeverityBadge severity={incident.severity} />} />
                          <FullWidthDetailItem label="Catatan Analisis (oleh Komite)" value={incident.analysisNotes} />
                          <FullWidthDetailItem label="Rencana Tindak Lanjut (oleh Komite)" value={incident.followUpPlan} />
                     </DetailSection>

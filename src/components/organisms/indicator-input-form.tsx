@@ -30,7 +30,7 @@ type IndicatorInputFormProps = {
 
 export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: IndicatorInputFormProps) {
   const { toast } = useToast()
-  const { addIndicator, updateIndicator, submittedIndicators, indicators } = useIndicatorStore()
+  const { addIndicator, updateIndicator, submittedIndicators, indicators, profiles } = useIndicatorStore()
   const { currentUser } = useUserStore()
   const { addLog } = useLogStore()
 
@@ -97,11 +97,12 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
   }, [indicators, selectedSubmittedIndicator]);
 
   const handleSubmit = async () => {
-    if (!selectedSubmittedIndicator || !date || !numerator || !denominator) {
+    const profile = profiles.find(p => p.id === selectedSubmittedIndicator?.profileId);
+    if (!selectedSubmittedIndicator || !date || !numerator || !denominator || !profile) {
         toast({
             variant: "destructive",
             title: "Data Tidak Lengkap",
-            description: "Harap isi semua kolom wajib untuk menyimpan data.",
+            description: "Harap isi semua kolom wajib dan pastikan profil terkait ditemukan.",
         })
         return
     }
@@ -114,6 +115,7 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
         frequency: selectedSubmittedIndicator.frequency,
         numerator: Number(numerator),
         denominator: Number(denominator),
+        formula: profile.formula,
         standard: selectedSubmittedIndicator.standard,
         standardUnit: selectedSubmittedIndicator.standardUnit,
         analysisNotes: analysisNotes,

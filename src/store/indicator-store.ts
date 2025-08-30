@@ -58,6 +58,7 @@ export type Indicator = {
   frequency: IndicatorFrequency
   numerator: number
   denominator: number
+  formula: string; // Ditambahkan
   standard: number
   standardUnit: "%" | "menit"
   analysisNotes?: string

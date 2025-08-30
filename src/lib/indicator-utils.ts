@@ -26,36 +26,37 @@ export type FilterType =
 export const calculateRatio = (
   indicator: Omit<Indicator, "id" | "ratio" | "status">
 ): string => {
-  if (indicator.standardUnit === "menit") {
-    if (indicator.denominator === 0) return "0"
-    const average = indicator.numerator / indicator.denominator
-    return `${average.toFixed(1)}`
+  const { numerator, denominator, formula } = indicator;
+  if (denominator === 0) return indicator.standardUnit === 'menit' ? "0" : "0.0";
+
+  let ratio: number;
+  // Dynamic calculation based on formula
+  if (formula.includes("* 100")) {
+    ratio = (numerator / denominator) * 100;
+    return ratio.toFixed(1);
+  } else {
+    ratio = numerator / denominator;
+    return ratio.toFixed(1);
   }
-  if (indicator.denominator === 0) return "0.0"
-  const ratio = (indicator.numerator / indicator.denominator) * 100
-  return `${ratio.toFixed(1)}`
 }
 
 export const calculateStatus = (
   indicator: Omit<Indicator, "id" | "ratio" | "status">
 ): Indicator["status"] => {
-  let achievementValue: number
-
+  if (indicator.denominator === 0) return "N/A"
+  const achievementValue = parseFloat(calculateRatio(indicator));
+  
+  // Lower is better for wait times
   if (indicator.standardUnit === "menit") {
-    if (indicator.denominator === 0) return "N/A"
-    achievementValue = indicator.numerator / indicator.denominator
-    // Lower is better for wait times
     return achievementValue <= indicator.standard
       ? "Memenuhi Standar"
       : "Tidak Memenuhi Standar"
-  } else {
-    if (indicator.denominator === 0) return "N/A"
-    achievementValue = (indicator.numerator / indicator.denominator) * 100
-    // Higher is better for percentages
-    return achievementValue >= indicator.standard
-      ? "Memenuhi Standar"
-      : "Tidak Memenuhi Standar"
-  }
+  } 
+  
+  // Higher is better for percentages
+  return achievementValue >= indicator.standard
+    ? "Memenuhi Standar"
+    : "Tidak Memenuhi Standar"
 }
 
 export const getFilterRange = (

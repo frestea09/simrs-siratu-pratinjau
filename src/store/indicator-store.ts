@@ -14,8 +14,8 @@ export type IndicatorProfile = {
   definition: string
   implication: string
   formula: string
-  numerator: string
-  denominator: string
+  numerator: string // Changed to string
+  denominator: string // Changed to string
   target: number
   targetUnit: "%" | "menit"
   inclusionCriteria: string
@@ -69,8 +69,8 @@ export type Indicator = {
 
 type IndicatorState = {
   profiles: IndicatorProfile[]
-  addProfile: (profile: Omit<IndicatorProfile, "id" | "createdAt" | "dataCollectionFormat">) => Promise<string>
-  updateProfile: (id: string, data: Partial<Omit<IndicatorProfile, "id" | "createdAt" | "dataCollectionFormat">>) => Promise<void>
+  addProfile: (profile: Omit<IndicatorProfile, "id" | "createdAt">) => Promise<string>
+  updateProfile: (id: string, data: Partial<Omit<IndicatorProfile, "id" | "createdAt">>) => Promise<void>
   removeProfile: (id: string) => Promise<void>
 
   indicators: Indicator[]

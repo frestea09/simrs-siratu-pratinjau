@@ -33,8 +33,8 @@ const profileSchema = z.object({
   definition: z.string().min(10, "Definisi operasional harus memiliki setidaknya 10 karakter."),
   implication: z.string().min(10, "Implikasi terhadap mutu harus memiliki setidaknya 10 karakter."),
   formula: z.string().min(3, "Formula harus diisi."),
-  numerator: z.string().min(3, "Numerator harus diisi."),
-  denominator: z.string().min(3, "Denominator harus diisi."),
+  numerator: z.string().min(3, "Definisi numerator harus diisi."),
+  denominator: z.string().min(3, "Definisi denominator harus diisi."),
   target: z.coerce.number().positive("Target harus angka positif."),
   targetUnit: z.enum(['%', 'menit']),
   inclusionCriteria: z.string().min(10, "Kriteria inklusi harus diisi."),
@@ -139,10 +139,10 @@ export function ProfileForm({ setOpen, profileToEdit }: ProfileFormProps) {
             )}/>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField control={form.control} name="numerator" render={({ field }) => (
-                    <FormItem><FormLabel>Numerator</FormLabel><FormControl><Input placeholder="Jumlah..." {...field} /></FormControl><FormMessage /></FormItem>
+                    <FormItem><FormLabel>Definisi Numerator</FormLabel><FormControl><Input placeholder="Jumlah petugas yang patuh..." {...field} /></FormControl><FormMessage /></FormItem>
                 )}/>
                 <FormField control={form.control} name="denominator" render={({ field }) => (
-                    <FormItem><FormLabel>Denominator</FormLabel><FormControl><Input placeholder="Total..." {...field} /></FormControl><FormMessage /></FormItem>
+                    <FormItem><FormLabel>Definisi Denominator</FormLabel><FormControl><Input placeholder="Total petugas yang diamati..." {...field} /></FormControl><FormMessage /></FormItem>
                 )}/>
             </div>
             <FormField control={form.control} name="formula" render={({ field }) => (
@@ -184,8 +184,8 @@ export function ProfileForm({ setOpen, profileToEdit }: ProfileFormProps) {
             </div>
             
             <DialogFooter className="pt-4 gap-2">
-                <Button type="button" variant="outline" onClick={() => handleSave(form.getValues(), 'Draf')}>Simpan sebagai Draf</Button>
-                <Button type="button" onClick={() => handleSave(form.getValues(), 'Menunggu Persetujuan')}>Simpan & Ajukan Persetujuan</Button>
+                <Button type="button" variant="outline" onClick={form.handleSubmit((values) => handleSave(values, 'Draf'))}>Simpan sebagai Draf</Button>
+                <Button type="button" onClick={form.handleSubmit((values) => handleSave(values, 'Menunggu Persetujuan'))}>Simpan & Ajukan Persetujuan</Button>
             </DialogFooter>
         </form>
     </Form>

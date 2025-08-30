@@ -26,25 +26,65 @@ export type FilterType =
 export const calculateRatio = (
   indicator: Omit<Indicator, "id" | "ratio" | "status">
 ): string => {
-  const { numerator, denominator, formula } = indicator;
-  if (denominator === 0) return indicator.standardUnit === 'menit' ? "0" : "0.0";
+  const { numerator, denominator, formula, standardUnit } = indicator;
 
-  let ratio: number;
-  // Dynamic calculation based on formula
-  if (formula.includes("* 100")) {
-    ratio = (numerator / denominator) * 100;
-    return ratio.toFixed(1);
-  } else {
-    ratio = numerator / denominator;
-    return ratio.toFixed(1);
+  // Handle division by zero
+  if (denominator === 0 && (formula.includes("/") || formula.toLowerCase().includes("denominator"))) {
+      return standardUnit === 'menit' ? "0" : "0.0";
+  }
+
+  try {
+    // Replace keywords with actual values. Case-insensitive replacement.
+    let expression = formula
+      .replace(/numerator/gi, numerator.toString())
+      .replace(/denominator/gi, denominator.toString())
+      .replace(/%/g, ""); // Remove percentage signs if any
+
+    let ratio: number;
+
+    // Evaluate the expression based on the operator
+    if (expression.includes("* 100")) {
+      // Handle percentage calculation which might not have spaces
+      const parts = expression.replace("* 100", "").trim();
+      const subExpression = new Function(`return ${parts}`)();
+      ratio = subExpression * 100;
+    } else if (expression.includes("*")) {
+      ratio = new Function(`return ${expression}`)();
+    } else if (expression.includes("/")) {
+      ratio = new Function(`return ${expression}`)();
+    } else if (expression.includes("+")) {
+      ratio = new Function(`return ${expression}`)();
+    } else if (expression.includes("-")) {
+      ratio = new Function(`return ${expression}`)();
+    }
+     else {
+      // Fallback for simple cases or if no operator is found (e.g., just "Numerator")
+      ratio = parseFloat(expression);
+    }
+    
+    if (isNaN(ratio)) {
+        return "N/A";
+    }
+
+    // Format to one decimal place, unless it's an integer for non-percentage units
+     return ratio.toFixed(1);
+
+  } catch (error) {
+    console.error("Error evaluating formula:", formula, error);
+    return "N/A"; // Return Not Applicable if formula is invalid
   }
 }
+
 
 export const calculateStatus = (
   indicator: Omit<Indicator, "id" | "ratio" | "status">
 ): Indicator["status"] => {
   if (indicator.denominator === 0) return "N/A"
   const achievementValue = parseFloat(calculateRatio(indicator));
+  
+  if (isNaN(achievementValue)) {
+      return "N/A";
+  }
   
   // Lower is better for wait times
   if (indicator.standardUnit === "menit") {

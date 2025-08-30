@@ -9,6 +9,7 @@ import {
   TrendingUp,
   FileClock,
   ThumbsUp,
+  Info,
 } from "lucide-react"
 import { Bar, BarChart as BarChartRecharts, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 
@@ -33,10 +34,37 @@ import { useIndicatorStore } from "@/store/indicator-store"
 import { useIncidentStore } from "@/store/incident-store"
 import { useUserStore } from "@/store/user-store"
 import { useLogStore } from "@/store/log-store"
-import { format } from "date-fns"
+import { format, subMonths, startOfMonth, endOfMonth, getDate, getMonth, getYear } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
 import {centralRoles} from "@/store/central-roles.ts";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
+
+
+const DeadlineCard = () => {
+  const today = new Date();
+  const currentDay = getDate(today);
+
+  // Show the alert from the 1st to the 5th of the month.
+  if (currentDay > 5) {
+    return null;
+  }
+
+  const lastMonth = subMonths(today, 1);
+  const previousMonthName = format(lastMonth, "MMMM", { locale: IndonesianLocale });
+  const currentMonthName = format(today, "MMMM", { locale: IndonesianLocale });
+  
+  return (
+    <Alert className="bg-primary/5 border-primary/20">
+      <Info className="h-4 w-4 text-primary" />
+      <AlertTitle className="text-primary font-bold">Waktu Pelaporan Segera Berakhir!</AlertTitle>
+      <AlertDescription>
+        Periode pelaporan untuk bulan <strong>{previousMonthName}</strong> akan berakhir pada tanggal <strong>5 {currentMonthName}</strong>.
+        Mohon segera lengkapi dan finalisasi data capaian indikator Anda sebelum tenggat waktu.
+      </AlertDescription>
+    </Alert>
+  );
+};
 
 
 export default function OverviewPage() {
@@ -127,6 +155,7 @@ export default function OverviewPage() {
           <Badge variant="outline" className="text-base">Unit: {currentUser.unit}</Badge>
         )}
       </div>
+      <DeadlineCard />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -293,3 +322,5 @@ export default function OverviewPage() {
     </div>
   )
 }
+
+    

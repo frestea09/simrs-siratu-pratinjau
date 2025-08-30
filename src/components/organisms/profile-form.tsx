@@ -32,7 +32,7 @@ const profileSchema = z.object({
   purpose: z.string().min(1, "Tujuan harus diisi."),
   definition: z.string().min(1, "Definisi operasional harus diisi."),
   implication: z.string().min(1, "Implikasi terhadap mutu harus diisi."),
-  formula: z.string().min(1, "Formula harus diisi."),
+  calculationMethod: z.enum(['percentage', 'average']),
   numerator: z.string().min(1, "Definisi numerator harus diisi."),
   denominator: z.string().min(1, "Definisi denominator harus diisi."),
   target: z.coerce.number().positive("Target harus angka positif."),
@@ -72,7 +72,7 @@ export function ProfileForm({ setOpen, profileToEdit }: ProfileFormProps) {
       purpose: "",
       definition: "",
       implication: "",
-      formula: "",
+      calculationMethod: "percentage",
       numerator: "",
       denominator: "",
       target: 100,
@@ -87,6 +87,17 @@ export function ProfileForm({ setOpen, profileToEdit }: ProfileFormProps) {
       unit: currentUser?.unit || "",
     },
   })
+  
+  const calculationMethod = form.watch("calculationMethod");
+
+  React.useEffect(() => {
+    if (calculationMethod === "percentage") {
+        form.setValue("targetUnit", "%");
+    } else if (calculationMethod === "average") {
+        form.setValue("targetUnit", "menit");
+    }
+  }, [calculationMethod, form]);
+
 
   async function handleSave(values: z.infer<typeof profileSchema>, status: IndicatorProfile['status']) {
     const dataToSave: Omit<IndicatorProfile, "id" | "createdAt"> = {
@@ -145,15 +156,36 @@ export function ProfileForm({ setOpen, profileToEdit }: ProfileFormProps) {
                     <FormItem><FormLabel>Definisi Denominator</FormLabel><FormControl><Input placeholder="Total petugas yang diamati..." {...field} /></FormControl><FormMessage /></FormItem>
                 )}/>
             </div>
-            <FormField control={form.control} name="formula" render={({ field }) => (
-                <FormItem><FormLabel>Formula</FormLabel><FormControl><Input placeholder="(Numerator / Denominator) x 100%" {...field} /></FormControl><FormMessage /></FormItem>
-            )}/>
+             <FormField
+                control={form.control}
+                name="calculationMethod"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Metode Perhitungan</FormLabel>
+                         <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Pilih bagaimana capaian dihitung" />
+                                </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                <SelectItem value="percentage">Persentase (Semakin tinggi semakin baik)</SelectItem>
+                                <SelectItem value="average">Rata-rata (Semakin rendah semakin baik)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <FormDescription>
+                            Sistem akan otomatis menghitung capaian berdasarkan metode ini.
+                        </FormDescription>
+                        <FormMessage />
+                    </FormItem>
+                )}
+             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  <FormField control={form.control} name="target" render={({ field }) => (
                     <FormItem><FormLabel>Standar / Target</FormLabel><FormControl><Input type="number" placeholder="100" {...field} /></FormControl><FormMessage /></FormItem>
                 )}/>
                  <FormField control={form.control} name="targetUnit" render={({ field }) => (
-                    <FormItem><FormLabel>Satuan Target</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="%">%</SelectItem><SelectItem value="menit">Menit</SelectItem></SelectContent></Select><FormMessage /></FormItem>
+                    <FormItem><FormLabel>Satuan Target</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="%">%</SelectItem><SelectItem value="menit">Menit</SelectItem></SelectContent></Select><FormMessage /></FormItem>
                 )}/>
             </div>
              <FormField control={form.control} name="inclusionCriteria" render={({ field }) => (
@@ -191,3 +223,5 @@ export function ProfileForm({ setOpen, profileToEdit }: ProfileFormProps) {
     </Form>
   )
 }
+
+    

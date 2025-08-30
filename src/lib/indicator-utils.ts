@@ -9,7 +9,7 @@ import {
   subMonths,
 } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
-import type { Indicator } from "@/store/indicator-store"
+import type { Indicator, IndicatorProfile } from "@/store/indicator-store"
 
 export type FilterType =
   | "daily"
@@ -26,52 +26,29 @@ export type FilterType =
 export const calculateRatio = (
   indicator: Omit<Indicator, "id" | "ratio" | "status">
 ): string => {
-  const { numerator, denominator, formula, standardUnit } = indicator;
+  const { numerator, denominator, calculationMethod } = indicator;
 
-  // Handle division by zero
-  if (denominator === 0 && (formula.includes("/") || formula.toLowerCase().includes("denominator"))) {
-      return standardUnit === 'menit' ? "0" : "0.0";
+  if (denominator === 0) {
+      return "0.0";
   }
 
   try {
-    // Replace keywords with actual values. Case-insensitive replacement.
-    let expression = formula
-      .replace(/numerator/gi, numerator.toString())
-      .replace(/denominator/gi, denominator.toString())
-      .replace(/%/g, ""); // Remove percentage signs if any
-
     let ratio: number;
-
-    // Evaluate the expression based on the operator
-    if (expression.includes("* 100")) {
-      // Handle percentage calculation which might not have spaces
-      const parts = expression.replace("* 100", "").trim();
-      const subExpression = new Function(`return ${parts}`)();
-      ratio = subExpression * 100;
-    } else if (expression.includes("*")) {
-      ratio = new Function(`return ${expression}`)();
-    } else if (expression.includes("/")) {
-      ratio = new Function(`return ${expression}`)();
-    } else if (expression.includes("+")) {
-      ratio = new Function(`return ${expression}`)();
-    } else if (expression.includes("-")) {
-      ratio = new Function(`return ${expression}`)();
-    }
-     else {
-      // Fallback for simple cases or if no operator is found (e.g., just "Numerator")
-      ratio = parseFloat(expression);
+    if (calculationMethod === 'percentage') {
+        ratio = (numerator / denominator) * 100;
+    } else { // 'average'
+        ratio = numerator / denominator;
     }
     
     if (isNaN(ratio)) {
         return "N/A";
     }
 
-    // Format to one decimal place, unless it's an integer for non-percentage units
-     return ratio.toFixed(1);
+    return ratio.toFixed(1);
 
   } catch (error) {
-    console.error("Error evaluating formula:", formula, error);
-    return "N/A"; // Return Not Applicable if formula is invalid
+    console.error("Error evaluating formula:", calculationMethod, error);
+    return "N/A";
   }
 }
 
@@ -86,8 +63,7 @@ export const calculateStatus = (
       return "N/A";
   }
   
-  // Lower is better for wait times
-  if (indicator.standardUnit === "menit") {
+  if (indicator.calculationMethod === "average") { // Lower is better
     return achievementValue <= indicator.standard
       ? "Memenuhi Standar"
       : "Tidak Memenuhi Standar"
@@ -165,3 +141,5 @@ export const getFilterDescription = (
       return "Menampilkan data."
   }
 }
+
+    

@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import { CalendarIcon } from "lucide-react"
-import { format } from "date-fns"
+import { format, startOfMonth, subMonths, endOfMonth, getDate } from "date-fns"
 import { useIndicatorStore, Indicator, SubmittedIndicator, IndicatorCategory } from "@/store/indicator-store"
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "../ui/textarea"
@@ -90,11 +90,11 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
   }, [submittedIndicators, currentUser, userCanSeeAll, category]);
   
   const filledDates = React.useMemo(() => {
-    if (!selectedSubmittedIndicator) return [];
+    if (!selectedSubmittedIndicator || isEditMode) return [];
     return indicators
         .filter(i => i.indicator === selectedSubmittedIndicator.name)
         .map(i => new Date(i.period));
-  }, [indicators, selectedSubmittedIndicator]);
+  }, [indicators, selectedSubmittedIndicator, isEditMode]);
 
   const handleSubmit = async () => {
     const profile = profiles.find(p => p.id === selectedSubmittedIndicator?.profileId);
@@ -115,7 +115,7 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
         frequency: selectedSubmittedIndicator.frequency,
         numerator: Number(numerator),
         denominator: Number(denominator),
-        formula: profile.formula,
+        calculationMethod: profile.calculationMethod,
         standard: selectedSubmittedIndicator.standard,
         standardUnit: selectedSubmittedIndicator.standardUnit,
         analysisNotes: analysisNotes,
@@ -151,6 +151,19 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
 
     setOpen(false);
   }
+  
+  const today = new Date();
+  const currentDayOfMonth = getDate(today);
+  const reportingMonth = currentDayOfMonth <= 5 ? subMonths(today, 1) : today;
+  const disabledDays = [
+      { after: endOfMonth(reportingMonth) },
+      { before: startOfMonth(reportingMonth) },
+      ...filledDates.map(d => new Date(d))
+  ];
+  if(isEditMode) {
+      disabledDays.splice(0, 2); // Allow editing for any month if in edit mode
+  }
+
 
   const isTimeBased = selectedSubmittedIndicator?.standardUnit === "menit";
 
@@ -179,6 +192,7 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
               <Button
                 variant={"outline"}
                 className={cn("w-full justify-start text-left font-normal text-base h-11", !date && "text-muted-foreground")}
+                disabled={isEditMode}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {date ? format(date, "PPP") : <span>Pilih tanggal</span>}
@@ -189,12 +203,15 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
                 mode="single" 
                 selected={date} 
                 onSelect={setDate} 
-                disabled={{ after: new Date() }}
+                month={reportingMonth}
+                disabled={disabledDays}
                 initialFocus 
                 modifiers={{ filled: filledDates }}
                 modifiersStyles={{
                     filled: { 
                         position: 'relative',
+                        fontWeight: 'bold',
+                        color: 'red',
                         '::after': {
                             content: '""',
                             display: 'block',
@@ -205,7 +222,7 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
                             width: '4px',
                             height: '4px',
                             borderRadius: '50%',
-                            backgroundColor: 'hsl(var(--primary))'
+                            backgroundColor: 'hsl(var(--destructive))'
                         }
                     }
                 }}
@@ -274,3 +291,5 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
     </div>
   )
 }
+
+    

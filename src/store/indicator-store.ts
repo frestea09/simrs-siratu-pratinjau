@@ -6,6 +6,7 @@ import { calculateRatio, calculateStatus } from "@/lib/indicator-utils"
 
 export type IndicatorCategory = "INM" | "IMP-RS" | "IMPU" | "SPM"
 export type IndicatorFrequency = "Harian" | "Mingguan" | "Bulanan" | "Tahunan"
+export type CalculationMethod = "percentage" | "average";
 
 export type IndicatorProfile = {
   id: string
@@ -13,9 +14,9 @@ export type IndicatorProfile = {
   purpose: string
   definition: string
   implication: string
-  formula: string
-  numerator: string // Changed to string
-  denominator: string // Changed to string
+  calculationMethod: CalculationMethod,
+  numerator: string
+  denominator: string
   target: number
   targetUnit: "%" | "menit"
   inclusionCriteria: string
@@ -58,7 +59,7 @@ export type Indicator = {
   frequency: IndicatorFrequency
   numerator: number
   denominator: number
-  formula: string; // Ditambahkan
+  calculationMethod: CalculationMethod;
   standard: number
   standardUnit: "%" | "menit"
   analysisNotes?: string
@@ -213,3 +214,5 @@ export const useIndicatorStore = create<IndicatorState>((set, get) => ({
     }))
   },
 }))
+
+    

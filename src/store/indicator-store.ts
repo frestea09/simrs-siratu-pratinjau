@@ -25,7 +25,6 @@ export type IndicatorProfile = {
   analysisReporting: string
   area: string
   pic: string
-  dataCollectionFormat: string
   status: 'Draf' | 'Menunggu Persetujuan' | 'Disetujui' | 'Ditolak'
   rejectionReason?: string
   createdBy: string // user id
@@ -69,8 +68,8 @@ export type Indicator = {
 
 type IndicatorState = {
   profiles: IndicatorProfile[]
-  addProfile: (profile: Omit<IndicatorProfile, "id" | "createdAt">) => Promise<string>
-  updateProfile: (id: string, data: Partial<Omit<IndicatorProfile, "id" | "createdAt">>) => Promise<void>
+  addProfile: (profile: Omit<IndicatorProfile, "id" | "createdAt" | "dataCollectionFormat">) => Promise<string>
+  updateProfile: (id: string, data: Partial<Omit<IndicatorProfile, "id" | "createdAt" | "dataCollectionFormat">>) => Promise<void>
   removeProfile: (id: string) => Promise<void>
 
   indicators: Indicator[]
@@ -117,7 +116,7 @@ export const useIndicatorStore = create<IndicatorState>((set, get) => ({
   },
   updateProfile: async (id, data) => {
     set((state) => ({
-      profiles: state.profiles.map((p) => (p.id === id ? { ...p, ...data } : p)),
+      profiles: state.profiles.map((p) => (p.id === id ? { ...p, ...data } as IndicatorProfile : p)),
     }));
   },
   removeProfile: async (id) => {
@@ -202,7 +201,7 @@ export const useIndicatorStore = create<IndicatorState>((set, get) => ({
   updateSubmittedIndicator: async (id, data) => {
     set((state) => ({
       submittedIndicators: state.submittedIndicators.map((indicator) =>
-        indicator.id === id ? { ...indicator, ...data } : indicator
+        indicator.id === id ? { ...indicator, ...data } as SubmittedIndicator : indicator
       ),
     }))
   },

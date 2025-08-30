@@ -68,6 +68,165 @@ export type Indicator = {
   status: "Memenuhi Standar" | "Tidak Memenuhi Standar" | "N/A"
 }
 
+// --- Initial Demo Data ---
+
+const initialProfiles: IndicatorProfile[] = [
+  {
+    id: "PROF-SKP-1",
+    title: "Kepatuhan Identifikasi Pasien",
+    purpose: "Memastikan pasien teridentifikasi dengan benar sebelum menerima layanan medis.",
+    definition: "Persentase kepatuhan petugas dalam melakukan identifikasi pasien menggunakan minimal dua identitas (nama, tanggal lahir) sebelum tindakan.",
+    implication: "Mengurangi risiko salah pasien, salah prosedur, dan salah pengobatan.",
+    calculationMethod: "percentage",
+    numerator: "Jumlah tindakan di mana identifikasi dilakukan dengan benar",
+    denominator: "Jumlah total tindakan yang diamati",
+    target: 100,
+    targetUnit: "%",
+    inclusionCriteria: "Semua pasien yang akan menerima obat, transfusi darah, atau tindakan.",
+    exclusionCriteria: "Pasien yang tidak dapat dikonfirmasi identitasnya.",
+    dataRecording: "Dicatat oleh supervisor pada lembar observasi.",
+    unitRecap: "Direkapitulasi oleh kepala ruangan setiap bulan.",
+    analysisReporting: "Dianalisis oleh Komite Mutu setiap triwulan.",
+    area: "Rawat Inap, IGD, Rawat Jalan",
+    pic: "Kepala Ruangan",
+    status: 'Disetujui',
+    createdBy: "user-1",
+    createdAt: new Date("2023-01-10T10:00:00Z").toISOString(),
+    unit: "IGD"
+  },
+  {
+    id: "PROF-SKP-2",
+    title: "Kepatuhan Hand Hygiene",
+    purpose: "Mencegah penyebaran infeksi melalui tangan.",
+    definition: "Persentase kepatuhan petugas melakukan kebersihan tangan sesuai 5 momen WHO.",
+    implication: "Menurunkan angka infeksi terkait pelayanan kesehatan (HAIs).",
+    calculationMethod: "percentage",
+    numerator: "Jumlah momen cuci tangan yang dilakukan sesuai standar",
+    denominator: "Jumlah seluruh peluang cuci tangan yang diamati",
+    target: 85,
+    targetUnit: "%",
+    inclusionCriteria: "Semua petugas kesehatan yang kontak dengan pasien.",
+    exclusionCriteria: "N/A",
+    dataRecording: "Observasi oleh tim PPI.",
+    unitRecap: "Direkapitulasi oleh tim PPI setiap bulan.",
+    analysisReporting: "Dilaporkan ke Komite PPI setiap bulan.",
+    area: "Seluruh Area RS",
+    pic: "Tim PPI",
+    status: 'Disetujui',
+    createdBy: "user-1",
+    createdAt: new Date("2023-01-11T10:00:00Z").toISOString(),
+    unit: "PPI"
+  },
+  {
+    id: "PROF-SKP-3",
+    title: "Kepatuhan Penandaan Area Operasi (Site Marking)",
+    purpose: "Memastikan lokasi operasi yang benar.",
+    definition: "Persentase pasien operasi yang mendapatkan penandaan lokasi operasi dengan benar oleh dokter bedah.",
+    implication: "Mencegah kesalahan lokasi operasi (wrong-site surgery).",
+    calculationMethod: "percentage",
+    numerator: "Jumlah pasien operasi yang ditandai dengan benar",
+    denominator: "Jumlah total pasien operasi yang memerlukan penandaan",
+    target: 100,
+    targetUnit: "%",
+    inclusionCriteria: "Semua pasien yang akan menjalani prosedur bedah.",
+    exclusionCriteria: "Prosedur tanpa sisi (misal: operasi jantung).",
+    dataRecording: "Checklist keselamatan pasien di kamar operasi.",
+    unitRecap: "Direkap oleh kepala instalasi bedah.",
+    analysisReporting: "Dilaporkan ke Komite Mutu.",
+    area: "IBS",
+    pic: "Kepala IBS",
+    status: 'Disetujui',
+    createdBy: "user-1",
+    createdAt: new Date("2023-01-12T10:00:00Z").toISOString(),
+    unit: "IBS"
+  },
+  {
+    id: "PROF-SKP-4",
+    title: "Kepatuhan Upaya Pencegahan Risiko Pasien Jatuh",
+    purpose: "Mengurangi angka kejadian pasien jatuh.",
+    definition: "Persentase kepatuhan pelaksanaan asesmen dan intervensi risiko jatuh pada pasien.",
+    implication: "Meningkatkan keselamatan pasien dan mengurangi cedera.",
+    calculationMethod: "percentage",
+    numerator: "Jumlah pasien berisiko yang mendapatkan intervensi sesuai standar",
+    denominator: "Jumlah total pasien yang diskrining berisiko jatuh",
+    target: 100,
+    targetUnit: "%",
+    inclusionCriteria: "Semua pasien rawat inap.",
+    exclusionCriteria: "Pasien di ICU/PICU/NICU.",
+    dataRecording: "Formulir asesmen risiko jatuh.",
+    unitRecap: "Direkap oleh kepala ruangan.",
+    analysisReporting: "Dianalisis oleh Komite Keselamatan Pasien.",
+    area: "Rawat Inap",
+    pic: "Kepala Ruangan",
+    status: 'Disetujui',
+    createdBy: "user-1",
+    createdAt: new Date("2023-01-13T10:00:00Z").toISOString(),
+    unit: "RANAP"
+  },
+];
+
+
+const initialSubmittedIndicators: SubmittedIndicator[] = [
+  {
+    id: "SUB-SKP-1",
+    profileId: "PROF-SKP-1",
+    name: "Kepatuhan Identifikasi Pasien",
+    category: "IMP-RS",
+    description: "Persentase kepatuhan petugas dalam melakukan identifikasi pasien menggunakan minimal dua identitas (nama, tanggal lahir) sebelum tindakan.",
+    unit: "IGD",
+    frequency: "Bulanan",
+    status: "Diverifikasi",
+    submissionDate: new Date("2023-02-01T10:00:00Z").toISOString(),
+    standard: 100,
+    standardUnit: "%",
+    submittedById: "user-5"
+  },
+  {
+    id: "SUB-SKP-2",
+    profileId: "PROF-SKP-2",
+    name: "Kepatuhan Hand Hygiene",
+    category: "INM",
+    description: "Persentase kepatuhan petugas melakukan kebersihan tangan sesuai 5 momen WHO.",
+    unit: "PPI",
+    frequency: "Bulanan",
+    status: "Diverifikasi",
+    submissionDate: new Date("2023-02-02T10:00:00Z").toISOString(),
+    standard: 85,
+    standardUnit: "%",
+    submittedById: "user-2"
+  },
+  {
+    id: "SUB-SKP-3",
+    profileId: "PROF-SKP-3",
+    name: "Kepatuhan Penandaan Area Operasi (Site Marking)",
+    category: "IMP-RS",
+    description: "Persentase pasien operasi yang mendapatkan penandaan lokasi operasi dengan benar oleh dokter bedah.",
+    unit: "IBS",
+    frequency: "Bulanan",
+    status: "Diverifikasi",
+    submissionDate: new Date("2023-02-03T10:00:00Z").toISOString(),
+    standard: 100,
+    standardUnit: "%",
+    submittedById: "user-1"
+  },
+  {
+    id: "SUB-SKP-4",
+    profileId: "PROF-SKP-4",
+    name: "Kepatuhan Upaya Pencegahan Risiko Pasien Jatuh",
+    category: "IMPU",
+    description: "Persentase kepatuhan pelaksanaan asesmen dan intervensi risiko jatuh pada pasien.",
+    unit: "RANAP",
+    frequency: "Bulanan",
+    status: "Diverifikasi",
+    submissionDate: new Date("2023-02-04T10:00:00Z").toISOString(),
+    standard: 100,
+    standardUnit: "%",
+    submittedById: "user-3"
+  }
+];
+
+
+
 type IndicatorState = {
   profiles: IndicatorProfile[]
   addProfile: (profile: Omit<IndicatorProfile, "id" | "createdAt">) => Promise<string>
@@ -103,7 +262,7 @@ type IndicatorState = {
 }
 
 export const useIndicatorStore = create<IndicatorState>((set, get) => ({
-  profiles: [],
+  profiles: initialProfiles,
   addProfile: async (profileData) => {
     const newId = `PROF-${Date.now()}`;
     const newProfile: IndicatorProfile = {
@@ -127,7 +286,7 @@ export const useIndicatorStore = create<IndicatorState>((set, get) => ({
 
 
   indicators: [],
-  submittedIndicators: [],
+  submittedIndicators: initialSubmittedIndicators,
 
   fetchIndicators: async () => {
     // No-op
@@ -214,5 +373,3 @@ export const useIndicatorStore = create<IndicatorState>((set, get) => ({
     }))
   },
 }))
-
-    

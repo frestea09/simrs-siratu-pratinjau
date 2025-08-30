@@ -44,7 +44,7 @@ type QuarterlyReportData = {
     average: string | null;
 };
 
-const ReportTable = ({ title, data }: { title: string; data: any[], monthHeaders: string[] }) => {
+const ReportTable = ({ title, data, monthHeaders }: { title: string; data: any[], monthHeaders: string[] }) => {
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold flex items-center gap-2">

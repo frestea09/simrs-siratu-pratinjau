@@ -79,7 +79,11 @@ export function IndicatorReportTable({ indicators, onExport, onEdit, showCategor
     {
       accessorKey: "ratio",
       header: () => <div className="text-right">Capaian</div>,
-      cell: ({ row }) => <div className="text-right font-semibold">{row.getValue("ratio")}</div>,
+      cell: ({ row }) => {
+        const ratio = row.getValue("ratio") as string
+        const unit = row.original.standardUnit
+        return <div className="text-right font-semibold">{`${ratio}${unit}`}</div>
+      },
     },
     {
       accessorKey: "standard",
@@ -167,5 +171,3 @@ export function IndicatorReportTable({ indicators, onExport, onEdit, showCategor
     </div>
   )
 }
-
-    

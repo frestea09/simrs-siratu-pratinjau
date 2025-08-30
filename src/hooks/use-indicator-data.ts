@@ -75,23 +75,28 @@ export function useIndicatorData({ allIndicators, selectedUnit, selectedIndicato
             Capaian: 0,
             Standar: selectedIndicator !== "Semua Indikator" ? curr.standard : undefined,
             count: 0,
+            unit: curr.standardUnit,
           }
         }
         acc[key].Capaian += parseFloat(curr.ratio)
         acc[key].count += 1
         return acc
       },
-      {} as Record<string, { date: Date; Capaian: number; Standar?: number; count: number }>
+      {} as Record<string, { date: Date; Capaian: number; Standar?: number; count: number, unit: string }>
     )
 
     return Object.values(groupedData)
-      .map(d => ({
+      .map(d => {
+        const capaian = parseFloat((d.Capaian / d.count).toFixed(1));
+        return {
         ...d,
-        Capaian: parseFloat((d.Capaian / d.count).toFixed(1)),
+        Capaian: capaian,
+        Standar: d.Standar,
         name: ["daily"].includes(filterType) ? format(d.date, "HH:mm")
             : ["yearly", "3m", "6m", "1y", "3y"].includes(filterType) ? format(d.date, "MMM", { locale: IndonesianLocale })
             : format(d.date, "dd MMM"),
-      }))
+        label: `${capaian}${d.unit}`
+      }})
       .sort((a, b) => a.date.getTime() - b.date.getTime())
   }, [filteredIndicatorsForTable, filterType, selectedIndicator])
 

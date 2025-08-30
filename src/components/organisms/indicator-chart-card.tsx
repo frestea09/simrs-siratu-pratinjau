@@ -54,9 +54,9 @@ export function IndicatorChartCard({
       return (
         <div className="p-2 bg-background border rounded-md shadow-lg">
           <p className="font-bold text-foreground">{formattedDate}</p>
-          <p className="text-sm text-primary">{`Capaian: ${data.Capaian}`}</p>
+          <p className="text-sm text-primary">{`Capaian: ${data.Capaian}${data.unit}`}</p>
           {data.Standar && (
-            <p className="text-sm text-destructive">{`Standar: ${data.Standar}`}</p>
+            <p className="text-sm text-destructive">{`Standar: ${data.Standar}${data.unit}`}</p>
           )}
         </div>
       )
@@ -83,6 +83,7 @@ export function IndicatorChartCard({
           fontSize={12}
           tickLine={false}
           axisLine={false}
+          tickFormatter={(value) => `${value}${chartData[0]?.unit || ''}`}
         />
         <Tooltip content={<ChartTooltipContent />} />
         <Legend />
@@ -96,7 +97,7 @@ export function IndicatorChartCard({
           dot={<Dot r={4} />}
           radius={[4, 4, 0, 0]}
         >
-          <LabelList dataKey="Capaian" position="top" />
+          <LabelList dataKey="label" position="top" />
         </MainChartElement>
         {chartType === "line" && selectedIndicator !== "Semua Indikator" && chartData.some(d => d.Standar) && (
           <Line

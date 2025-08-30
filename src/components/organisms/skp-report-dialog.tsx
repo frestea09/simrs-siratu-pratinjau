@@ -243,7 +243,11 @@ export function SkpReportDialog({ open, onOpenChange }: SkpReportDialogProps) {
         >
           <div className="space-y-8">
             {reportData.indicatorData.length > 0 ? (
-                <ReportTable title="Capaian Indikator Sasaran Keselamatan Pasien" data={reportData.indicatorData} monthHeaders={reportData.monthHeaders}/>
+                <ReportTable 
+                  title="Capaian Indikator Sasaran Keselamatan Pasien" 
+                  data={reportData.indicatorData} 
+                  monthHeaders={reportData.monthHeaders}
+                />
             ) : <p className="text-muted-foreground text-center">Tidak ada data indikator SKP untuk periode ini.</p>}
              {reportData.incidentData.length > 0 ? (
                 <IncidentRecapTable data={reportData.incidentData} />

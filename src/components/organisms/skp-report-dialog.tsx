@@ -18,6 +18,7 @@ import { ReportPreviewDialog } from "./report-preview-dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table"
 import { Incident } from "@/store/incident-store"
 import { Badge } from "../ui/badge"
+import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis } from "recharts"
 
 const SKP_INDICATOR_KEYWORDS = [
     "identifikasi pasien",
@@ -42,7 +43,14 @@ type QuarterlyReportData = {
         month3: string | null;
     }
     average: string | null;
+    averageValue: number | null;
 };
+
+type ChartData = {
+    name: string;
+    [key: string]: any;
+}
+
 
 const ReportTable = ({ title, data, monthHeaders }: { title: string; data: any[], monthHeaders: string[] }) => {
   return (
@@ -120,7 +128,13 @@ export function SkpReportDialog({ open, onOpenChange }: SkpReportDialogProps) {
 
   const [selectedYear, setSelectedYear] = React.useState<string>(new Date().getFullYear().toString());
   const [selectedQuarter, setSelectedQuarter] = React.useState<string>("1");
-  const [reportData, setReportData] = React.useState<{ indicatorData: QuarterlyReportData[], incidentData: Incident[], monthHeaders: string[] } | null>(null)
+  const [reportData, setReportData] = React.useState<{ 
+      indicatorData: QuarterlyReportData[], 
+      incidentData: Incident[], 
+      monthHeaders: string[],
+      lineChartData: ChartData[],
+      barChartData: ChartData[]
+  } | null>(null)
   const [isPreviewOpen, setPreviewOpen] = React.useState(false);
 
 
@@ -157,7 +171,7 @@ export function SkpReportDialog({ open, onOpenChange }: SkpReportDialogProps) {
     const indicatorNames = Array.from(new Set(skpIndicators.map(i => i.indicator)));
 
     const indicatorData: QuarterlyReportData[] = indicatorNames.map((name, index) => {
-        const indData = { no: index + 1, indicator: name, standard: "", months: { month1: null, month2: null, month3: null }, average: null } as QuarterlyReportData;
+        const indData = { no: index + 1, indicator: name, standard: "", months: { month1: null, month2: null, month3: null }, average: null, averageValue: null } as QuarterlyReportData;
         
         const relevantIndicators = skpIndicators.filter(i => i.indicator === name);
         if (relevantIndicators.length > 0) {
@@ -180,13 +194,41 @@ export function SkpReportDialog({ open, onOpenChange }: SkpReportDialogProps) {
         const validMonthlyValues = monthlyValues.filter(v => v !== null) as number[];
         if (validMonthlyValues.length > 0) {
             const total = validMonthlyValues.reduce((acc, v) => acc + v, 0);
-            indData.average = (total / validMonthlyValues.length).toFixed(1) + (relevantIndicators[0].standardUnit || '');
+            const avg = total / validMonthlyValues.length;
+            indData.averageValue = avg;
+            indData.average = avg.toFixed(1) + (relevantIndicators[0].standardUnit || '');
         }
 
         return indData;
     });
 
-    setReportData({ indicatorData, incidentData: quarterlyIncidents, monthHeaders });
+    // --- Prepare Chart Data ---
+    const lineChartData: ChartData[] = monthHeaders.map((monthName, index) => {
+        let total = 0;
+        let count = 0;
+        indicatorData.forEach(ind => {
+            const monthKey = `month${index + 1}` as keyof QuarterlyReportData['months'];
+            const monthValueStr = ind.months[monthKey];
+            if (monthValueStr) {
+                total += parseFloat(monthValueStr);
+                count++;
+            }
+        });
+        return {
+            name: monthName,
+            "Rata-rata Capaian": count > 0 ? parseFloat((total / count).toFixed(1)) : 0,
+        };
+    });
+
+    const barChartData: ChartData[] = indicatorData
+        .filter(d => d.averageValue !== null)
+        .map(d => ({
+            name: d.indicator.split(' ').slice(0,3).join(' '), // Shorten name for chart label
+            "Capaian Triwulan": d.averageValue
+        }));
+
+
+    setReportData({ indicatorData, incidentData: quarterlyIncidents, monthHeaders, lineChartData, barChartData });
     setPreviewOpen(true);
   }
 
@@ -241,20 +283,60 @@ export function SkpReportDialog({ open, onOpenChange }: SkpReportDialogProps) {
           title={`Laporan SKP Triwulan ${selectedQuarter} Tahun ${selectedYear}`}
           description="Laporan ini merangkum capaian indikator sasaran keselamatan pasien dan rekapitulasi insiden pada periode yang dipilih."
         >
-          <div className="space-y-8">
-            {reportData.indicatorData.length > 0 ? (
-                <ReportTable 
-                  title="Capaian Indikator Sasaran Keselamatan Pasien" 
-                  data={reportData.indicatorData} 
-                  monthHeaders={reportData.monthHeaders}
-                />
-            ) : <p className="text-muted-foreground text-center">Tidak ada data indikator SKP untuk periode ini.</p>}
-             {reportData.incidentData.length > 0 ? (
-                <IncidentRecapTable data={reportData.incidentData} />
-            ) : <p className="text-muted-foreground text-center">Tidak ada insiden yang dilaporkan pada periode ini.</p>}
-          </div>
+            <div className="space-y-8">
+                 {reportData.lineChartData.length > 0 && (
+                     <div className="print-page">
+                        <h3 className="text-lg font-semibold mb-2">Tren Rata-rata Capaian Indikator SKP</h3>
+                        <div className="h-[300px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={reportData.lineChartData}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="name" />
+                                    <YAxis unit="%" />
+                                    <RechartsTooltip />
+                                    <Legend />
+                                    <Line type="monotone" dataKey="Rata-rata Capaian" stroke="hsl(var(--primary))" strokeWidth={2} />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                )}
+                 {reportData.barChartData.length > 0 && (
+                    <div className="print-page">
+                        <h3 className="text-lg font-semibold mb-2">Perbandingan Capaian per Indikator SKP</h3>
+                        <div className="h-[300px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={reportData.barChartData} margin={{bottom: 100}}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="name" angle={-45} textAnchor="end" interval={0} />
+                                    <YAxis unit="%" />
+                                    <RechartsTooltip />
+                                    <Legend />
+                                    <Bar dataKey="Capaian Triwulan" fill="hsl(var(--chart-2))" />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                )}
+                {reportData.indicatorData.length > 0 ? (
+                    <div className="print-page">
+                        <ReportTable 
+                        title="Capaian Indikator Sasaran Keselamatan Pasien" 
+                        data={reportData.indicatorData} 
+                        monthHeaders={reportData.monthHeaders}
+                        />
+                    </div>
+                ) : <p className="text-muted-foreground text-center">Tidak ada data indikator SKP untuk periode ini.</p>}
+                {reportData.incidentData.length > 0 ? (
+                    <div className="print-page">
+                        <IncidentRecapTable data={reportData.incidentData} />
+                    </div>
+                ) : <p className="text-muted-foreground text-center">Tidak ada insiden yang dilaporkan pada periode ini.</p>}
+            </div>
         </ReportPreviewDialog>
       )}
     </>
   )
 }
+
+    

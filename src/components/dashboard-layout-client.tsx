@@ -33,6 +33,7 @@ import {
   Loader2,
   Bell,
   Cog,
+  FileSignature,
 } from "lucide-react";
 import Link from "next/link";
 import favicon from "@/app/favicon.ico";
@@ -50,17 +51,6 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { logout } from "@/lib/actions/auth";
 
-const LoadingOverlay = ({ isLoading }: { isLoading: boolean }) => (
-  <div
-    className={cn(
-      "fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm transition-opacity duration-300",
-      isLoading ? "opacity-100" : "opacity-0 pointer-events-none"
-    )}
-  >
-    <Loader2 className="h-10 w-10 animate-spin text-primary" />
-  </div>
-);
-
 const navItems: NavItemType[] = [
   {
     href: "/dashboard/overview",
@@ -71,6 +61,11 @@ const navItems: NavItemType[] = [
     label: "Peningkatan Mutu",
     icon: HeartPulse,
     subItems: [
+      {
+        href: "/dashboard/profiles",
+        icon: FileSignature,
+        label: "Profil Indikator",
+      },
       {
         href: "/dashboard/indicators",
         icon: FolderKanban,

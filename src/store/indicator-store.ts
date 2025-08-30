@@ -7,6 +7,32 @@ import { calculateRatio, calculateStatus } from "@/lib/indicator-utils"
 export type IndicatorCategory = "INM" | "IMP-RS" | "IMPU" | "SPM"
 export type IndicatorFrequency = "Harian" | "Mingguan" | "Bulanan" | "Tahunan"
 
+export type IndicatorProfile = {
+  id: string
+  title: string
+  purpose: string
+  definition: string
+  implication: string
+  formula: string
+  numerator: string
+  denominator: string
+  target: number
+  targetUnit: "%" | "menit"
+  inclusionCriteria: string
+  exclusionCriteria: string
+  dataRecording: string
+  unitRecap: string
+  analysisReporting: string
+  area: string
+  pic: string
+  dataCollectionFormat: string
+  status: 'Draf' | 'Menunggu Persetujuan' | 'Disetujui' | 'Ditolak'
+  rejectionReason?: string
+  createdBy: string // user id
+  createdAt: string
+  unit: string
+}
+
 export type SubmittedIndicator = {
   id: string
   name: string
@@ -20,6 +46,7 @@ export type SubmittedIndicator = {
   standardUnit: "%" | "menit"
   rejectionReason?: string
   submittedById?: string;
+  profileId?: string;
 }
 
 export type Indicator = {
@@ -41,6 +68,11 @@ export type Indicator = {
 }
 
 type IndicatorState = {
+  profiles: IndicatorProfile[]
+  addProfile: (profile: Omit<IndicatorProfile, "id" | "createdAt">) => Promise<string>
+  updateProfile: (id: string, data: Partial<Omit<IndicatorProfile, "id" | "createdAt">>) => Promise<void>
+  removeProfile: (id: string) => Promise<void>
+
   indicators: Indicator[]
   submittedIndicators: SubmittedIndicator[]
   fetchIndicators: () => Promise<void>
@@ -70,6 +102,29 @@ type IndicatorState = {
 }
 
 export const useIndicatorStore = create<IndicatorState>((set, get) => ({
+  profiles: [],
+  addProfile: async (profileData) => {
+    const newId = `PROF-${Date.now()}`;
+    const newProfile: IndicatorProfile = {
+      ...profileData,
+      id: newId,
+      createdAt: new Date().toISOString(),
+    };
+    set((state) => ({
+      profiles: [newProfile, ...state.profiles].sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+    }));
+    return newId;
+  },
+  updateProfile: async (id, data) => {
+    set((state) => ({
+      profiles: state.profiles.map((p) => (p.id === id ? { ...p, ...data } : p)),
+    }));
+  },
+  removeProfile: async (id) => {
+    set((state) => ({ profiles: state.profiles.filter((p) => p.id !== id) }));
+  },
+
+
   indicators: [],
   submittedIndicators: [],
 

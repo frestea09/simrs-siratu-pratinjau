@@ -99,7 +99,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
         frequency: values.frequency,
         profileId: values.profileId,
         submittedById: currentUser?.id || '',
-        status: 'Diverifikasi' as const, // Auto-verified since it's based on approved profile
+        status: 'Menunggu Persetujuan' as const, 
     };
 
     if (isEditMode && indicator.id) {
@@ -118,12 +118,19 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
         addLog({
             user: currentUser?.name || "System",
             action: 'ADD_SUBMITTED_INDICATOR',
-            details: `Indikator baru "${submissionData.name}" (${newId}) diajukan berdasarkan profil.`
+            details: `Indikator baru "${submissionData.name}" (${newId}) diajukan dan menunggu persetujuan.`
+        })
+
+        addNotification({
+            title: 'Pengajuan Indikator Baru',
+            description: `Indikator "${submissionData.name}" dari unit ${submissionData.unit} memerlukan verifikasi Anda.`,
+            link: '/dashboard/indicators',
+            recipientRole: 'Sub. Komite Peningkatan Mutu',
         })
 
         toast({
           title: "Pengajuan Berhasil",
-          description: `Indikator "${submissionData.name}" telah berhasil diajukan dan siap digunakan untuk pelaporan.`,
+          description: `Indikator "${submissionData.name}" telah berhasil diajukan dan menunggu verifikasi.`,
         })
     }
     setOpen(false);

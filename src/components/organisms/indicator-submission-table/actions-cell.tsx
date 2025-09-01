@@ -110,26 +110,18 @@ export function ActionsCell({ row }: ActionsCellProps) {
                     <DropdownMenuItem onClick={() => navigator.clipboard.writeText(indicator.id)}>
                         Salin ID Indikator
                     </DropdownMenuItem>
-                    {canVerify && (
+                    {canVerify && indicator.status === 'Menunggu Persetujuan' && (
                         <>
                             <DropdownMenuSeparator />
                             <DropdownMenuSub>
                                 <DropdownMenuSubTrigger>Ubah Status</DropdownMenuSubTrigger>
                                 <DropdownMenuSubContent>
-                                    {statusOptions.map((status) => (
-                                    <DropdownMenuItem
-                                        key={status}
-                                        onSelect={async () => {
-                                        if (status === 'Ditolak') {
-                                            openRejectionDialog(indicator);
-                                        } else {
-                                            await handleStatusChange(indicator, status);
-                                        }
-                                        }}
-                                    >
-                                        {status}
+                                    <DropdownMenuItem onSelect={() => handleStatusChange(indicator, 'Diverifikasi')}>
+                                        Verifikasi
                                     </DropdownMenuItem>
-                                    ))}
+                                    <DropdownMenuItem onSelect={() => openRejectionDialog(indicator)}>
+                                        Tolak
+                                    </DropdownMenuItem>
                                 </DropdownMenuSubContent>
                             </DropdownMenuSub>
                         </>

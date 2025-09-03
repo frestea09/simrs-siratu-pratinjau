@@ -63,9 +63,6 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
 
 
   React.useEffect(() => {
-    // This effect now only syncs the form when the indicatorToEdit prop changes,
-    // which happens when the dialog is opened for editing.
-    // It no longer handles the 'new' case, preventing the loop.
     if (indicatorToEdit?.id) {
         const relatedSubmitted = submittedIndicators.find(si => si.name === indicatorToEdit.indicator);
         setSelectedIndicatorId(relatedSubmitted?.id);
@@ -155,15 +152,12 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
   const today = new Date();
   const currentDayOfMonth = getDate(today);
   const reportingMonth = currentDayOfMonth <= 5 ? subMonths(today, 1) : today;
-  const disabledDays = [
+  
+  const disabledDays = isEditMode ? [] : [
       { after: endOfMonth(reportingMonth) },
       { before: startOfMonth(reportingMonth) },
       ...filledDates.map(d => new Date(d))
   ];
-  if(isEditMode) {
-      disabledDays.splice(0, 2); // Allow editing for any month if in edit mode
-  }
-
 
   const isTimeBased = selectedSubmittedIndicator?.standardUnit === "menit";
 
@@ -192,7 +186,6 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
               <Button
                 variant={"outline"}
                 className={cn("w-full justify-start text-left font-normal text-base h-11", !date && "text-muted-foreground")}
-                disabled={isEditMode}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {date ? format(date, "PPP") : <span>Pilih tanggal</span>}
@@ -291,5 +284,3 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
     </div>
   )
 }
-
-    

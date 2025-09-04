@@ -59,9 +59,14 @@ const createUserStore = () =>
       set({ users: data })
     },
     fetchCurrentUser: async () => {
-       // In a real app, this would fetch from a session endpoint.
-       // Here we just ensure it's null on initial load.
-       set({ currentUser: null });
+       try {
+         const res = await fetch('/api/session', { cache: 'no-store' })
+         if (!res.ok) { set({ currentUser: null }); return }
+         const data = await res.json()
+         set({ currentUser: data?.user ?? null })
+       } catch {
+         set({ currentUser: null })
+       }
     },
     addUser: async (user) => {
       const res = await fetch('/api/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(user) })
@@ -103,10 +108,10 @@ export const UserStoreProvider = ({
     storeRef.current = createUserStore()
   }
 
-  // No initial fetch needed as data is in-memory
-  // useEffect(() => {
-  //   storeRef.current?.getState().fetchCurrentUser()
-  // }, [])
+  useEffect(() => {
+    // Hydrate currentUser from httpOnly session cookie via API
+    storeRef.current?.getState().fetchCurrentUser()
+  }, [])
 
   return (
     <UserStoreContext.Provider value={storeRef.current}>

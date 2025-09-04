@@ -15,7 +15,7 @@ import { IncidentFilterCard } from "@/components/organisms/incident-filter-card"
 import { useIncidentStore } from "@/store/incident-store"
 import { useUserStore } from "@/store/user-store.tsx"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { PlusCircle, ShieldAlert } from "lucide-react"
+import { PlusCircle, ShieldAlert, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   ResponsiveContainer,
@@ -30,6 +30,7 @@ import {
   Legend,
 } from "recharts"
 import { format } from "date-fns"
+import { exportIncidentsXlsx } from "@/lib/export-incidents"
 import { getFilterRange, getFilterDescription, FilterType } from "@/lib/indicator-utils"
 
 export default function IncidentsPage() {
@@ -194,6 +195,96 @@ export default function IncidentsPage() {
     </Button>
   )
 
+  const handleDownloadCsv = () => {
+    const rows: string[] = []
+    const sep = ","
+    const quote = (v: any) => {
+      if (v === null || v === undefined) return ""
+      const s = String(v).replace(/\r?\n|\r/g, " ")
+      if (s.includes("\"") || s.includes(",") || s.includes("\n")) {
+        return '"' + s.replace(/\"/g, '""') + '"'
+      }
+      return s
+    }
+    const fmtDate = (d?: string) => {
+      if (!d) return ""
+      const dd = new Date(d)
+      if (isNaN(dd.getTime())) return ""
+      const day = String(dd.getDate()).padStart(2, '0')
+      const mon = String(dd.getMonth() + 1).padStart(2, '0')
+      const yr = dd.getFullYear()
+      return `${day}-${mon}-${yr}`
+    }
+    // Header sesuai contoh
+    rows.push([
+      "No",
+      "Laporan unit",
+      "Ruangan",
+      "Tanggal Kejadian",
+      "Identitas Pasien (Nama & No RM)",
+      "Kronologi",
+      "Tipe Insiden",
+      "KPC",
+      "KNC",
+      "KTC",
+      "KTD",
+      "Sentinel",
+      "Biru",
+      "Hijau",
+      "Kuning",
+      "Merah",
+      "Tindakan",
+      "Rekomendasi",
+    ].join(sep))
+
+    filteredIncidents.forEach((inc, idx) => {
+      const isType = (t: string) => (inc.type === t ? '✓' : '')
+      const isSeverity = (s: string) => (inc.severity === s ? '✓' : '')
+      const unit = inc.relatedUnit || inc.unit || ""
+      const room = inc.careRoom || ""
+      const patient = [inc.patientName, inc.medicalRecordNumber].filter(Boolean).join(" / ")
+      const row = [
+        idx + 1,
+        unit,
+        room,
+        fmtDate(inc.incidentDate || inc.date),
+        patient,
+        inc.chronology || "",
+        inc.incidentSubject || "",
+        isType('KPC'),
+        isType('KNC'),
+        isType('KTC'),
+        isType('KTD'),
+        isType('Sentinel'),
+        isSeverity('biru'),
+        isSeverity('hijau'),
+        isSeverity('kuning'),
+        isSeverity('merah'),
+        inc.firstAction || "",
+        inc.followUpPlan || "",
+      ]
+      rows.push(row.map(quote).join(sep))
+    })
+
+    const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `rekap_insiden_${format(selectedDate, 'yyyy-MM-dd')}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  const handleDownloadXlsx = async () => {
+    try {
+      await exportIncidentsXlsx(filteredIncidents, `rekap_insiden_${format(selectedDate, 'yyyy-MM-dd')}.xlsx`)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
       <div className="flex items-center justify-between space-y-2">
@@ -269,7 +360,13 @@ export default function IncidentsPage() {
                     Kelola dan investigasi semua insiden keselamatan yang telah dilaporkan.
                   </CardDescription>
                 </div>
-                <AddNewButton />
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="lg" onClick={handleDownloadXlsx}>
+                    <Download className="mr-2 h-5 w-5" />
+                    Unduh Excel (.xlsx)
+                  </Button>
+                  <AddNewButton />
+                </div>
               </div>
             </CardHeader>
             <CardContent>

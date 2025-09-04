@@ -92,3 +92,17 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Added react-day-picker styles */
+.rdp {
+  --rdp-cell-size: 40px;
+  --rdp-caption-font-size: 18px;
+  --rdp-background-color: transparent;
+  --rdp-accent-color: hsl(var(--primary));
+  --rdp-accent-color-dark: hsl(var(--primary));
+  --rdp-foreground-color: hsl(var(--primary-foreground));
+  --rdp-foreground-color-dark: hsl(var(--primary-foreground));
+  --rdp-outline: 2px solid var(--rdp-accent-color);
+  --rdp-outline-selected: 3px solid var(--rdp-accent-color);
+  --rdp-selected-color: hsl(var(--primary-foreground));
+}

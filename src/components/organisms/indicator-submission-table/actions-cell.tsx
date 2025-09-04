@@ -41,7 +41,7 @@ export function ActionsCell({ row }: ActionsCellProps) {
     const [isEditOpen, setIsEditOpen] = React.useState(false)
     const [rejectionDialog, setRejectionDialog] = React.useState({ isOpen: false, indicator: null as SubmittedIndicator | null })
     
-    const { updateSubmittedIndicatorStatus, removeSubmittedIndicator } = useIndicatorStore.getState()
+    const { updateSubmittedIndicatorStatus, removeSubmittedIndicator } = useIndicatorStore()
     const { currentUser } = useUserStore()
     const { addLog } = useLogStore()
     const { addNotification } = useNotificationStore()

@@ -158,7 +158,7 @@ export const columns: ColumnDef<User>[] = [
 const roleOptions: UserRole[] = ['Admin Sistem', 'PIC Mutu', 'PJ Ruangan', 'Kepala Unit/Instalasi', 'Direktur', 'Sub. Komite Peningkatan Mutu', 'Sub. Komite Keselamatan Pasien', 'Sub. Komite Manajemen Risiko'];
 
 type UserTableProps = {
-  users: User[] 
+  users: User[]
 }
 
 export function UserTable({ users }: UserTableProps) {
@@ -166,7 +166,7 @@ export function UserTable({ users }: UserTableProps) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
   const table = useReactTable({
-    data: users.users,
+    data: users,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,

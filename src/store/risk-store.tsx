@@ -119,41 +119,44 @@ const createRiskStore = () => create<RiskState>((set) => ({
   risks: [],
 
   fetchRisks: async () => {
-    // No-op
+    const res = await fetch('/api/risks', { cache: 'no-store' })
+    if (!res.ok) throw new Error('Failed to fetch risks')
+    const data: Risk[] = await res.json()
+    set({ risks: data })
   },
 
   addRisk: async (risk) => {
-    const newId = `RISK-${Date.now()}`
-    const base = {
-      ...risk,
-      id: newId,
-      createdAt: new Date().toISOString(),
+    const res = await fetch('/api/risks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(risk),
+    })
+    if (!res.ok) {
+      try { const err = await res.json(); throw new Error(err?.error || 'Failed to create risk') } catch { throw new Error('Failed to create risk') }
     }
-    const props = calculateRiskProperties(base)
-    const newRisk: Risk = { ...base, ...props } as Risk;
-
-    set((state) => ({
-      risks: [newRisk, ...state.risks].sort((a, b) => b.riskScore - a.riskScore),
-    }))
-    return newId;
+    const created: Risk = await res.json()
+    set((state) => ({ risks: [created, ...state.risks].sort((a,b) => b.riskScore - a.riskScore) }))
+    return created.id
   },
 
   updateRisk: async (id, riskData) => {
+    const res = await fetch(`/api/risks/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(riskData),
+    })
+    if (!res.ok) {
+      try { const err = await res.json(); throw new Error(err?.error || 'Failed to update risk') } catch { throw new Error('Failed to update risk') }
+    }
+    const updated: Risk = await res.json()
     set((state) => ({
-      risks: state.risks
-        .map((r) => {
-          if (r.id === id) {
-            const updated = { ...r, ...riskData }
-            const props = calculateRiskProperties(updated)
-            return { ...updated, ...props } as Risk;
-          }
-          return r
-        })
-        .sort((a, b) => b.riskScore - a.riskScore),
+      risks: state.risks.map(r => r.id === id ? updated : r).sort((a,b) => b.riskScore - a.riskScore)
     }))
   },
 
   removeRisk: async (id) => {
+    const res = await fetch(`/api/risks/${id}`, { method: 'DELETE' })
+    if (!res.ok) throw new Error('Failed to delete risk')
     set((state) => ({ risks: state.risks.filter((r) => r.id !== id) }))
   },
 }))

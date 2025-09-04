@@ -19,7 +19,7 @@ export function FormInputText({ id, label, placeholder, containerClassName = "gr
       <Label htmlFor={id} className="text-right">
         {label}
       </Label>
-      <Input id={id} placeholder={placeholder} value={value} onChange={onChange} />
+      <Input id={id} placeholder={placeholder} value={value ?? ""} onChange={onChange} />
     </div>
   )
 }

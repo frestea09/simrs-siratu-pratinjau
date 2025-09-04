@@ -19,7 +19,7 @@ export function FormInputTextarea({ id, label, placeholder, containerClassName =
       <Label htmlFor={id} className="text-right pt-2">
         {label}
       </Label>
-      <Textarea id={id} placeholder={placeholder} value={value} onChange={onChange} />
+      <Textarea id={id} placeholder={placeholder} value={value ?? ""} onChange={onChange} />
     </div>
   )
 }

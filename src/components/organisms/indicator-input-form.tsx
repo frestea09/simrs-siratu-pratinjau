@@ -28,7 +28,7 @@ type IndicatorInputFormProps = {
 
 export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: IndicatorInputFormProps) {
   const { toast } = useToast()
-  const { addIndicator, updateIndicator, submittedIndicators, indicators, profiles } = useIndicatorStore()
+  const { addIndicator, updateIndicator, submittedIndicators, indicators, profiles, fetchProfiles, fetchSubmittedIndicators } = useIndicatorStore()
   const { currentUser } = useUserStore()
   const { addLog } = useLogStore()
 
@@ -59,6 +59,15 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
     return submittedIndicators.find(si => si.id === selectedIndicatorId);
   }, [selectedIndicatorId, submittedIndicators])
 
+
+  React.useEffect(() => {
+    if (!profiles || profiles.length === 0) {
+      fetchProfiles().catch(() => {})
+    }
+    if (!submittedIndicators || submittedIndicators.length === 0) {
+      fetchSubmittedIndicators().catch(() => {})
+    }
+  }, [])
 
   React.useEffect(() => {
     if (indicatorToEdit?.id) {
@@ -93,11 +102,17 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
 
   const handleSubmit = async () => {
     const profile = profiles.find(p => p.id === selectedSubmittedIndicator?.profileId);
-    if (!selectedSubmittedIndicator || !date || !numerator || !denominator || !profile) {
+    const numeratorMissing = numerator === "" || numerator === null || numerator === undefined
+    const denominatorMissing = denominator === "" || denominator === null || denominator === undefined
+    if (!selectedSubmittedIndicator || !date || numeratorMissing || denominatorMissing || !profile) {
         toast({
             variant: "destructive",
             title: "Data Tidak Lengkap",
-            description: "Harap isi semua kolom wajib dan pastikan profil terkait ditemukan.",
+            description: !selectedSubmittedIndicator
+              ? "Pilih indikator yang sudah diverifikasi terlebih dahulu."
+              : !profile
+                ? "Profil indikator terkait tidak ditemukan. Coba muat ulang daftar profil."
+                : "Harap isi semua kolom wajib (tanggal/periode, numerator, denominator).",
         })
         return
     }
@@ -117,34 +132,41 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
         followUpPlan: followUpPlan,
     };
 
-    if (isEditMode && indicatorToEdit) {
-        await updateIndicator(indicatorToEdit.id, dataToSave);
-        addLog({
-            user: currentUser?.name || 'System',
-            action: 'UPDATE_INDICATOR',
-            details: `Data capaian untuk "${dataToSave.indicator}" diperbarui.`,
-        });
-        toast({
-            title: "Data Berhasil Diperbarui",
-            description: `Capaian untuk ${dataToSave.indicator} periode ${format(date, "d MMMM yyyy")} telah diperbarui.`,
-        })
-    } else {
-         const newId = await addIndicator({
+    try {
+      if (isEditMode && indicatorToEdit) {
+          await updateIndicator(indicatorToEdit.id, dataToSave);
+          addLog({
+              user: currentUser?.name || 'System',
+              action: 'UPDATE_INDICATOR',
+              details: `Data capaian untuk "${dataToSave.indicator}" diperbarui.`,
+          });
+          toast({
+              title: "Data Berhasil Diperbarui",
+              description: `Capaian untuk ${dataToSave.indicator} periode ${format(date, "d MMMM yyyy")} telah diperbarui.`,
+          })
+      } else {
+          const newId = await addIndicator({
             ...dataToSave,
             submissionId: selectedSubmittedIndicator.id,
-         })
-         addLog({
-            user: currentUser?.name || 'System',
-            action: 'ADD_INDICATOR',
-            details: `Data capaian baru (${newId}) untuk "${dataToSave.indicator}" ditambahkan.`,
-        });
-        toast({
+          })
+          addLog({
+              user: currentUser?.name || 'System',
+              action: 'ADD_INDICATOR',
+              details: `Data capaian baru (${newId}) untuk "${dataToSave.indicator}" ditambahkan.`,
+          });
+          toast({
             title: "Data Berhasil Disimpan",
             description: `Capaian untuk ${dataToSave.indicator} periode ${format(date, "d MMMM yyyy")} telah ditambahkan.`,
-        })
+          })
+      }
+      setOpen(false);
+    } catch (e: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Gagal menyimpan data capaian',
+        description: e?.message || 'Terjadi kesalahan saat menyimpan.'
+      })
     }
-
-    setOpen(false);
   }
   
   // For native inputs we'll use max attribute and runtime checks

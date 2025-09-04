@@ -107,31 +107,39 @@ export function ProfileForm({ setOpen, profileToEdit }: ProfileFormProps) {
         createdBy: currentUser?.id || '',
     };
 
-    if (isEditMode && profileToEdit) {
-        await updateProfile(profileToEdit.id, dataToSave);
-        addLog({
-            user: currentUser?.name || "System",
-            action: 'UPDATE_INDICATOR',
-            details: `Profil indikator "${values.title}" diperbarui.`
-        })
-        toast({
-            title: "Profil Diperbarui",
-            description: `Profil untuk "${values.title}" telah berhasil diperbarui.`,
-        })
-    } else {
-        const newId = await addProfile(dataToSave);
-        addLog({
-            user: currentUser?.name || "System",
-            action: 'ADD_INDICATOR',
-            details: `Profil indikator baru "${values.title}" (${newId}) dibuat.`
-        })
-        toast({
-          title: "Profil Berhasil Dibuat",
-          description: `Profil "${values.title}" telah disimpan sebagai ${status}.`,
-        })
+    try {
+      if (isEditMode && profileToEdit) {
+          await updateProfile(profileToEdit.id, dataToSave);
+          addLog({
+              user: currentUser?.name || "System",
+              action: 'UPDATE_INDICATOR',
+              details: `Profil indikator \"${values.title}\" diperbarui.`
+          })
+          toast({
+              title: "Profil Diperbarui",
+              description: `Profil untuk \"${values.title}\" telah berhasil diperbarui.`,
+          })
+      } else {
+          const newId = await addProfile(dataToSave);
+          addLog({
+              user: currentUser?.name || "System",
+              action: 'ADD_INDICATOR',
+              details: `Profil indikator baru \"${values.title}\" (${newId}) dibuat.`
+          })
+          toast({
+            title: "Profil Berhasil Dibuat",
+            description: `Profil \"${values.title}\" telah disimpan sebagai ${status}.`,
+          })
+      }
+      setOpen(false);
+      form.reset();
+    } catch (e: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Gagal menyimpan profil',
+        description: e?.message || 'Terjadi kesalahan saat menyimpan profil.'
+      })
     }
-    setOpen(false);
-    form.reset();
   }
 
   return (

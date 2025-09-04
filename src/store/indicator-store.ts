@@ -5,7 +5,7 @@ import { create } from "zustand"
 import { calculateRatio, calculateStatus } from "@/lib/indicator-utils"
 
 export type IndicatorCategory = "INM" | "IMP-RS" | "IMPU" | "SPM"
-export type IndicatorFrequency = "Harian" | "Mingguan" | "Bulanan" | "Tahunan"
+export type IndicatorFrequency = "Harian" | "Mingguan" | "Bulanan" | "Triwulan" | "Tahunan"
 export type CalculationMethod = "percentage" | "average";
 
 export type IndicatorProfile = {

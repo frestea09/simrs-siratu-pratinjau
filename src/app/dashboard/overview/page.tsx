@@ -70,7 +70,10 @@ const DeadlineCard = () => {
 
 export default function OverviewPage() {
   const { indicators, submittedIndicators } = useIndicatorStore()
-  const { incidents } = useIncidentStore()
+  const { incidents, fetchIncidents } = useIncidentStore()
+  React.useEffect(() => {
+    fetchIncidents().catch(() => {})
+  }, [])
   const { users, currentUser } = useUserStore()
   const { logs } = useLogStore()
 

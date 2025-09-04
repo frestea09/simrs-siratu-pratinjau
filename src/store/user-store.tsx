@@ -39,43 +39,52 @@ const initialUsers: Omit<User, 'id'>[] = [
 type UserState = {
   users: User[]
   currentUser: User | null
-  fetchUsers: () => Promise<void> // Kept for potential future API integration
+  fetchUsers: () => Promise<void>
   fetchCurrentUser: () => Promise<void>
-  addUser: (user: Omit<User, "id">) => string
-  updateUser: (id: string, data: Partial<Omit<User, "id">>) => void
-  removeUser: (id: string) => void
+  addUser: (user: Omit<User, "id">) => Promise<string>
+  updateUser: (id: string, data: Partial<Omit<User, "id">>) => Promise<void>
+  removeUser: (id: string) => Promise<void>
   setCurrentUser: (user: User | null) => void
   clearCurrentUser: () => void
 }
 
 const createUserStore = () =>
   create<UserState>()((set, get) => ({
-    users: initialUsers.map((u, i) => ({...u, id: `user-${i+1}`})),
+    users: [],
     currentUser: null,
     fetchUsers: async () => {
-      // This is now a no-op but kept for architecture consistency
+      const res = await fetch('/api/users', { cache: 'no-store' })
+      if (!res.ok) throw new Error('Failed to fetch users')
+      const data: User[] = await res.json()
+      set({ users: data })
     },
     fetchCurrentUser: async () => {
        // In a real app, this would fetch from a session endpoint.
        // Here we just ensure it's null on initial load.
        set({ currentUser: null });
     },
-    addUser: (user) => {
-      const newId = `user-${Date.now()}-${Math.random()}`
-      const newUser = { ...user, id: newId }
-      set((state) => ({
-        users: [...state.users, newUser],
-      }))
-      return newId
+    addUser: async (user) => {
+      const res = await fetch('/api/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(user) })
+      if (!res.ok) {
+        try { const err = await res.json(); throw new Error(err?.error || 'Failed to create user') } catch { throw new Error('Failed to create user') }
+      }
+      const created: User = await res.json()
+      set((state) => ({ users: [created, ...state.users] }))
+      return created.id
     },
-    updateUser: (id, data) =>
-      set((state) => ({
-        users: state.users.map((u) => (u.id === id ? { ...u, ...data } : u)),
-      })),
-    removeUser: (id) =>
-      set((state) => ({
-        users: state.users.filter((u) => u.id !== id),
-      })),
+    updateUser: async (id, data) => {
+      const res = await fetch(`/api/users/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+      if (!res.ok) {
+        try { const err = await res.json(); throw new Error(err?.error || 'Failed to update user') } catch { throw new Error('Failed to update user') }
+      }
+      const updated: User = await res.json()
+      set((state) => ({ users: state.users.map(u => (u.id === id ? updated : u)) }))
+    },
+    removeUser: async (id) => {
+      const res = await fetch(`/api/users/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Failed to delete user')
+      set((state) => ({ users: state.users.filter(u => u.id !== id) }))
+    },
     setCurrentUser: (user) => set({ currentUser: user }),
     clearCurrentUser: () => set({ currentUser: null }),
   }))

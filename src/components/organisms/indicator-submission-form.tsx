@@ -56,11 +56,17 @@ const categoryOptions: {value: IndicatorCategory, label: string}[] = [
 
 export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmissionFormProps) {
   const { toast } = useToast()
-  const { submitIndicator, updateSubmittedIndicator, profiles } = useIndicatorStore()
+  const { submitIndicator, updateSubmittedIndicator, profiles, fetchProfiles } = useIndicatorStore()
   const { currentUser } = useUserStore();
   const { addLog } = useLogStore();
   const { addNotification } = useNotificationStore();
   const isEditMode = !!indicator;
+
+  React.useEffect(() => {
+    if (!profiles || profiles.length === 0) {
+      fetchProfiles().catch(() => {})
+    }
+  }, [])
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

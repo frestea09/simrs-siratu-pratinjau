@@ -1,0 +1,39 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+
+function mapTargetUnitToDb(u: string): 'percent' | 'minute' {
+  return u === '%' ? 'percent' : 'minute'
+}
+
+export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const id = params.id
+    const body = await req.json()
+
+    const data: any = {}
+    const direct = [
+      'title','purpose','definition','implication','calculationMethod','numerator','denominator','unitRecap','dataRecording','analysisReporting','area','pic','status','rejectionReason','unit'
+    ]
+    for (const f of direct) if (f in body) data[f] = body[f]
+    if ('target' in body) data.target = Number(body.target)
+    if ('targetUnit' in body) data.targetUnit = mapTargetUnitToDb(body.targetUnit)
+    if ('status' in body) {
+      data.status = body.status === 'Menunggu Persetujuan' ? 'MenungguPersetujuan' : body.status
+    }
+
+    const updated = await prisma.indicatorProfile.update({ where: { id }, data })
+    return NextResponse.json(updated)
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message || 'Failed to update profile' }, { status: 500 })
+  }
+}
+
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const id = params.id
+    await prisma.indicatorProfile.delete({ where: { id } })
+    return NextResponse.json({ ok: true })
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message || 'Failed to delete profile' }, { status: 500 })
+  }
+}

@@ -392,40 +392,34 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
                         <FormField
                             control={form.control}
                             name="dueDate"
-                            render={({ field }) => (
-                                <FormItem className="flex flex-col">
-                                    <FormLabel>Batas Waktu (Due Date)</FormLabel>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
+                            render={({ field }) => {
+                                const toValue = (d?: Date) => {
+                                    if (!d) return "";
+                                    const y = d.getFullYear();
+                                    const m = String(d.getMonth() + 1).padStart(2, "0");
+                                    const day = String(d.getDate()).padStart(2, "0");
+                                    return `${y}-${m}-${day}`;
+                                };
+                                const parseValue = (v: string): Date | undefined => {
+                                    if (!v) return undefined;
+                                    const [y, m, d] = v.split("-").map(Number);
+                                    if (!y || !m || !d) return undefined;
+                                    return new Date(y, m - 1, d);
+                                };
+                                return (
+                                    <FormItem className="flex flex-col">
+                                        <FormLabel>Batas Waktu (Due Date)</FormLabel>
                                         <FormControl>
-                                            <Button
-                                            variant={"outline"}
-                                            className={cn(
-                                                "w-full pl-3 text-left font-normal",
-                                                !field.value && "text-muted-foreground"
-                                            )}
-                                            >
-                                            {field.value ? (
-                                                format(field.value, "PPP")
-                                            ) : (
-                                                <span>Pilih tanggal</span>
-                                            )}
-                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
+                                            <Input
+                                                type="date"
+                                                value={toValue(field.value)}
+                                                onChange={(e) => field.onChange(parseValue(e.target.value))}
+                                            />
                                         </FormControl>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={field.value}
-                                            onSelect={field.onChange}
-                                            initialFocus
-                                        />
-                                        </PopoverContent>
-                                    </Popover>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
+                                        <FormMessage />
+                                    </FormItem>
+                                )
+                            }}
                         />
                     </div>
 

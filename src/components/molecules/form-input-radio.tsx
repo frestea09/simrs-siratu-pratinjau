@@ -20,7 +20,7 @@ export function FormInputRadio({ id, label, items, orientation = 'horizontal', c
       <Label htmlFor={id} className="text-right">
         {label}
       </Label>
-      <RadioGroup id={id} className={`flex ${orientation === 'horizontal' ? 'flex-row flex-wrap gap-x-6 gap-y-2' : 'flex-col space-y-2'}`} value={value} onValueChange={onValueChange}>
+      <RadioGroup id={id} className={`flex ${orientation === 'horizontal' ? 'flex-row flex-wrap gap-x-6 gap-y-2' : 'flex-col space-y-2'}`} value={value ?? ""} onValueChange={onValueChange}>
         {items.map((item) => (
           <div key={item.value} className="flex items-center space-x-2">
             <RadioGroupItem value={item.value} id={`${id}-${item.value}`} />

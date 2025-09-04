@@ -32,7 +32,7 @@ import {
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table"
 
 export default function SurveysPage() {
-  const surveys = useSurveyStore((state) => state.surveys)
+  const { surveys } = useSurveyStore()
   const [isSurveyDialogOpen, setIsSurveyDialogOpen] = React.useState(false)
   const [editingSurvey, setEditingSurvey] = React.useState<SurveyResult | null>(null)
   const [isPreviewOpen, setIsPreviewOpen] = React.useState(false)

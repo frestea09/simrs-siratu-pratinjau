@@ -48,52 +48,63 @@ type IncidentState = {
   removeIncident: (id: string) => Promise<void>
 }
 
-const createIncidentStore = () => create<IncidentState>((set) => ({
+const createIncidentStore = () => create<IncidentState>((set, get) => ({
   incidents: [],
 
   fetchIncidents: async () => {
-    // No-op, data is now managed in the store
+    const res = await fetch('/api/incidents', { cache: 'no-store' })
+    if (!res.ok) throw new Error('Failed to fetch incidents')
+    const data: Incident[] = await res.json()
+    set({ incidents: data })
   },
 
   addIncident: async (incidentData) => {
-    const newIncident: Incident = {
-      ...incidentData,
-      id: `INC-${Date.now()}`,
-      date: new Date().toISOString(),
-      status: "Investigasi",
-      chronology: incidentData.chronology ? formatChronology(incidentData.chronology) : undefined,
-    }
-    set((state) => ({ incidents: [newIncident, ...state.incidents] }))
-    return newIncident.id
+    const payload = { ...incidentData }
+    if (payload.chronology) payload.chronology = formatChronology(payload.chronology)
+    const res = await fetch('/api/incidents', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) throw new Error('Failed to create incident')
+    const created: Incident = await res.json()
+    set((state) => ({ incidents: [created, ...state.incidents] }))
+    return created.id
   },
 
   updateIncident: async (id, incidentData) => {
+    const payload: any = { ...incidentData }
+    if (payload.chronology !== undefined) {
+      payload.chronology = payload.chronology ? formatChronology(payload.chronology) : ''
+    }
+    const res = await fetch(`/api/incidents/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) throw new Error('Failed to update incident')
+    const updated = await res.json()
     set((state) => ({
-      incidents: state.incidents.map((inc) => {
-        if (inc.id === id) {
-          const updatedData = { ...inc, ...incidentData };
-          if (incidentData.chronology !== undefined) {
-            updatedData.chronology = formatChronology(incidentData.chronology);
-          }
-          return updatedData;
-        }
-        return inc;
-      }),
+      incidents: state.incidents.map((inc) => (inc.id === id ? { ...inc, ...updated, date: updated.incidentDate ?? updated.date ?? inc.date } : inc)),
     }))
   },
 
   updateIncidentStatus: async (id, status) => {
+    const res = await fetch(`/api/incidents/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    })
+    if (!res.ok) throw new Error('Failed to update incident status')
     set((state) => ({
-      incidents: state.incidents.map((inc) =>
-        inc.id === id ? { ...inc, status } : inc
-      ),
+      incidents: state.incidents.map((inc) => (inc.id === id ? { ...inc, status } : inc)),
     }))
   },
 
   removeIncident: async (id) => {
-    set((state) => ({
-      incidents: state.incidents.filter((inc) => inc.id !== id),
-    }))
+    const res = await fetch(`/api/incidents/${id}`, { method: 'DELETE' })
+    if (!res.ok) throw new Error('Failed to delete incident')
+    set((state) => ({ incidents: state.incidents.filter((inc) => inc.id !== id) }))
   },
 }))
 

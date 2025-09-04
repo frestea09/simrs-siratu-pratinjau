@@ -18,7 +18,7 @@ export function FormInputTime({ id, label, containerClassName = "grid grid-cols-
       <Label htmlFor={id} className="text-right">
         {label}
       </Label>
-      <Input id={id} type="time" value={value} onChange={onChange} />
+      <Input id={id} type="time" value={value ?? ""} onChange={onChange} />
     </div>
   )
 }

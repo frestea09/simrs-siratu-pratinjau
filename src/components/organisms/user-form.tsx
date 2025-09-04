@@ -95,14 +95,14 @@ export function UserForm({ setOpen, userToEdit }: UserFormProps) {
     }
   }, [selectedRole, form]);
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     const finalValues = { ...values };
     if (!unitAssociatedRoles.includes(finalValues.role as UserRole)) {
         delete finalValues.unit;
     }
 
     if (isEditMode && userToEdit) {
-        updateUser(userToEdit.id, finalValues)
+        await updateUser(userToEdit.id, finalValues)
         addLog({
             user: currentUser?.name || 'System',
             action: 'UPDATE_USER',
@@ -113,7 +113,7 @@ export function UserForm({ setOpen, userToEdit }: UserFormProps) {
             description: `Data untuk pengguna "${values.name}" telah berhasil diperbarui.`,
         })
     } else {
-        const newId = addUser(finalValues as Omit<User, 'id'>)
+        const newId = await addUser(finalValues as Omit<User, 'id'>)
         addLog({
             user: currentUser?.name || 'System',
             action: 'ADD_USER',

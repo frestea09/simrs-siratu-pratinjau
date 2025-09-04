@@ -13,7 +13,10 @@ import { ProfileTable } from "@/components/organisms/profile-table"
 import { centralRoles } from "@/store/central-roles"
 
 export default function ProfilesPage() {
-  const { profiles } = useIndicatorStore()
+  const { profiles, fetchProfiles } = useIndicatorStore()
+  React.useEffect(() => {
+    fetchProfiles().catch(() => {})
+  }, [])
   const { currentUser } = useUserStore()
   const [isNewDialogOpen, setIsNewDialogOpen] = React.useState(false)
 

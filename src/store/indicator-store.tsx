@@ -7,7 +7,7 @@ import React, { createContext, useContext, useRef } from "react"
 
 
 export type IndicatorCategory = "INM" | "IMP-RS" | "IMPU" | "SPM"
-export type IndicatorFrequency = "Harian" | "Mingguan" | "Bulanan" | "Tahunan"
+export type IndicatorFrequency = "Harian" | "Mingguan" | "Bulanan" | "Triwulan" | "Tahunan"
 export type CalculationMethod = "percentage" | "average";
 
 export type IndicatorProfile = {
@@ -231,6 +231,7 @@ const initialSubmittedIndicators: SubmittedIndicator[] = [
 
 type IndicatorState = {
   profiles: IndicatorProfile[]
+  fetchProfiles: () => Promise<void>
   addProfile: (profile: Omit<IndicatorProfile, "id" | "createdAt">) => Promise<string>
   updateProfile: (id: string, data: Partial<Omit<IndicatorProfile, "id" | "createdAt">>) => Promise<void>
   removeProfile: (id: string) => Promise<void>
@@ -264,92 +265,142 @@ type IndicatorState = {
 }
 
 const createIndicatorStore = () => create<IndicatorState>((set, get) => ({
-  profiles: initialProfiles,
+  profiles: [],
+  fetchProfiles: async () => {
+    const res = await fetch('/api/profiles', { cache: 'no-store' })
+    if (!res.ok) throw new Error('Failed to fetch profiles')
+    const data: IndicatorProfile[] = await res.json()
+    set({ profiles: data })
+  },
   addProfile: async (profileData) => {
-    const newId = `PROF-${Date.now()}`;
-    const newProfile: IndicatorProfile = {
-      ...profileData,
-      id: newId,
-      createdAt: new Date().toISOString(),
-    };
+    const res = await fetch('/api/profiles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(profileData),
+    })
+    if (!res.ok) {
+      try {
+        const err = await res.json()
+        throw new Error(err?.error || 'Failed to create profile')
+      } catch {
+        throw new Error('Failed to create profile')
+      }
+    }
+    const created: IndicatorProfile = await res.json()
     set((state) => ({
-      profiles: [newProfile, ...state.profiles].sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
-    }));
-    return newId;
+      profiles: [created, ...state.profiles].sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+    }))
+    return created.id
   },
   updateProfile: async (id, data) => {
+    const res = await fetch(`/api/profiles/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (!res.ok) throw new Error('Failed to update profile')
     set((state) => ({
       profiles: state.profiles.map((p) => (p.id === id ? { ...p, ...data } as IndicatorProfile : p)),
-    }));
+    }))
   },
   removeProfile: async (id) => {
-    set((state) => ({ profiles: state.profiles.filter((p) => p.id !== id) }));
+    const res = await fetch(`/api/profiles/${id}`, { method: 'DELETE' })
+    if (!res.ok) throw new Error('Failed to delete profile')
+    set((state) => ({ profiles: state.profiles.filter((p) => p.id !== id) }))
   },
 
 
   indicators: [],
-  submittedIndicators: initialSubmittedIndicators,
+  submittedIndicators: [],
 
   fetchIndicators: async () => {
-    // No-op
+    const res = await fetch('/api/indicators', { cache: 'no-store' })
+    if (!res.ok) throw new Error('Failed to fetch indicators')
+    const data: Indicator[] = await res.json()
+    set({ indicators: data })
   },
 
   fetchSubmittedIndicators: async () => {
-    // No-op
+    const res = await fetch('/api/submitted-indicators', { cache: 'no-store' })
+    if (!res.ok) throw new Error('Failed to fetch submitted indicators')
+    const data: SubmittedIndicator[] = await res.json()
+    set({ submittedIndicators: data })
   },
 
   addIndicator: async (indicator) => {
-    const newId = `IND-${Date.now()}`
-    const base = { ...indicator, id: newId }
-    const newIndicator: Indicator = {
-      ...base,
-      ratio: calculateRatio(base),
-      status: calculateStatus(base),
+    const payload: any = {
+      submissionId: (indicator as any).submissionId,
+      period: indicator.period,
+      numerator: indicator.numerator,
+      denominator: indicator.denominator,
+      analysisNotes: indicator.analysisNotes,
+      followUpPlan: indicator.followUpPlan,
     }
-    set((state) => ({ indicators: [newIndicator, ...state.indicators].sort((a,b) => new Date(b.period).getTime() - new Date(a.period).getTime()) }))
-    return newId
+    const res = await fetch('/api/indicators', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) {
+      try { const err = await res.json(); throw new Error(err?.error || 'Failed to save indicator') } catch { throw new Error('Failed to save indicator') }
+    }
+    const created: Indicator = await res.json()
+    set((state) => ({ indicators: [created, ...state.indicators].sort((a,b) => new Date(b.period).getTime() - new Date(a.period).getTime()) }))
+    return created.id
   },
 
   updateIndicator: async (id, data) => {
+    const res = await fetch(`/api/indicators/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (!res.ok) {
+      try { const err = await res.json(); throw new Error(err?.error || 'Failed to update indicator') } catch { throw new Error('Failed to update indicator') }
+    }
+    const updated: Indicator = await res.json()
     set((state) => ({
-      indicators: state.indicators.map((indicator) => {
-        if (indicator.id === id) {
-          const updated = { ...indicator, ...data }
-          return {
-            ...updated,
-            ratio: calculateRatio(updated),
-            status: calculateStatus(updated),
-          }
-        }
-        return indicator
-      }),
+      indicators: state.indicators.map((indicator) => (indicator.id === id ? updated : indicator)),
     }))
   },
 
   removeIndicator: async (id) => {
+    const res = await fetch(`/api/indicators/${id}`, { method: 'DELETE' })
+    if (!res.ok) throw new Error('Failed to delete indicator')
     set((state) => ({ indicators: state.indicators.filter((i) => i.id !== id) }))
   },
 
   submitIndicator: async (indicator, sendNotificationCallback) => {
-    const newId = `SUB-${Date.now()}`;
-    const newSubmission: SubmittedIndicator = {
-      ...indicator,
-      id: newId,
-      submissionDate: new Date().toISOString(),
+    const res = await fetch('/api/submitted-indicators', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(indicator),
+    })
+    if (!res.ok) {
+      try { const err = await res.json(); throw new Error(err?.error || 'Failed to submit indicator') } catch { throw new Error('Failed to submit indicator') }
     }
+    const created: SubmittedIndicator = await res.json()
     set((state) => ({
-      submittedIndicators: [newSubmission, ...state.submittedIndicators].sort((a,b) => new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime()),
+      submittedIndicators: [created, ...state.submittedIndicators].sort((a,b) => new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime()),
     }))
     if (sendNotificationCallback) sendNotificationCallback()
-    return newId;
+    return created.id
   },
 
   updateSubmittedIndicatorStatus: async (id, status, reason) => {
+    const payload: any = { status }
+    if (status === 'Ditolak') payload.rejectionReason = reason ?? ''
+    const res = await fetch(`/api/submitted-indicators/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) throw new Error('Failed to update submitted indicator status')
     set((state) => ({
       submittedIndicators: state.submittedIndicators.map((indicator) => {
         if (indicator.id === id) {
           const updated: SubmittedIndicator = { ...indicator, status }
-          if (status === "Ditolak" && reason) {
+          if (status === 'Ditolak') {
             updated.rejectionReason = reason
           } else {
             delete updated.rejectionReason
@@ -362,6 +413,12 @@ const createIndicatorStore = () => create<IndicatorState>((set, get) => ({
   },
 
   updateSubmittedIndicator: async (id, data) => {
+    const res = await fetch(`/api/submitted-indicators/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (!res.ok) throw new Error('Failed to update submitted indicator')
     set((state) => ({
       submittedIndicators: state.submittedIndicators.map((indicator) =>
         indicator.id === id ? { ...indicator, ...data } as SubmittedIndicator : indicator
@@ -370,6 +427,8 @@ const createIndicatorStore = () => create<IndicatorState>((set, get) => ({
   },
 
   removeSubmittedIndicator: async (id) => {
+    const res = await fetch(`/api/submitted-indicators/${id}`, { method: 'DELETE' })
+    if (!res.ok) throw new Error('Failed to delete submitted indicator')
     set((state) => ({
       submittedIndicators: state.submittedIndicators.filter((i) => i.id !== id),
     }))

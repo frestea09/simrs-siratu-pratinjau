@@ -20,7 +20,7 @@ export function FormInputSelect({ id, label, placeholder, items, containerClassN
       <Label htmlFor={id} className="text-right">
         {label}
       </Label>
-      <Select value={value} onValueChange={onValueChange}>
+      <Select value={value ?? ""} onValueChange={onValueChange}>
         <SelectTrigger>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>

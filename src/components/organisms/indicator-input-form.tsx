@@ -4,14 +4,12 @@
 
 import React from "react"
 import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { cn } from "@/lib/utils"
-import { CalendarIcon } from "lucide-react"
+// no icon needed for native inputs
 import { format, endOfToday } from "date-fns"
+import { id as IndonesianLocale } from "date-fns/locale"
 import { useIndicatorStore, Indicator, SubmittedIndicator, IndicatorCategory } from "@/store/indicator-store"
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "../ui/textarea"
@@ -149,12 +147,36 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
     setOpen(false);
   }
   
-  const disabledDays = isEditMode ? [] : [
-      { after: endOfToday() }, // Disable future dates
-      ...filledDates.map(d => new Date(d))
-  ];
+  // For native inputs we'll use max attribute and runtime checks
 
   const isTimeBased = selectedSubmittedIndicator?.standardUnit === "menit";
+  const frequency = selectedSubmittedIndicator?.frequency;
+
+  // Helpers for a friendlier monthly selector (Month + Year)
+  const currentYear = new Date().getFullYear();
+  const years = React.useMemo(() => Array.from({ length: 6 }, (_, i) => (currentYear - i).toString()), [currentYear]);
+  const months = React.useMemo(() => (
+    Array.from({ length: 12 }, (_, i) => ({
+      value: i.toString(),
+      label: format(new Date(currentYear, i, 1), "MMMM", { locale: IndonesianLocale })
+    }))
+  ), [currentYear]);
+
+  // Helper for native month input value
+  const monthValue = React.useMemo(() => {
+    if (!date) return "";
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    return `${y}-${m}`;
+  }, [date]);
+
+  // Compute disabled months (already filled or in the future) for monthly mode
+  const filledMonthKeys = React.useMemo(() => new Set(
+    filledDates.map(d => `${d.getFullYear()}-${d.getMonth()}`)
+  ), [filledDates]);
+  const today = new Date();
+  const maxDateStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  const maxMonthStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
 
   return (
     <div className="space-y-6 pt-4">
@@ -176,47 +198,53 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
         </div>
         <div className="space-y-2">
           <Label htmlFor="period" className="text-base">Periode Laporan</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={"outline"}
-                className={cn("w-full justify-start text-left font-normal text-base h-11", !date && "text-muted-foreground")}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : <span>Pilih tanggal</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar 
-                mode="single" 
-                selected={date} 
-                onSelect={setDate} 
-                month={date}
-                disabled={disabledDays}
-                initialFocus 
-                modifiers={{ filled: filledDates }}
-                modifiersStyles={{
-                    filled: { 
-                        position: 'relative',
-                        fontWeight: 'bold',
-                        color: 'red',
-                        '::after': {
-                            content: '""',
-                            display: 'block',
-                            position: 'absolute',
-                            bottom: '4px',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            width: '4px',
-                            height: '4px',
-                            borderRadius: '50%',
-                            backgroundColor: 'hsl(var(--destructive))'
-                        }
-                    }
+          {frequency === "Bulanan" ? (
+            <div className="space-y-1">
+              <Input
+                id="period-month"
+                type="month"
+                className="text-base h-11"
+                value={monthValue}
+                max={isEditMode ? undefined : maxMonthStr}
+                onChange={(e) => {
+                  const v = e.target.value; // YYYY-MM
+                  if (!v) { setDate(undefined); return; }
+                  const [yStr, mStr] = v.split('-');
+                  const y = parseInt(yStr, 10);
+                  const m = parseInt(mStr, 10) - 1;
+                  if (!isEditMode && filledMonthKeys.has(`${y}-${m}`)) {
+                    toast({ variant: "destructive", title: "Bulan sudah terisi", description: "Silakan pilih bulan lain yang belum memiliki capaian." });
+                    return;
+                  }
+                  setDate(new Date(y, m, 1));
                 }}
               />
-            </PopoverContent>
-          </Popover>
+              <p className="text-xs text-muted-foreground">Gunakan pemilih bulan/tahun bawaan perangkat.</p>
+            </div>
+          ) : (
+            <Input
+              id="period-date"
+              type="date"
+              className="text-base h-11"
+              value={date ? `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}` : ''}
+              max={isEditMode ? undefined : maxDateStr}
+              onChange={(e) => {
+                const v = e.target.value; // YYYY-MM-DD
+                if (!v) { setDate(undefined); return; }
+                const [y, m, d] = v.split('-').map(Number);
+                const picked = new Date(y, (m||1)-1, d||1);
+                if (!isEditMode) {
+                  const pickedKey = `${picked.getFullYear()}-${String(picked.getMonth()+1).padStart(2,'0')}-${String(picked.getDate()).padStart(2,'0')}`;
+                  const existingKeys = new Set(filledDates.map(fd => `${fd.getFullYear()}-${String(fd.getMonth()+1).padStart(2,'0')}-${String(fd.getDate()).padStart(2,'0')}`));
+                  if (existingKeys.has(pickedKey)) {
+                    toast({ variant: "destructive", title: "Tanggal sudah terisi", description: "Silakan pilih tanggal lain yang belum memiliki capaian." });
+                    return;
+                  }
+                }
+                setDate(picked);
+              }}
+            />
+          )}
         </div>
       </div>
       

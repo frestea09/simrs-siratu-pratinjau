@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import * as React from "react"
@@ -6,7 +7,7 @@ import { parseISO } from "date-fns"
 
 import { useIndicatorStore, IndicatorCategory } from "@/store/indicator-store"
 import { useUserStore } from "@/store/user-store.tsx"
-import { getFilterRange, getFilterDescription } from "@/lib/indicator-utils"
+import { getFilterDescription } from "@/lib/indicator-utils"
 import type { FilterType } from "@/lib/indicator-utils"
 import { useIndicatorData } from "@/hooks/use-indicator-data"
 import { IndicatorFilterCard } from "@/components/organisms/indicator-filter-card"

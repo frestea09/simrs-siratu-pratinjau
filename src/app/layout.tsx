@@ -1,11 +1,16 @@
 
+
 import type { Metadata } from "next"
 import "./globals.css"
 import { Toaster } from "@/components/ui/toaster"
 import { UserStoreProvider } from "@/store/user-store"
-import { LogStoreProvider } from "@/store/log-store.tsx"
+import { LogStoreProvider } from "@/store/log-store"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { NotificationStoreProvider } from "@/store/notification-store.tsx"
+import { NotificationStoreProvider } from "@/store/notification-store"
+import { IndicatorStoreProvider } from "@/store/indicator-store"
+import { IncidentStoreProvider } from "@/store/incident-store"
+import { RiskStoreProvider } from "@/store/risk-store"
+import { SurveyStoreProvider } from "@/store/survey-store"
 
 export const metadata: Metadata = {
   title: "SIRATU",
@@ -35,10 +40,18 @@ export default function RootLayout({
         <UserStoreProvider>
           <LogStoreProvider>
             <NotificationStoreProvider>
-              <TooltipProvider>
-                {children}
-                <Toaster />
-              </TooltipProvider>
+                <IndicatorStoreProvider>
+                    <IncidentStoreProvider>
+                        <RiskStoreProvider>
+                            <SurveyStoreProvider>
+                                <TooltipProvider>
+                                    {children}
+                                    <Toaster />
+                                </TooltipProvider>
+                            </SurveyStoreProvider>
+                        </RiskStoreProvider>
+                    </IncidentStoreProvider>
+                </IndicatorStoreProvider>
             </NotificationStoreProvider>
           </LogStoreProvider>
         </UserStoreProvider>

@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import * as React from "react"
@@ -123,8 +124,8 @@ const IncidentRecapTable = ({ data }: { data: Incident[] }) => (
 
 
 export function SkpReportDialog({ open, onOpenChange }: SkpReportDialogProps) {
-  const { indicators } = useIndicatorStore();
-  const { incidents } = useIncidentStore();
+  const { indicators } = useIndicatorStore()
+  const { incidents } = useIncidentStore()
 
   const [selectedYear, setSelectedYear] = React.useState<string>(new Date().getFullYear().toString());
   const [selectedQuarter, setSelectedQuarter] = React.useState<string>("1");

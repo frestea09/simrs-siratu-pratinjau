@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import React from "react"
@@ -33,7 +34,7 @@ import { Badge } from "@/components/ui/badge"
 import { useIndicatorStore } from "@/store/indicator-store"
 import { useIncidentStore } from "@/store/incident-store"
 import { useUserStore } from "@/store/user-store"
-import { useLogStore } from "@/store/log-store"
+import { useLogStore } from "@/store/log-store.tsx"
 import { format, subMonths, startOfMonth, endOfMonth, getDate, getMonth, getYear } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
 import {centralRoles} from "@/store/central-roles.ts";

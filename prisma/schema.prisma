@@ -10,7 +10,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ENUMS
+// ENUMS to ensure data integrity
 
 enum UserRole {
   AdminSistem
@@ -42,14 +42,19 @@ enum CalculationMethod {
   average
 }
 
-enum IndicatorProfileStatus {
+enum StandardUnit {
+  percent
+  minute
+}
+
+enum ProfileStatus {
   Draf
   MenungguPersetujuan
   Disetujui
   Ditolak
 }
 
-enum SubmittedIndicatorStatus {
+enum SubmissionStatus {
   MenungguPersetujuan
   Diverifikasi
   Ditolak
@@ -99,18 +104,18 @@ enum RiskCategory {
   BahayaPsikososial
 }
 
-enum RiskLevel {
-  Rendah
-  Moderat
-  Tinggi
-  Ekstrem
-}
-
 enum RiskEvaluation {
   Mitigasi
   Transfer
   Diterima
   Dihindari
+}
+
+enum RiskLevel {
+  Rendah
+  Moderat
+  Tinggi
+  Ekstrem
 }
 
 enum RiskStatus {
@@ -119,94 +124,100 @@ enum RiskStatus {
   Closed
 }
 
+
 // MODELS
 
 model User {
-  id                      String                 @id @default(cuid())
-  name                    String
-  email                   String                 @unique
-  password                String
-  role                    UserRole
-  unit                    String?
-  createdAt               DateTime               @default(now())
-  updatedAt               DateTime               @updatedAt
-  createdProfiles         IndicatorProfile[]     @relation("CreatedBy")
-  submittedIndicators     SubmittedIndicator[]   @relation("SubmittedBy")
-  assignedRisks           Risk[]                 @relation("AssignedTo")
-  notifications           Notification[]         @relation("Recipient")
+  id                        String              @id @default(cuid())
+  name                      String
+  email                     String              @unique
+  password                  String
+  role                      UserRole
+  unit                      String?
+  createdAt                 DateTime            @default(now())
+  updatedAt                 DateTime            @updatedAt
+  // Relations
+  createdProfiles           IndicatorProfile[]  @relation("CreatedBy")
+  submittedIndicators       SubmittedIndicator[] @relation("SubmittedBy")
+  reportedIncidents         Incident[]          @relation("ReportedBy")
+  analysedIncidents         Incident[]          @relation("AnalysedBy")
+  createdRisks              Risk[]              @relation("CreatedBy")
+  picForRisks               Risk[]              @relation("PicForRisk")
+  submittedSurveys          SurveyResult[]      @relation("SubmittedBy")
+  notifications             Notification[]      @relation("Recipient")
+  createdNotifications      Notification[]      @relation("Creator")
 }
 
 model IndicatorProfile {
-  id                 String               @id @default(cuid())
-  title              String
-  purpose            String
-  definition         String
-  implication        String
-  calculationMethod  CalculationMethod
-  numerator          String
-  denominator        String
-  target             Float
-  targetUnit         String // "%" or "menit"
-  inclusionCriteria  String
-  exclusionCriteria  String
-  dataRecording      String
-  unitRecap          String
-  analysisReporting  String
-  area               String
-  pic                String
-  status             IndicatorProfileStatus @default(Draf)
-  rejectionReason    String?
-  unit               String
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
-  createdBy          User                 @relation("CreatedBy", fields: [createdById], references: [id])
-  createdById        String
+  id                String             @id @default(cuid())
+  title             String             @unique
+  purpose           String
+  definition        String             @db.Text
+  implication       String             @db.Text
+  calculationMethod CalculationMethod
+  numerator         String
+  denominator       String
+  target            Float
+  targetUnit        StandardUnit
+  inclusionCriteria String             @db.Text
+  exclusionCriteria String             @db.Text
+  dataRecording     String
+  unitRecap         String
+  analysisReporting String
+  area              String
+  pic               String
+  status            ProfileStatus      @default(Draf)
+  rejectionReason   String?
+  unit              String
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  // Relations
+  authorId          String
+  author            User               @relation("CreatedBy", fields: [authorId], references: [id])
   submittedIndicators SubmittedIndicator[]
 }
 
 model SubmittedIndicator {
-  id              String                   @id @default(cuid())
-  name            String
-  category        IndicatorCategory
-  description     String
-  unit            String
-  frequency       IndicatorFrequency
-  status          SubmittedIndicatorStatus @default(MenungguPersetujuan)
-  submissionDate  DateTime                 @default(now())
-  standard        Float
-  standardUnit    String // "%" or "menit"
+  id             String             @id @default(cuid())
+  name           String
+  category       IndicatorCategory
+  description    String             @db.Text
+  unit           String
+  frequency      IndicatorFrequency
+  status         SubmissionStatus   @default(MenungguPersetujuan)
+  submissionDate DateTime           @default(now())
+  standard       Float
+  standardUnit   StandardUnit
   rejectionReason String?
-  profile         IndicatorProfile         @relation(fields: [profileId], references: [id])
-  profileId       String
-  submittedBy     User                     @relation("SubmittedBy", fields: [submittedById], references: [id])
-  submittedById   String
-  achievements    Indicator[]
+  // Relations
+  profileId      String
+  profile        IndicatorProfile   @relation(fields: [profileId], references: [id])
+  submittedById  String
+  submittedBy    User               @relation("SubmittedBy", fields: [submittedById], references: [id])
+  achievements   Indicator[]
 }
 
 model Indicator {
-  id                String            @id @default(cuid())
-  indicator         String
-  category          IndicatorCategory
-  unit              String
-  period            DateTime
-  frequency         IndicatorFrequency
+  id                String             @id @default(cuid())
+  period            DateTime           @db.Date
   numerator         Float
   denominator       Float
-  calculationMethod CalculationMethod
-  standard          Float
-  standardUnit      String
-  analysisNotes     String?
-  followUpPlan      String?
   ratio             Float
-  status            String // "Memenuhi Standar", "Tidak Memenuhi Standar", "N/A"
-  submission        SubmittedIndicator @relation(fields: [submissionId], references: [id])
+  status            String
+  analysisNotes     String?            @db.Text
+  followUpPlan      String?            @db.Text
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  // Relations
   submissionId      String
-  createdAt         DateTime          @default(now())
+  submission        SubmittedIndicator @relation(fields: [submissionId], references: [id])
+
+  @@unique([submissionId, period]) // Ensure one report per indicator per period
 }
 
 model Incident {
   id                    String            @id @default(cuid())
-  date                  DateTime          @default(now())
+  reportDate            DateTime          @default(now())
   status                IncidentStatus    @default(Investigasi)
   patientName           String?
   medicalRecordNumber   String?
@@ -218,28 +229,33 @@ model Incident {
   entryTime             String?
   incidentDate          DateTime?
   incidentTime          String?
-  chronology            String?
+  chronology            String?           @db.Text
   type                  IncidentType
   incidentSubject       String?
   incidentLocation      String?
   incidentLocationOther String?
   relatedUnit           String?
-  firstAction           String?
+  firstAction           String?           @db.Text
   firstActionBy         String?
   hasHappenedBefore     String?
   severity              IncidentSeverity
   patientImpact         String?
-  analysisNotes         String?
-  followUpPlan          String?
+  analysisNotes         String?           @db.Text
+  followUpPlan          String?           @db.Text
+  // Relations
+  reporterId            String?
+  reporter              User?             @relation("ReportedBy", fields: [reporterId], references: [id])
+  analystId             String?
+  analyst               User?             @relation("AnalysedBy", fields: [analystId], references: [id])
 }
 
 model Risk {
-  id                    String        @id @default(cuid())
-  createdAt             DateTime      @default(now())
+  id                    String         @id @default(cuid())
+  createdAt             DateTime       @default(now())
   unit                  String
   source                RiskSource
-  description           String
-  cause                 String
+  description           String         @db.Text
+  cause                 String         @db.Text
   category              RiskCategory
   consequence           Int
   likelihood            Int
@@ -247,43 +263,49 @@ model Risk {
   riskLevel             RiskLevel
   controllability       Int
   riskScore             Int
-ajukan
   evaluation            RiskEvaluation
-  actionPlan            String
+  actionPlan            String         @db.Text
   dueDate               DateTime?
-  status                RiskStatus    @default(Open)
+  status                RiskStatus     @default(Open)
   residualConsequence   Int?
   residualLikelihood    Int?
   residualRiskScore     Int?
   residualRiskLevel     RiskLevel?
-  reportNotes           String?
-  pic                   User?         @relation("AssignedTo", fields: [picId], references: [id])
+  reportNotes           String?        @db.Text
+  updatedAt             DateTime       @updatedAt
+  // Relations
+  authorId              String
+  author                User           @relation("CreatedBy", fields: [authorId], references: [id])
   picId                 String?
+  pic                   User?          @relation("PicForRisk", fields: [picId], references: [id])
 }
 
 model SurveyResult {
-  id                   String   @id @default(cuid())
-  submissionDate       DateTime @default(now())
-  unit                 String
-  scores               Json
-  totalScore           Float
-  positivePercentage   Float
-  neutralPercentage    Float
-  negativePercentage   Float
-  answers              Json
+  id                 String   @id @default(cuid())
+  submissionDate     DateTime @default(now())
+  unit               String
+  totalScore         Float
+  positivePercentage Float
+  neutralPercentage  Float
+  negativePercentage Float
+  answersJson        Json
+  // Relations
+  submittedById      String? // Can be anonymous
+  submittedBy        User?    @relation("SubmittedBy", fields: [submittedById], references: [id])
 }
 
 model Notification {
-  id              String    @id @default(cuid())
-  timestamp       DateTime  @default(now())
-  title           String
-  description     String
-  isRead          Boolean   @default(false)
-  link            String?
-  recipientRole   UserRole?
-  recipientUnit   String?
-  recipient       User?     @relation("Recipient", fields: [recipientId], references: [id])
-  recipientId     String?
+  id            String    @id @default(cuid())
+  timestamp     DateTime  @default(now())
+  title         String
+  description   String
+  isRead        Boolean   @default(false)
+  link          String?
+  // Relations
+  creatorId     String? // For system-generated, might be null
+  creator       User?     @relation("Creator", fields: [creatorId], references: [id])
+  recipientId   String
+  recipient     User      @relation("Recipient", fields: [recipientId], references: [id])
 }
 
 model SystemLog {
@@ -291,5 +313,5 @@ model SystemLog {
   timestamp DateTime @default(now())
   user      String
   action    String
-  details   String
+  details   String   @db.Text
 }

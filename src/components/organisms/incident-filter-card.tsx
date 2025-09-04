@@ -103,6 +103,7 @@ export function IncidentFilterCard({
               onSelect={(date) => date && setSelectedDate(date)}
               initialFocus
               disabled={{ after: new Date() }}
+              month={selectedDate}
             />
           </PopoverContent>
         </Popover>

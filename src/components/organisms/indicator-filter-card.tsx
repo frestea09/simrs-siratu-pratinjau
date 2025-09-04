@@ -78,7 +78,7 @@ export function IndicatorFilterCard({
               {selectedDate ? format(selectedDate, "PPP", { locale: IndonesianLocale }) : <span>Pilih tanggal</span>}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={selectedDate} onSelect={(date) => date && setSelectedDate(date)} initialFocus disabled={{ after: new Date() }} /></PopoverContent>
+          <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={selectedDate} onSelect={(date) => date && setSelectedDate(date)} initialFocus disabled={{ after: new Date() }} month={selectedDate} /></PopoverContent>
         </Popover>
       )
     }

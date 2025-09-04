@@ -11,8 +11,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import { CalendarIcon } from "lucide-react"
-import { format, startOfMonth, subMonths, endOfMonth, getDate, endOfToday } from "date-fns"
-import { useIndicatorStore, Indicator, SubmittedIndicator, IndicatorCategory } from "@/store/indicator-store"
+import { format, endOfToday } from "date-fns"
+import { useIndicatorStore, Indicator, SubmittedIndicator, IndicatorCategory } from "@/store/indicator-store.tsx"
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "../ui/textarea"
 import { DialogFooter } from "../ui/dialog"
@@ -149,10 +149,6 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
     setOpen(false);
   }
   
-  const today = new Date();
-  const currentDayOfMonth = getDate(today);
-  const reportingMonth = currentDayOfMonth <= 5 ? subMonths(today, 1) : today;
-  
   const disabledDays = isEditMode ? [] : [
       { after: endOfToday() }, // Disable future dates
       ...filledDates.map(d => new Date(d))
@@ -195,7 +191,7 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
                 mode="single" 
                 selected={date} 
                 onSelect={setDate} 
-                month={reportingMonth}
+                month={date}
                 disabled={disabledDays}
                 initialFocus 
                 modifiers={{ filled: filledDates }}

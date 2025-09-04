@@ -3,6 +3,7 @@
 
 import { create } from "zustand"
 import { formatChronology } from "@/lib/utils"
+import React, { createContext, useContext, useRef } from "react"
 
 export type IncidentStatus = "Investigasi" | "Selesai"
 
@@ -47,7 +48,7 @@ type IncidentState = {
   removeIncident: (id: string) => Promise<void>
 }
 
-export const useIncidentStore = create<IncidentState>((set) => ({
+const createIncidentStore = () => create<IncidentState>((set) => ({
   incidents: [],
 
   fetchIncidents: async () => {
@@ -95,3 +96,25 @@ export const useIncidentStore = create<IncidentState>((set) => ({
     }))
   },
 }))
+
+const IncidentStoreContext = createContext<ReturnType<typeof createIncidentStore> | null>(null);
+
+export const IncidentStoreProvider = ({ children }: { children: React.ReactNode }) => {
+    const storeRef = useRef<ReturnType<typeof createIncidentStore>>();
+    if (!storeRef.current) {
+        storeRef.current = createIncidentStore();
+    }
+    return (
+        <IncidentStoreContext.Provider value={storeRef.current}>
+            {children}
+        </IncidentStoreContext.Provider>
+    );
+};
+
+export const useIncidentStore = (): IncidentState => {
+    const store = useContext(IncidentStoreContext);
+    if (!store) {
+        throw new Error('useIncidentStore must be used within a IncidentStoreProvider');
+    }
+    return store(state => state);
+};

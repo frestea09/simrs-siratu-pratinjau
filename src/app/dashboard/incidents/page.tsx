@@ -34,7 +34,7 @@ import { getFilterRange, getFilterDescription, FilterType } from "@/lib/indicato
 
 export default function IncidentsPage() {
   const { currentUser } = useUserStore()
-  const incidents = useIncidentStore((state) => state.incidents)
+  const { incidents } = useIncidentStore()
   const [isNewDialogOpen, setIsNewDialogOpen] = React.useState(false)
   const [selectedType, setSelectedType] = React.useState<string>("Semua")
   const [filterType, setFilterType] = React.useState<FilterType>("this_month")

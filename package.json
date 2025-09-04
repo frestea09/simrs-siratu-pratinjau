@@ -11,6 +11,9 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "db:seed": "node prisma/seed.js",
     "reinstall": "rm -rf node_modules && npm cache clean --force && npm install"
   },
   "dependencies": {

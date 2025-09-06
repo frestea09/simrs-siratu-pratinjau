@@ -8,6 +8,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table"
+import type { FilterFn } from "@tanstack/react-table"
 import {
   Table,
   TableBody,
@@ -52,6 +53,13 @@ const columns: ColumnDef<Indicator>[] = [
     },
 ];
 
+const noopFilter: FilterFn<Indicator> = () => true
+const filterFns = {
+  dateRangeFilter: noopFilter,
+  categoryFilter: noopFilter,
+  statusFilter: noopFilter,
+}
+
 import type { AnalysisTableProps } from "./analysis-table.interface"
 
 export function AnalysisTable({ data }: AnalysisTableProps) {
@@ -59,7 +67,7 @@ export function AnalysisTable({ data }: AnalysisTableProps) {
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    filterFns: {},
+    filterFns,
   })
 
   return (

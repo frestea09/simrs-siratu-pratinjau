@@ -1,6 +1,11 @@
 import { prisma } from '@/lib/prisma'
 import { cookies } from 'next/headers'
-import type { RiskCategory, RiskLevel, RiskSource } from '@prisma/client'
+import type {
+  RiskCategory,
+  RiskLevel,
+  RiskSource,
+  RiskStatus,
+} from '@prisma/client'
 const sourceMap = {
   'Laporan Insiden': 'LaporanInsiden',
   Komplain: 'Komplain',
@@ -32,9 +37,13 @@ export const mapCategoryUiToDb = (c: string): RiskCategory =>
   categoryMap[c as keyof typeof categoryMap] ?? 'PelayananPasien'
 export const mapCategoryDbToUi = (c: RiskCategory) => categoryDbMap[c] ?? c
 
-export const mapStatusUiToDb = (s?: string) =>
-  s === 'In Progress' ? 'InProgress' : s ?? 'Open'
-export const mapStatusDbToUi = (s: string) => (s === 'InProgress' ? 'In Progress' : s)
+export type RiskStatusUi = 'Open' | 'In Progress' | 'Closed'
+
+export const mapStatusUiToDb = (s?: RiskStatusUi): RiskStatus =>
+  s === 'In Progress' ? 'InProgress' : s === 'Closed' ? 'Closed' : 'Open'
+
+export const mapStatusDbToUi = (s: RiskStatus): RiskStatusUi =>
+  s === 'InProgress' ? 'In Progress' : s
 
 export function computeRisk(r: {
   consequence: number

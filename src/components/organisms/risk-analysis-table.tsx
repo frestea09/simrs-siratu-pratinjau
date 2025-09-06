@@ -21,6 +21,7 @@ import { format, parseISO } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
 import { cn } from "@/lib/utils"
 import { Badge } from "../ui/badge"
+import { defaultFilterFns } from "@/lib/default-filter-fns"
 
 
 const getRiskLevelClass = (level?: RiskLevel) => {
@@ -83,6 +84,7 @@ export function RiskAnalysisTable({ data }: RiskAnalysisTableProps) {
   const table = useReactTable({
     data,
     columns,
+    filterFns: defaultFilterFns,
     getCoreRowModel: getCoreRowModel(),
   })
 

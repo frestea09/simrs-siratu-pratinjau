@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 export async function GET() {
   try {
     const items = await prisma.systemLog.findMany({ orderBy: { timestamp: 'desc' } })
-    return NextResponse.json(items.map(l => ({
+    return NextResponse.json(items.map((l: any) => ({
       id: l.id,
       timestamp: (l.timestamp instanceof Date ? l.timestamp : new Date(l.timestamp)).toISOString(),
       user: l.user,

@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { User, useUserStore, UserRole } from "@/store/user-store.tsx"
+import { defaultFilterFns } from "@/lib/default-filter-fns"
 import { UserDialog } from "./user-dialog"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog"
 import { useLogStore } from "@/store/log-store.tsx"
@@ -168,6 +169,7 @@ export function UserTable({ users }: UserTableProps) {
   const table = useReactTable({
     data: users,
     columns,
+    filterFns: defaultFilterFns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),

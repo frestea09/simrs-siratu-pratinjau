@@ -74,7 +74,7 @@ export function IndicatorReport({ indicators, category, title, description, show
 
             const date = data.date;
             const timeRange = chartData && chartData.length > 30 ? '1y' : '30d'; // A simple heuristic
-            const formattedDate = (timeRange === '6m' || timeRange === '1y') ? format(date, 'MMMM yyyy') : format(date, 'd MMMM yyyy');
+            const formattedDate = timeRange === '1y' ? format(date, 'MMMM yyyy') : format(date, 'd MMMM yyyy');
           
             return (
                 <div className="p-2 bg-background border rounded-md shadow-lg">

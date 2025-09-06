@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/table"
 import { SystemLog } from "@/store/log-store"
 import { Badge } from "../ui/badge"
+import { defaultFilterFns } from "@/lib/default-filter-fns"
 
 const getActionVariant = (action: SystemLog['action']) => {
     if(action.includes("SUCCESS") || action.includes("ADD") || action.includes("UPDATE")) return "default"
@@ -81,6 +82,7 @@ export function LogTable({ logs }: LogTableProps) {
   const table = useReactTable({
     data: logs,
     columns,
+    filterFns: defaultFilterFns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),

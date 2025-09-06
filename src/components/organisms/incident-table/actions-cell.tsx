@@ -33,14 +33,14 @@ export function ActionsCell({ row, onViewDetails }: ActionsCellProps) {
   const incident = row.original
   const { currentUser } = useUserStore();
   const { addLog } = useLogStore();
-  const { updateIncident, removeIncident } = useIncidentStore()
+  const { updateIncidentStatus, removeIncident } = useIncidentStore()
   const { toast } = useToast();
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false)
 
   const canChangeStatus = currentUser?.role === 'Admin Sistem' || currentUser?.role === 'Sub. Komite Keselamatan Pasien';
 
   const handleStatusChange = async (status: IncidentStatus) => {
-    await updateIncident(incident.id, { status })
+    await updateIncidentStatus(incident.id, status)
     addLog({
       user: currentUser?.name || 'System',
       action: 'UPDATE_INCIDENT',

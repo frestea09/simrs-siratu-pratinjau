@@ -26,24 +26,10 @@ import { format } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
 import { cn } from "@/lib/utils"
 import { HOSPITAL_UNITS } from "@/lib/constants"
-import { FilterType } from "@/lib/indicator-utils"
+import type { FilterType } from "@/lib/indicator-utils"
+import type { IndicatorFilterCardProps } from "./indicator-filter-card.type"
 
 const unitOptions = [{ value: "Semua Unit", label: "Semua Unit" }, ...HOSPITAL_UNITS.map(u => ({ value: u, label: u }))];
-
-type IndicatorFilterCardProps = {
-  userIsCentral: boolean;
-  selectedUnit: string;
-  setSelectedUnit: (unit: string) => void;
-  uniqueIndicatorNames: { value: string; label: string }[];
-  selectedIndicator: string;
-  setSelectedIndicator: (indicator: string) => void;
-  filterType: FilterType;
-  setFilterType: (type: FilterType) => void;
-  selectedDate: Date;
-  setSelectedDate: (date: Date) => void;
-  chartType: 'line' | 'bar';
-  setChartType: (type: 'line' | 'bar') => void;
-}
 
 export function IndicatorFilterCard({
   userIsCentral,

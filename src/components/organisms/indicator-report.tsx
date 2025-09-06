@@ -17,18 +17,9 @@ import { CartesianGrid, LabelList, ResponsiveContainer, Tooltip as RechartsToolt
 import { format, parseISO } from "date-fns"
 import { AnalysisTable } from "./analysis-table"
 import {centralRoles} from "@/store/central-roles.ts";
+import type { IndicatorReportProps } from "./indicator-report.type"
 
 
-
-type IndicatorReportProps = {
-    indicators: Indicator[];
-    category: IndicatorCategory;
-    title?: string;
-    description?: string;
-    showInputButton?: boolean;
-    chartData?: any[]; // Allow passing chart data
-    reportDescription?: string;
-}
 
 export function IndicatorReport({ indicators, category, title, description, showInputButton = true, chartData, reportDescription }: IndicatorReportProps) {
     const { submittedIndicators } = useIndicatorStore()

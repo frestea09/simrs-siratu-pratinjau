@@ -10,15 +10,11 @@ import { FormInputSelect } from "@/components/molecules/form-input-select"
 import { FormInputDate } from "@/components/molecules/form-input-date"
 import { FormInputTime } from "@/components/molecules/form-input-time"
 import { HOSPITAL_UNITS } from "@/lib/constants"
+import type { Step1PatientDataProps } from "./step1-patient-data.interface"
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
     <h3 className="font-semibold text-lg text-primary">{children}</h3>
 )
-
-type StepProps = {
-    data: Partial<Incident>;
-    onUpdate: (newData: Partial<Incident>) => void;
-};
 
 const unitOptions = HOSPITAL_UNITS.map(unit => ({ value: unit, label: unit }));
 const genderOptions = [{ value: 'Perempuan', label: 'Perempuan' }, { value: 'Laki-laki', label: 'Laki-laki' }];
@@ -34,7 +30,7 @@ const payerOptions = [
     { value: 'Asuransi Lainnya', label: 'Asuransi Lainnya' }
 ];
 
-export function Step1PatientData({ data, onUpdate }: StepProps) {
+export function Step1PatientData({ data, onUpdate }: Step1PatientDataProps) {
     return (
         <div className="space-y-6">
             <SectionTitle>Data Pasien (diisi oleh perawat)</SectionTitle>

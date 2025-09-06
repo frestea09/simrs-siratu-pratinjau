@@ -5,13 +5,7 @@ import * as React from "react"
 import { Label } from "../ui/label"
 import { Input } from "../ui/input"
 
-type FormInputDateProps = {
-  id: string
-  label: string
-  containerClassName?: string
-  selected?: Date
-  onSelect?: (date: Date | undefined) => void
-}
+import type { FormInputDateProps } from "./form-input-date.type"
 
 export function FormInputDate({ id, label, containerClassName = "grid grid-cols-1 md:grid-cols-form-label gap-x-4 gap-y-2 items-center", selected, onSelect }: FormInputDateProps) {
   const toValue = (d?: Date) => {

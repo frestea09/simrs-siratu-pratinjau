@@ -1,11 +1,7 @@
 "use client"
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Indicator } from "@/store/indicator-store"
-
-type IndicatorTableProps = {
-    indicators: Indicator[]
-}
+import type { IndicatorTableProps } from "./indicator-table.type"
 
 export function IndicatorTable({ indicators }: IndicatorTableProps) {
     return (

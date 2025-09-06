@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator"
 import { Incident } from "@/store/incident-store"
 import { formatChronology, cn } from "@/lib/utils"
 import { Badge } from "../ui/badge"
+import type { IncidentDetailDialogProps } from "./incident-detail-dialog.type"
 
 const DetailSection = ({ title, children }: { title: string, children: React.ReactNode }) => (
     <div className="space-y-2">
@@ -68,12 +69,6 @@ const SeverityBadge = ({ severity }: { severity: Incident['severity'] }) => {
         merah: "bg-red-500 text-white border-red-500 hover:bg-red-500/80",
     }
     return <Badge variant="outline" className={cn("text-base", colorMap[severity])}>{severityMap[severity]}</Badge>
-}
-
-type IncidentDetailDialogProps = {
-    incident: Incident | null
-    open: boolean
-    onOpenChange: (open: boolean) => void
 }
 
 export const IncidentDetailDialog = ({ incident, open, onOpenChange }: IncidentDetailDialogProps) => {

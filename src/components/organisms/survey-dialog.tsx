@@ -5,13 +5,7 @@ import * as React from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { SurveyForm } from "./survey-form"
 import { SurveyResult } from "@/store/survey-store"
-
-type SurveyDialogProps = {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  survey?: SurveyResult | null
-  trigger?: React.ReactNode
-}
+import type { SurveyDialogProps } from "./survey-dialog.type"
 
 export function SurveyDialog({ open, onOpenChange, survey, trigger }: SurveyDialogProps) {
   const isEdit = !!survey

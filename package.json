@@ -13,8 +13,9 @@
     "format": "prettier --write .",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "db:seed": "node prisma/seed.js",
-    "reinstall": "rm -rf node_modules && npm cache clean --force && npm install"
+    "db:seed": "tsx prisma/seed.ts",
+    "reinstall": "rm -rf node_modules && npm cache clean --force && npm install",
+    "prebuild": "npm run lint"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.14.1",

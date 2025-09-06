@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { cookies } from 'next/headers'
-
-const sourceMap: Record<string, string> = {
+import type { RiskSource } from '@prisma/client'
+const sourceMap = {
   'Laporan Insiden': 'LaporanInsiden',
   Komplain: 'Komplain',
   'Survey/Ronde': 'SurveyRonde',
@@ -9,12 +9,13 @@ const sourceMap: Record<string, string> = {
   Investigasi: 'Investigasi',
   Litigasi: 'Litigasi',
   'External Requirement': 'ExternalRequirement',
-}
+} as const
 const sourceDbMap = Object.fromEntries(
-  Object.entries(sourceMap).map(([k, v]) => [v, k])
-)
-export const mapSourceUiToDb = (s: string) => sourceMap[s] ?? 'Investigasi'
-export const mapSourceDbToUi = (s: string) => sourceDbMap[s] ?? s
+  Object.entries(sourceMap).map(([ui, db]) => [db, ui])
+) as Record<RiskSource, string>
+export const mapSourceUiToDb = (s: string): RiskSource =>
+  sourceMap[s as keyof typeof sourceMap] ?? 'Investigasi'
+export const mapSourceDbToUi = (s: RiskSource) => sourceDbMap[s] ?? s
 
 const categoryDbMap: Record<string, string> = {
   PelayananPasien: 'Pelayanan Pasien',

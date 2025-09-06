@@ -16,7 +16,7 @@ export default function ProfilesPage() {
   const { profiles, fetchProfiles } = useIndicatorStore()
   React.useEffect(() => {
     fetchProfiles().catch(() => {})
-  }, [])
+  }, [fetchProfiles])
   const { currentUser } = useUserStore()
   const [isNewDialogOpen, setIsNewDialogOpen] = React.useState(false)
 

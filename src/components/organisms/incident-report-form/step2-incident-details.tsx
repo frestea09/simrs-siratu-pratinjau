@@ -1,8 +1,8 @@
-
 "use client"
 
 import React from "react"
 import { Incident } from "@/store/incident-store"
+import { Step2IncidentDetailsProps } from "./step2-incident-details.interface"
 import { FormInputDate } from "@/components/molecules/form-input-date"
 import { FormInputTime } from "@/components/molecules/form-input-time"
 import { FormInputTextarea } from "@/components/molecules/form-input-textarea"
@@ -17,11 +17,6 @@ const SectionTitle = ({ children }: { children: React.ReactNode }) => (
     <h3 className="font-semibold text-lg text-primary">{children}</h3>
 )
 
-type StepProps = {
-    data: Partial<Incident>;
-    onUpdate: (newData: Partial<Incident>) => void;
-};
-
 const unitOptions = HOSPITAL_UNITS.map(unit => ({ value: unit, label: unit }));
 const incidentTypeOptions = [
     { value: 'KPC', label: 'Kondisi Potensial Cedera (KPC)' }, { value: 'KNC', label: 'Kejadian Nyaris Cedera (KNC)' },
@@ -34,7 +29,7 @@ const incidentLocationOptions = [
     { value: 'Lainnya', label: 'Lainnya' },
 ];
 
-export function Step2IncidentDetails({ data, onUpdate }: StepProps) {
+export function Step2IncidentDetails({ data, onUpdate }: Step2IncidentDetailsProps) {
      return (
         <div className="space-y-6">
             <SectionTitle>Rincian Kejadian</SectionTitle>
@@ -43,7 +38,7 @@ export function Step2IncidentDetails({ data, onUpdate }: StepProps) {
                 <FormInputTime id="incident-time" label="Jam Insiden" value={data.incidentTime ?? ""} onChange={e => onUpdate({ incidentTime: e.target.value })} />
             </div>
             <FormInputTextarea id="chronology" label="Kronologis Insiden" placeholder="Jelaskan secara singkat bagaimana insiden terjadi." value={data.chronology ?? ""} onChange={e => onUpdate({ chronology: e.target.value })} containerClassName="grid grid-cols-1 md:grid-cols-form-label-full gap-x-4" />
-            <FormInputSelect id="type" label="Jenis Insiden" placeholder="Pilih jenis insiden" items={incidentTypeOptions} value={data.type ?? ""} onValueChange={val => onUpdate({ type: val })} containerClassName="grid grid-cols-1 md:grid-cols-form-label-full gap-x-4" />
+            <FormInputSelect id="type" label="Jenis Insiden" placeholder="Pilih jenis insiden" items={incidentTypeOptions} value={data.type} onValueChange={val => onUpdate({ type: val as Incident['type'] })} containerClassName="grid grid-cols-1 md:grid-cols-form-label-full gap-x-4" />
             <FormInputText id="incidentSubject" label="Insiden mengenai" placeholder="Contoh: Pasien, Keluarga Pasien, Pengunjung" value={data.incidentSubject ?? ""} onChange={e => onUpdate({ incidentSubject: e.target.value })} />
              <div className="grid grid-cols-1 md:grid-cols-form-label gap-x-4 gap-y-2 items-start">
                 <Label htmlFor="incidentLocation" className="text-right pt-2">Lokasi Insiden</Label>

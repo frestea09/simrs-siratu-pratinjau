@@ -63,10 +63,10 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
   const isEditMode = !!indicator;
 
   React.useEffect(() => {
-    if (!profiles || profiles.length === 0) {
+    if (!profiles.length) {
       fetchProfiles().catch(() => {})
     }
-  }, [])
+  }, [profiles.length, fetchProfiles])
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

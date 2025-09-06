@@ -13,9 +13,12 @@ function calcStatus(ratio: number, method: 'percentage' | 'average', standard: n
   return ratio >= standard ? 'Memenuhi Standar' : 'Tidak Memenuhi Standar'
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
   try {
-    const id = params.id
+    const { id } = await params
     const body = await req.json()
     const current = await prisma.indicator.findUnique({ where: { id }, include: { submission: { include: { profile: true } } } })
     if (!current) return NextResponse.json({ error: 'Indicator not found' }, { status: 404 })
@@ -65,9 +68,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
   try {
-    const id = params.id
+    const { id } = await params
     await prisma.indicator.delete({ where: { id } })
     return NextResponse.json({ ok: true })
   } catch (e: any) {

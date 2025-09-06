@@ -73,7 +73,7 @@ export default function OverviewPage() {
   const { incidents, fetchIncidents } = useIncidentStore()
   React.useEffect(() => {
     fetchIncidents().catch(() => {})
-  }, [])
+  }, [fetchIncidents])
   const { users, currentUser } = useUserStore()
   const { logs } = useLogStore()
 

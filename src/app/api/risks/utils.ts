@@ -1,0 +1,129 @@
+import { prisma } from '@/lib/prisma'
+import { cookies } from 'next/headers'
+
+const sourceMap: Record<string, string> = {
+  'Laporan Insiden': 'LaporanInsiden',
+  Komplain: 'Komplain',
+  'Survey/Ronde': 'SurveyRonde',
+  'Rapat/Brainstorming': 'RapatBrainstorming',
+  Investigasi: 'Investigasi',
+  Litigasi: 'Litigasi',
+  'External Requirement': 'ExternalRequirement',
+}
+const sourceDbMap = Object.fromEntries(
+  Object.entries(sourceMap).map(([k, v]) => [v, k])
+)
+export const mapSourceUiToDb = (s: string) => sourceMap[s] ?? 'Investigasi'
+export const mapSourceDbToUi = (s: string) => sourceDbMap[s] ?? s
+
+const categoryDbMap: Record<string, string> = {
+  PelayananPasien: 'Pelayanan Pasien',
+  BahayaFisik: 'Bahaya Fisik',
+  BahayaKimia: 'Bahaya Kimia',
+  BahayaBiologi: 'Bahaya Biologi',
+  BahayaErgonomi: 'Bahaya Ergonomi',
+  BahayaPsikososial: 'Bahaya Psikososial',
+}
+export const mapCategoryUiToDb = (c: string) => c.replace(/\s/g, '')
+export const mapCategoryDbToUi = (c: string) => categoryDbMap[c] ?? c
+
+export const mapStatusUiToDb = (s?: string) =>
+  s === 'In Progress' ? 'InProgress' : s ?? 'Open'
+export const mapStatusDbToUi = (s: string) => (s === 'InProgress' ? 'In Progress' : s)
+
+export function computeRisk(r: {
+  consequence: number
+  likelihood: number
+  controllability: number
+  residualConsequence?: number | null
+  residualLikelihood?: number | null
+}) {
+  const consequence = Number(r.consequence) || 0
+  const likelihood = Number(r.likelihood) || 0
+  const controllability = Number(r.controllability) || 1
+  const cxl = consequence * likelihood
+  const riskLevel =
+    cxl <= 3 ? 'Rendah' : cxl <= 6 ? 'Moderat' : cxl <= 12 ? 'Tinggi' : 'Ekstrem'
+  const riskScore = cxl * controllability
+  let residualRiskScore: number | null = null
+  let residualRiskLevel: string | null = null
+  if ((r.residualConsequence ?? 0) > 0 && (r.residualLikelihood ?? 0) > 0) {
+    const rc = Number(r.residualConsequence)
+    const rl = Number(r.residualLikelihood)
+    const resCxl = rc * rl
+    residualRiskScore = resCxl * controllability
+    residualRiskLevel =
+      resCxl <= 3
+        ? 'Rendah'
+        : resCxl <= 6
+          ? 'Moderat'
+          : resCxl <= 12
+            ? 'Tinggi'
+            : 'Ekstrem'
+  }
+  return { cxl, riskLevel, riskScore, residualRiskScore, residualRiskLevel }
+}
+
+const roleMap: Record<string, any> = {
+  'Admin Sistem': 'AdminSistem',
+  'PIC Mutu': 'PICMutu',
+  'PJ Ruangan': 'PJRuangan',
+  'Kepala Unit/Instalasi': 'KepalaUnitInstalasi',
+  Direktur: 'Direktur',
+  'Sub. Komite Peningkatan Mutu': 'SubKomitePeningkatanMutu',
+  'Sub. Komite Keselamatan Pasien': 'SubKomiteKeselamatanPasien',
+  'Sub. Komite Manajemen Risiko': 'SubKomiteManajemenRisiko',
+}
+export async function resolveUserFromSession() {
+  try {
+    const jar = await cookies()
+    const raw = jar.get('session')?.value
+    if (!raw) return null
+    const sess = JSON.parse(raw)
+    if (!sess?.email) return null
+    let user = await prisma.user.findUnique({ where: { email: sess.email } })
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          name: sess.name ?? 'Admin Sistem',
+          email: sess.email,
+          password: sess.password ?? '123456',
+          role: roleMap[sess.role as keyof typeof roleMap] ?? 'PICMutu',
+          unit: sess.unit ?? null,
+        },
+      })
+    }
+    return user
+  } catch {
+    return null
+  }
+}
+
+export function toFrontend(r: any) {
+  return {
+    id: r.id,
+    createdAt: (r.createdAt instanceof Date ? r.createdAt : new Date(r.createdAt)).toISOString(),
+    unit: r.unit,
+    source: mapSourceDbToUi(r.source),
+    description: r.description,
+    cause: r.cause,
+    category: mapCategoryDbToUi(r.category),
+    consequence: r.consequence,
+    likelihood: r.likelihood,
+    cxl: r.cxl,
+    riskLevel: r.riskLevel,
+    controllability: r.controllability,
+    riskScore: r.riskScore,
+    evaluation: r.evaluation,
+    actionPlan: r.actionPlan,
+    dueDate: r.dueDate ? new Date(r.dueDate).toISOString() : undefined,
+    pic: r.pic ? r.pic.name : undefined,
+    status: mapStatusDbToUi(r.status),
+    residualConsequence: r.residualConsequence ?? undefined,
+    residualLikelihood: r.residualLikelihood ?? undefined,
+    residualRiskScore: r.residualRiskScore ?? undefined,
+    residualRiskLevel: r.residualRiskLevel ?? undefined,
+    reportNotes: r.reportNotes ?? undefined,
+  }
+}
+

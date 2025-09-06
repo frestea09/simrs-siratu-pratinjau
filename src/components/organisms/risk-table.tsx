@@ -43,6 +43,7 @@ import { RiskDialog } from "./risk-dialog"
 import { Input } from "../ui/input"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
+import { defaultFilterFns } from "@/lib/default-filter-fns"
 
 
 const ActionsCell = ({ row }: { row: Row<Risk> }) => {
@@ -285,6 +286,7 @@ export function RiskTable({ risks }: RiskTableProps) {
   const table = useReactTable({
     data: risks,
     columns,
+    filterFns: defaultFilterFns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),

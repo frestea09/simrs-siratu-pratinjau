@@ -10,6 +10,7 @@ import { Download } from "lucide-react"
 
 import { ReportPreviewDialogProps } from "./report-preview-dialog.interface"
 import { printReport } from "./report-preview-dialog.print"
+import { defaultFilterFns } from "@/lib/default-filter-fns"
 
 export function ReportPreviewDialog({
   open,
@@ -27,6 +28,7 @@ export function ReportPreviewDialog({
   const table = useReactTable({
     data: data || [],
     columns: columns || [],
+    filterFns: defaultFilterFns,
     getCoreRowModel: getCoreRowModel(),
   })
 

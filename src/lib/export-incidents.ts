@@ -98,7 +98,7 @@ export async function exportIncidentsXlsx(
 
   // Second header row
   const headerRow2 = ws.getRow(2)
-  headerRow2.eachCell((cell) => {
+  headerRow2.eachCell((cell: any) => {
     cell.alignment = center
     cell.font = { bold: true }
     cell.fill = headerFill
@@ -163,7 +163,7 @@ export async function exportIncidentsXlsx(
       r.firstAction || "",
       r.followUpPlan || "",
     ])
-    row.eachCell((cell) => {
+    row.eachCell((cell: any) => {
       cell.border = {
         top: borderThin,
         left: borderThin,

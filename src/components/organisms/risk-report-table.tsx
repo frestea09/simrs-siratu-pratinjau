@@ -20,6 +20,7 @@ import { Risk, RiskLevel, RiskEvaluation } from "@/store/risk-store"
 import { format, parseISO } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
 import { cn } from "@/lib/utils"
+import { defaultFilterFns } from "@/lib/default-filter-fns"
 
 const evaluationMap: Record<RiskEvaluation, string> = {
     "Mitigasi": "1. Mitigasi",
@@ -69,6 +70,7 @@ export function RiskReportTable({ data }: RiskReportTableProps) {
   const table = useReactTable({
     data,
     columns,
+    filterFns: defaultFilterFns,
     getCoreRowModel: getCoreRowModel(),
   })
 

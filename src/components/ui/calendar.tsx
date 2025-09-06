@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker, DropdownProps } from "react-day-picker"
+import { DayPicker, DropdownProps, CustomComponents } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
@@ -57,40 +57,30 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        IconLeft: ({ className, ...props }) => (
-          <ChevronLeft className={cn("h-4 w-4", className)} {...props} />
+        IconLeft: (props: React.SVGProps<SVGSVGElement>) => (
+          <ChevronLeft className={cn("h-4 w-4", props.className)} {...props} />
         ),
-        IconRight: ({ className, ...props }) => (
-          <ChevronRight className={cn("h-4 w-4", className)} {...props} />
+        IconRight: (props: React.SVGProps<SVGSVGElement>) => (
+          <ChevronRight className={cn("h-4 w-4", props.className)} {...props} />
         ),
-         Dropdown: ({ value, onChange, children, ...props }: DropdownProps) => {
-          const options = React.Children.toArray(
-            children
-          ) as React.ReactElement<React.HTMLProps<HTMLOptionElement>>[]
+        Dropdown: ({ value, onChange, children, ...props }: DropdownProps) => {
+          const options = React.Children.toArray(children) as React.ReactElement<React.HTMLProps<HTMLOptionElement>>[]
           const selected = options.find((child) => child.props.value === value)
-          const handleChange = (value: string) => {
+          const handleChange = (val: string) => {
             const changeEvent = {
-              target: { value },
+              target: { value: val },
             } as React.ChangeEvent<HTMLSelectElement>
             onChange?.(changeEvent)
           }
           return (
-            <Select
-              value={value?.toString()}
-              onValueChange={(value) => {
-                handleChange(value)
-              }}
-            >
+            <Select value={value?.toString()} onValueChange={handleChange}>
               <SelectTrigger className="pr-1.5 focus:ring-0">
                 <SelectValue>{selected?.props?.children}</SelectValue>
               </SelectTrigger>
               <SelectContent position="popper">
                 <ScrollArea className="h-80">
-                  {options.map((option, id: number) => (
-                    <SelectItem
-                      key={`${option.props.value}-${id}`}
-                      value={option.props.value?.toString() ?? ""}
-                    >
+                  {options.map((option, id) => (
+                    <SelectItem key={`${option.props.value}-${id}`} value={option.props.value?.toString() ?? ""}>
                       {option.props.children}
                     </SelectItem>
                   ))}
@@ -99,7 +89,7 @@ function Calendar({
             </Select>
           )
         },
-      }}
+      } as Partial<CustomComponents>}
       {...props}
     />
   )

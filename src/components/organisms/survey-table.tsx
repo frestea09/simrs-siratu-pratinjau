@@ -24,6 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { SurveyResult, useSurveyStore } from "@/store/survey-store"
+import { defaultFilterFns } from "@/lib/default-filter-fns"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -169,6 +170,7 @@ export function SurveyTable({ surveys, onEdit }: SurveyTableProps) {
   const table = useReactTable({
     data: surveys,
     columns,
+    filterFns: defaultFilterFns,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),

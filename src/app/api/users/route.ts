@@ -31,7 +31,7 @@ const mapRoleDbToUi = (r: string): any => {
 export async function GET() {
   try {
     const users = await prisma.user.findMany({ orderBy: { createdAt: 'desc' } })
-    return NextResponse.json(users.map(u => ({
+    return NextResponse.json(users.map((u: any) => ({
       id: u.id,
       name: u.name,
       email: u.email,

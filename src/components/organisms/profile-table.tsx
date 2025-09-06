@@ -29,6 +29,7 @@ import { IndicatorProfile } from "@/store/indicator-store"
 import { useTableState } from "@/hooks/use-table-state"
 import { ActionsCell } from "./profile-table/actions-cell"
 import { Input } from "../ui/input"
+import { defaultFilterFns } from "@/lib/default-filter-fns"
 
 export const getStatusVariant = (status: IndicatorProfile['status']) => {
     switch (status) {
@@ -86,6 +87,7 @@ export function ProfileTable({ profiles }: ProfileTableProps) {
   const table = useReactTable({
     data: profiles,
     columns,
+    filterFns: defaultFilterFns,
     onSortingChange: setTableState.setSorting,
     onColumnFiltersChange: setTableState.setColumnFilters,
     getCoreRowModel: getCoreRowModel(),

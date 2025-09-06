@@ -11,6 +11,10 @@ import { ScrollArea } from "./scroll-area"
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
+type DropdownWithChildrenProps = DropdownProps & {
+  children?: React.ReactNode
+}
+
 function Calendar({
   className,
   classNames,
@@ -63,7 +67,8 @@ function Calendar({
         IconRight: (props: React.SVGProps<SVGSVGElement>) => (
           <ChevronRight className={cn("h-4 w-4", props.className)} {...props} />
         ),
-        Dropdown: ({ value, onChange, children, ...props }: DropdownProps) => {
+        Dropdown: (props: DropdownWithChildrenProps) => {
+          const { value, onChange, children } = props
           const options = React.Children.toArray(children) as React.ReactElement<React.HTMLProps<HTMLOptionElement>>[]
           const selected = options.find((child) => child.props.value === value)
           const handleChange = (val: string) => {

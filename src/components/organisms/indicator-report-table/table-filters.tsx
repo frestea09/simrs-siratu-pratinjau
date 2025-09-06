@@ -2,68 +2,38 @@
 "use client"
 
 import * as React from "react"
-import { Table, RowData } from "@tanstack/react-table"
-import { FilterFn } from "@tanstack/react-table"
-import { format, isValid } from "date-fns"
+import { format } from "date-fns"
 import { DateRange } from "react-day-picker"
-import { Download, Filter, Calendar as CalendarIcon, X as XIcon } from "lucide-react"
+import {
+  Download,
+  Filter,
+  Calendar as CalendarIcon,
+  X as XIcon,
+} from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
-import { Indicator, IndicatorCategory } from "@/store/indicator-store"
 
-declare module '@tanstack/react-table' {
-    interface FilterFns {
-        dateRangeFilter: FilterFn<RowData>
-        categoryFilter: FilterFn<RowData>
-    }
-}
+import { CATEGORY_OPTIONS } from "./table-filters.constants"
+import { TableFiltersProps } from "./table-filters.types"
 
-export const dateRangeFilter: FilterFn<Indicator> = (row, columnId, value) => {
-    const rowDateValue = row.getValue(columnId)
-    if (typeof rowDateValue !== 'string') return false;
-    
-    const rowDate = new Date(rowDateValue);
-    if (!isValid(rowDate)) return false;
-
-    const [start, end] = value as [Date | undefined, Date | undefined];
-    
-    if (!start && !end) return true;
-
-    const startDate = start ? new Date(start.setHours(0, 0, 0, 0)) : null;
-    const endDate = end ? new Date(end.setHours(23, 59, 59, 999)) : null;
-
-    if (startDate && !endDate) return rowDate >= startDate;
-    if (!startDate && endDate) return rowDate <= endDate;
-    if (startDate && endDate) return rowDate >= startDate && rowDate <= endDate;
-    
-    return true;
-}
-
-
-export const categoryFilter: FilterFn<Indicator> = (row, id, value) => {
-    return value.includes(row.original.category);
-}
-
-const categoryOptions: {value: IndicatorCategory, label: string}[] = [
-    { value: 'INM', label: 'INM'},
-    { value: 'IMP-RS', label: 'IMP-RS'},
-    { value: 'IMPU', label: 'IMPU'},
-    { value: 'SPM', label: 'SPM'},
-]
-
-interface TableFiltersProps<TData> {
-  table: Table<TData>
-  showCategoryFilter: boolean
-  onExport: () => void
-  showDateFilter?: boolean
-}
-
-export function TableFilters<TData>({ table, showCategoryFilter, onExport, showDateFilter = true }: TableFiltersProps<TData>) {
+export function TableFilters<TData>({
+  table,
+  showCategoryFilter,
+  onExport,
+  showDateFilter = true,
+}: TableFiltersProps<TData>) {
   const [date, setDate] = React.useState<DateRange | undefined>()
 
   React.useEffect(() => {
@@ -118,7 +88,7 @@ export function TableFilters<TData>({ table, showCategoryFilter, onExport, showD
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Filter by Kategori</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {categoryOptions.map((cat) => (
+            {CATEGORY_OPTIONS.map((cat) => (
               <DropdownMenuCheckboxItem
                 key={cat.value}
                 className="capitalize"

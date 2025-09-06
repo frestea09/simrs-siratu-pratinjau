@@ -33,13 +33,7 @@ import { cn } from "@/lib/utils"
 import { ReportPreviewDialog } from "./report-preview-dialog"
 import { IncidentAnalysisTable } from "./incident-analysis-table"
 import { SkpReportDialog } from "./skp-report-dialog"
-
-type IncidentTableProps = {
-  incidents: Incident[]
-  lineChart?: React.ReactNode
-  barChart?: React.ReactNode
-  chartDescription?: string
-}
+import type { IncidentTableProps } from "./incident-table.interface"
 
 export function IncidentTable({ incidents, lineChart, barChart, chartDescription }: IncidentTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
@@ -110,12 +104,11 @@ export function IncidentTable({ incidents, lineChart, barChart, chartDescription
     },
   ], []);
 
-  const exportColumns: ColumnDef<Incident>[] = React.useMemo(() =>
-    columns
-      .filter((c) => c.id !== "actions")
-      .map((c) =>
-        c.accessorKey === "date" ? { ...c, header: "Tanggal Lapor" } : c
-      ),
+  const exportColumns: ColumnDef<Incident>[] = React.useMemo(
+    () =>
+      columns
+        .filter((c) => c.id !== "actions")
+        .map((c) => (c.id === "date" ? { ...c, header: "Tanggal Lapor" } : c)),
     [columns]
   )
 
@@ -221,6 +214,8 @@ export function IncidentTable({ incidents, lineChart, barChart, chartDescription
           lineChart={lineChart}
           barChart={barChart}
           chartDescription={chartDescription}
+          data={table.getFilteredRowModel().rows.map((row) => row.original)}
+          columns={exportColumns}
           analysisTable={<IncidentAnalysisTable data={table.getFilteredRowModel().rows.map((row) => row.original)} />}
       />
       <SkpReportDialog open={isSkpReportOpen} onOpenChange={setIsSkpReportOpen} />

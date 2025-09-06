@@ -229,6 +229,7 @@ const initialSubmittedIndicators: SubmittedIndicator[] = [
 
 type IndicatorState = {
   profiles: IndicatorProfile[]
+  fetchProfiles: () => Promise<void>
   addProfile: (profile: Omit<IndicatorProfile, "id" | "createdAt">) => Promise<string>
   updateProfile: (id: string, data: Partial<Omit<IndicatorProfile, "id" | "createdAt">>) => Promise<void>
   removeProfile: (id: string) => Promise<void>
@@ -263,6 +264,9 @@ type IndicatorState = {
 
 export const useIndicatorStore = create<IndicatorState>((set, get) => ({
   profiles: initialProfiles,
+  fetchProfiles: async () => {
+    // No-op: profiles are already loaded from initial data
+  },
   addProfile: async (profileData) => {
     const newId = `PROF-${Date.now()}`;
     const newProfile: IndicatorProfile = {

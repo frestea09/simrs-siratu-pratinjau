@@ -21,6 +21,7 @@ import { format, parseISO } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
 import { cn } from "@/lib/utils"
 import { defaultFilterFns } from "@/lib/default-filter-fns"
+import type { RiskReportTableProps } from "./risk-report-table.type"
 
 const evaluationMap: Record<RiskEvaluation, string> = {
     "Mitigasi": "1. Mitigasi",
@@ -61,10 +62,6 @@ const columns: ColumnDef<Risk>[] = [
     { accessorKey: "reportNotes", header: "Laporan Singkat / Monev", cell: info => info.getValue() || "-", size: 200 },
     { accessorKey: "status", header: "Status", cell: info => info.getValue(), size: 50 },
 ];
-
-type RiskReportTableProps = {
-  data: Risk[]
-}
 
 export function RiskReportTable({ data }: RiskReportTableProps) {
   const table = useReactTable({

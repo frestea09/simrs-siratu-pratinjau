@@ -3,17 +3,7 @@
 
 import { cn } from "@/lib/utils"
 import { Check } from "lucide-react"
-
-type Step = {
-    id: string
-    name: string
-}
-
-type StepperProps = {
-    steps: Step[]
-    currentStep: number
-    setCurrentStep: (step: number) => void
-}
+import type { StepperProps } from "./stepper.type"
 
 export function Stepper({ steps, currentStep, setCurrentStep }: StepperProps) {
     return (

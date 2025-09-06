@@ -44,6 +44,7 @@ import { Input } from "../ui/input"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { defaultFilterFns } from "@/lib/default-filter-fns"
+import type { RiskTableProps } from "./risk-table.type"
 
 
 const ActionsCell = ({ row }: { row: Row<Risk> }) => {
@@ -269,10 +270,6 @@ const columns: ColumnDef<Risk>[] = [
     size: 50,
   },
 ]
-
-type RiskTableProps = {
-  risks: Risk[]
-}
 
 const riskLevelOptions: RiskLevel[] = ["Rendah", "Moderat", "Tinggi", "Ekstrem"];
 const statusOptions: RiskStatus[] = ["Open", "In Progress", "Closed"];

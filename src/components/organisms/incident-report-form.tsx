@@ -12,17 +12,13 @@ import { Step1PatientData } from "./incident-report-form/step1-patient-data"
 import { Step2IncidentDetails } from "./incident-report-form/step2-incident-details"
 import { Step3FollowUp } from "./incident-report-form/step3-follow-up"
 import { useNotificationStore } from "@/store/notification-store.tsx"
+import type { IncidentReportFormProps } from "./incident-report-form.type"
 
 const steps = [
     { id: '01', name: 'Data Pasien' },
     { id: '02', name: 'Rincian Kejadian' },
     { id: '03', name: 'Tindak Lanjut & Pelaporan' },
 ]
-
-type IncidentReportFormProps = {
-    setOpen: (open: boolean) => void;
-    incident?: Incident;
-}
 
 export function IncidentReportForm({ setOpen, incident }: IncidentReportFormProps) {
     const [currentStep, setCurrentStep] = React.useState(0)

@@ -43,6 +43,7 @@ import { UserDialog } from "./user-dialog"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog"
 import { useLogStore } from "@/store/log-store.tsx"
 import { useToast } from "@/hooks/use-toast"
+import type { UserTableProps } from "./user-table.type"
 
 
 const ActionsCell = ({ row }: { row: Row<User> }) => {
@@ -157,10 +158,6 @@ export const columns: ColumnDef<User>[] = [
 ]
 
 const roleOptions: UserRole[] = ['Admin Sistem', 'PIC Mutu', 'PJ Ruangan', 'Kepala Unit/Instalasi', 'Direktur', 'Sub. Komite Peningkatan Mutu', 'Sub. Komite Keselamatan Pasien', 'Sub. Komite Manajemen Risiko'];
-
-type UserTableProps = {
-  users: User[]
-}
 
 export function UserTable({ users }: UserTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])

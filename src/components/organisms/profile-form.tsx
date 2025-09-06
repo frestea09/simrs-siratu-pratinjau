@@ -27,6 +27,7 @@ import { useUserStore, UserRole } from "@/store/user-store.tsx"
 import { useLogStore } from "@/store/log-store.tsx"
 import { HOSPITAL_UNITS } from "@/lib/constants"
 import { Combobox } from "../ui/combobox"
+import type { ProfileFormProps } from "./profile-form.type"
 
 const profileSchema = z.object({
   title: z.string().min(1, "Judul harus diisi."),
@@ -47,11 +48,6 @@ const profileSchema = z.object({
   pic: z.string().min(1, "PIC harus diisi."),
   unit: z.string().min(1, "Unit harus dipilih."),
 })
-
-type ProfileFormProps = {
-    setOpen: (open: boolean) => void;
-    profileToEdit?: IndicatorProfile;
-}
 
 const unitOptions = HOSPITAL_UNITS.map(unit => ({ value: unit, label: unit }));
 const roleOptions: {value: UserRole, label: string}[] = [

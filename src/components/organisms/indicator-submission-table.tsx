@@ -28,6 +28,7 @@ import { SubmittedIndicator, IndicatorCategory } from "@/store/indicator-store"
 import { useTableState } from "@/hooks/use-table-state"
 import { ActionsCell } from "./indicator-submission-table/actions-cell"
 import { TableFilters, dateRangeFilter, categoryFilter, statusFilter, getStatusVariant } from "./indicator-submission-table/table-filters"
+import type { IndicatorSubmissionTableProps } from "./indicator-submission-table.type"
 
 export const statusOptions: SubmittedIndicator['status'][] = ['Menunggu Persetujuan', 'Diverifikasi', 'Ditolak'];
 export const categoryOptions: {value: IndicatorCategory, label: string}[] = [
@@ -36,10 +37,6 @@ export const categoryOptions: {value: IndicatorCategory, label: string}[] = [
     { value: 'IMPU', label: 'IMPU'},
     { value: 'SPM', label: 'SPM'},
 ]
-
-type IndicatorSubmissionTableProps = {
-  indicators: SubmittedIndicator[]
-}
 
 export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTableProps) {
   const { tableState, setTableState } = useTableState({

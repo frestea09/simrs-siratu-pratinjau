@@ -4,15 +4,7 @@
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
-type FormInputRadioProps = {
-  id: string
-  label: string
-  items: { value: string; label: string }[]
-  orientation?: 'horizontal' | 'vertical'
-  containerClassName?: string
-  value?: string
-  onValueChange?: (value: string) => void
-}
+import type { FormInputRadioProps } from "./form-input-radio.type"
 
 export function FormInputRadio({ id, label, items, orientation = 'horizontal', containerClassName = "grid grid-cols-1 md:grid-cols-form-label gap-x-4 gap-y-2 items-center", value, onValueChange }: FormInputRadioProps) {
   return (

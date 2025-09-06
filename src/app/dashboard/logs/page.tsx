@@ -7,7 +7,9 @@ import { useLogStore } from "@/store/log-store.tsx"
 
 export default function LogsPage() {
   const { logs, fetchLogs } = useLogStore()
-  React.useEffect(() => { fetchLogs().catch(() => {}) }, [])
+  React.useEffect(() => {
+    fetchLogs().catch(() => {})
+  }, [fetchLogs])
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">

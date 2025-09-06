@@ -84,7 +84,7 @@ export function Combobox({ options, placeholder, searchPlaceholder, onSelect, va
                         setOpen(false);
                     }}
                 >
-                    Gunakan nilai: "{value}"
+                    Gunakan nilai: &quot;{value}&quot;
                 </button>
             </CommandEmpty>
             <CommandGroup>

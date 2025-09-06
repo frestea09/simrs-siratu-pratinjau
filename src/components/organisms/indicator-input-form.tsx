@@ -61,13 +61,13 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
 
 
   React.useEffect(() => {
-    if (!profiles || profiles.length === 0) {
+    if (!profiles.length) {
       fetchProfiles().catch(() => {})
     }
-    if (!submittedIndicators || submittedIndicators.length === 0) {
+    if (!submittedIndicators.length) {
       fetchSubmittedIndicators().catch(() => {})
     }
-  }, [])
+  }, [profiles.length, submittedIndicators.length, fetchProfiles, fetchSubmittedIndicators])
 
   React.useEffect(() => {
     if (indicatorToEdit?.id) {

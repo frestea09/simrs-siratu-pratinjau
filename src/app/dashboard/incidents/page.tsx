@@ -38,7 +38,7 @@ export default function IncidentsPage() {
   const { incidents, fetchIncidents } = useIncidentStore()
   React.useEffect(() => {
     fetchIncidents().catch(() => {})
-  }, [])
+  }, [fetchIncidents])
   const [isNewDialogOpen, setIsNewDialogOpen] = React.useState(false)
   const [selectedType, setSelectedType] = React.useState<string>("Semua")
   const [filterType, setFilterType] = React.useState<FilterType>("this_month")
@@ -240,7 +240,7 @@ export default function IncidentsPage() {
     filteredIncidents.forEach((inc, idx) => {
       const isType = (t: string) => (inc.type === t ? '✓' : '')
       const isSeverity = (s: string) => (inc.severity === s ? '✓' : '')
-      const unit = inc.relatedUnit || inc.unit || ""
+      const unit = inc.relatedUnit || ""
       const room = inc.careRoom || ""
       const patient = [inc.patientName, inc.medicalRecordNumber].filter(Boolean).join(" / ")
       const row = [

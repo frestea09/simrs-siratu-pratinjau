@@ -13,7 +13,7 @@ export default function UsersPage() {
   const { users, fetchUsers } = useUserStore()
   React.useEffect(() => {
     fetchUsers().catch(() => {})
-  }, [])
+  }, [fetchUsers])
   const [isNewUserDialogOpen, setIsNewUserDialogOpen] = React.useState(false);
 
   return (

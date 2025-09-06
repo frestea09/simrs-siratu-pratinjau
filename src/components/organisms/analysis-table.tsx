@@ -52,16 +52,14 @@ const columns: ColumnDef<Indicator>[] = [
     },
 ];
 
-
-type AnalysisTableProps = {
-  data: Indicator[]
-}
+import type { AnalysisTableProps } from "./analysis-table.interface"
 
 export function AnalysisTable({ data }: AnalysisTableProps) {
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    filterFns: {},
   })
 
   return (

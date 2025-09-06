@@ -66,7 +66,8 @@ export function IndicatorChartCard({
 
   const renderChart = () => {
     const ChartComponent = chartType === "line" ? LineChart : BarChart
-    const MainChartElement = chartType === "line" ? Line : Bar
+    const MainChartElement =
+      (chartType === "line" ? Line : Bar) as React.ElementType
 
     return (
       <ChartComponent data={chartData}>
@@ -95,7 +96,7 @@ export function IndicatorChartCard({
           strokeWidth={2}
           activeDot={{ r: 8 }}
           dot={<Dot r={4} />}
-          radius={[4, 4, 0, 0]}
+          {...(chartType === "bar" ? { radius: [4, 4, 0, 0] } : {})}
         >
           <LabelList dataKey="label" position="top" />
         </MainChartElement>

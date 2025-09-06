@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { cookies } from 'next/headers'
-import type { RiskCategory, RiskSource } from '@prisma/client'
+import type { RiskCategory, RiskLevel, RiskSource } from '@prisma/client'
 const sourceMap = {
   'Laporan Insiden': 'LaporanInsiden',
   Komplain: 'Komplain',
@@ -42,21 +42,35 @@ export function computeRisk(r: {
   controllability: number
   residualConsequence?: number | null
   residualLikelihood?: number | null
-}) {
+}): {
+  cxl: number
+  riskLevel: RiskLevel
+  riskScore: number
+  residualRiskScore: number | null
+  residualRiskLevel: RiskLevel | null
+} {
   const consequence = Number(r.consequence) || 0
   const likelihood = Number(r.likelihood) || 0
   const controllability = Number(r.controllability) || 1
   const cxl = consequence * likelihood
-  const riskLevel = cxl <= 3 ? 'Rendah' : cxl <= 6 ? 'Moderat' : cxl <= 12 ? 'Tinggi' : 'Ekstrem'
+  const riskLevel: RiskLevel =
+    cxl <= 3 ? 'Rendah' : cxl <= 6 ? 'Moderat' : cxl <= 12 ? 'Tinggi' : 'Ekstrem'
   const riskScore = cxl * controllability
   let residualRiskScore: number | null = null
-  let residualRiskLevel: string | null = null
+  let residualRiskLevel: RiskLevel | null = null
   if ((r.residualConsequence ?? 0) > 0 && (r.residualLikelihood ?? 0) > 0) {
     const rc = Number(r.residualConsequence)
     const rl = Number(r.residualLikelihood)
     const resCxl = rc * rl
     residualRiskScore = resCxl * controllability
-    residualRiskLevel = resCxl <= 3 ? 'Rendah' : resCxl <= 6 ? 'Moderat' : resCxl <= 12 ? 'Tinggi' : 'Ekstrem'
+    residualRiskLevel =
+      resCxl <= 3
+        ? 'Rendah'
+        : resCxl <= 6
+          ? 'Moderat'
+          : resCxl <= 12
+            ? 'Tinggi'
+            : 'Ekstrem'
   }
   return { cxl, riskLevel, riskScore, residualRiskScore, residualRiskLevel }
 }

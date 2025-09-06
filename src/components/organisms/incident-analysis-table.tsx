@@ -8,6 +8,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table"
+import type { FilterFn } from "@tanstack/react-table"
 import {
   Table,
   TableBody,
@@ -20,33 +21,7 @@ import { Badge } from "@/components/ui/badge"
 import { Incident } from "@/store/incident-store"
 import { format, parseISO } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
-import { formatChronology } from "@/lib/utils"
-
-const incidentTypeMap: { [key: string]: string } = {
-    'KPC': 'Kondisi Potensial Cedera (KPC)', 'KNC': 'Kejadian Nyaris Cedera (KNC)',
-    'KTC': 'Kejadian Tidak Cedera (KTC)', 'KTD': 'Kejadian Tidak Diharapkan (KTD)',
-    'Sentinel': 'Kejadian Sentinel',
-};
-
-const ChronologyList = ({ text }: { text: string }) => {
-    const steps = formatChronology(text)
-        .split("\n")
-        .filter(Boolean)
-
-    if (steps.length === 0) {
-        return <p className="text-sm text-muted-foreground">-</p>
-    }
-
-    return (
-        <ol className="list-decimal pl-4 space-y-1 text-sm">
-            {steps.map((step, index) => (
-                <li key={index} className="leading-relaxed">
-                    {step}
-                </li>
-            ))}
-        </ol>
-    )
-}
+import { ChronologyList, incidentTypeMap } from "./incident-analysis-table.utils"
 
 const columns: ColumnDef<Incident>[] = [
     {
@@ -92,16 +67,21 @@ const columns: ColumnDef<Incident>[] = [
     },
 ];
 
-
-type IncidentAnalysisTableProps = {
-  data: Incident[]
+const noopFilter: FilterFn<Incident> = () => true
+const filterFns = {
+  dateRangeFilter: noopFilter,
+  categoryFilter: noopFilter,
+  statusFilter: noopFilter,
 }
+
+import type { IncidentAnalysisTableProps } from "./incident-analysis-table.interface"
 
 export function IncidentAnalysisTable({ data }: IncidentAnalysisTableProps) {
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    filterFns,
   })
 
   return (
@@ -112,8 +92,12 @@ export function IncidentAnalysisTable({ data }: IncidentAnalysisTableProps) {
                 <TableRow key={headerGroup.id} className="bg-gray-100">
                 {headerGroup.headers.map((header) => {
                     return (
-                    <TableHead key={header.id} className="font-bold text-black" style={{width: header.getSize() ? `${header.getSize()}px` : undefined}}>
-                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    <TableHead
+                      key={header.id}
+                      className="font-bold text-black"
+                      style={{ width: header.getSize() ? `${header.getSize()}px` : undefined }}
+                    >
+                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                     </TableHead>
                     )
                 })}

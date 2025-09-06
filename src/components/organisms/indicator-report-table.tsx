@@ -12,6 +12,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  FilterFn,
 } from "@tanstack/react-table"
 import { ArrowUpDown } from "lucide-react"
 
@@ -177,10 +178,12 @@ export function IndicatorReportTable({
     [onEdit]
   )
 
+  const noopFilter: FilterFn<Indicator> = () => true
+
   const table = useReactTable({
     data: indicators,
     columns,
-    filterFns: { categoryFilter },
+    filterFns: { dateRangeFilter: noopFilter, categoryFilter, statusFilter: noopFilter },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),

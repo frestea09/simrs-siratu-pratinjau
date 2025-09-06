@@ -37,7 +37,7 @@ const formSchema = z.object({
   category: z.enum(['INM', 'IMP-RS', 'IMPU', 'SPM'], {
     required_error: "Anda harus memilih kategori indikator.",
   }),
-  frequency: z.enum(['Harian', 'Mingguan', 'Bulanan', 'Tahunan'], {
+  frequency: z.enum(['Harian', 'Mingguan', 'Bulanan', 'Triwulan', 'Tahunan'], {
     required_error: "Anda harus memilih frekuensi pelaporan.",
   }),
 })
@@ -218,6 +218,7 @@ export function IndicatorSubmissionForm({ setOpen, indicator }: IndicatorSubmiss
                             <SelectItem value="Harian">Harian</SelectItem>
                             <SelectItem value="Mingguan">Mingguan</SelectItem>
                             <SelectItem value="Bulanan">Bulanan</SelectItem>
+                            <SelectItem value="Triwulan">Triwulan</SelectItem>
                             <SelectItem value="Tahunan">Tahunan</SelectItem>
                         </SelectContent>
                     </Select>

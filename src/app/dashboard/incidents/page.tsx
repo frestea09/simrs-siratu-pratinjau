@@ -10,13 +10,22 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { IncidentReportDialog } from "@/components/organisms/incident-report-dialog"
-import { IncidentTable } from "@/components/organisms/incident-table"
+import {
+  IncidentTable,
+  type IncidentTableHandle,
+} from "@/components/organisms/incident-table"
 import { IncidentFilterCard } from "@/components/organisms/incident-filter-card"
 import { useIncidentStore } from "@/store/incident-store"
 import { useUserStore } from "@/store/user-store.tsx"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { PlusCircle, ShieldAlert, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   ResponsiveContainer,
   LineChart,
@@ -46,6 +55,7 @@ export default function IncidentsPage() {
   const [chartType, setChartType] = React.useState<"line" | "bar">("line")
   const [selectedRiskType, setSelectedRiskType] = React.useState<string>("Semua")
   const [selectedRiskLevel, setSelectedRiskLevel] = React.useState<string>("Semua")
+  const incidentTableRef = React.useRef<IncidentTableHandle>(null)
 
   const dashboardRoles = [
     "Direktur",
@@ -361,16 +371,32 @@ export default function IncidentsPage() {
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="lg" onClick={handleDownloadXlsx}>
-                    <Download className="mr-2 h-5 w-5" />
-                    Unduh Excel (.xlsx)
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="lg">
+                        <Download className="mr-2 h-5 w-5" />
+                        Laporan & Unduhan
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={handleDownloadXlsx}>
+                        Unduh Excel (.xlsx)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => incidentTableRef.current?.openExport()}>
+                        Unduh Daftar Insiden
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => incidentTableRef.current?.openSkpReport()}>
+                        Laporan SKP Triwulan
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <AddNewButton />
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               <IncidentTable
+                ref={incidentTableRef}
                 incidents={filteredIncidents}
                 lineChart={incidentChartData.length > 0 ? lineChart : noDataMessage}
                 barChart={incidentChartData.length > 0 ? barChart : noDataMessage}

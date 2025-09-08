@@ -35,7 +35,10 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    await prisma.submittedIndicator.delete({ where: { id } })
+    await prisma.$transaction([
+      prisma.indicator.deleteMany({ where: { submissionId: id } }),
+      prisma.submittedIndicator.delete({ where: { id } }),
+    ])
     return NextResponse.json({ ok: true })
   } catch (e: any) {
     return NextResponse.json({ error: e.message || 'Failed to delete submitted indicator' }, { status: 500 })

@@ -12,8 +12,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import { Download, FileText } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -36,7 +34,18 @@ import {
   getExportColumns,
 } from "./incident-table.utils"
 
-export function IncidentTable({ incidents, lineChart, barChart, chartDescription }: IncidentTableProps) {
+export type IncidentTableHandle = {
+  openExport: () => void
+  openSkpReport: () => void
+}
+
+export const IncidentTable = React.forwardRef<
+  IncidentTableHandle,
+  IncidentTableProps
+>(function IncidentTable(
+  { incidents, lineChart, barChart, chartDescription },
+  ref
+) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [selectedIncident, setSelectedIncident] = React.useState<Incident | null>(null);
@@ -74,9 +83,10 @@ export function IncidentTable({ incidents, lineChart, barChart, chartDescription
     },
   })
   
-  const handleExport = () => {
-    setIsPreviewOpen(true)
-  }
+  React.useImperativeHandle(ref, () => ({
+    openExport: () => setIsPreviewOpen(true),
+    openSkpReport: () => setIsSkpReportOpen(true),
+  }))
 
 
   return (
@@ -90,21 +100,6 @@ export function IncidentTable({ incidents, lineChart, barChart, chartDescription
           }
           className="max-w-sm"
         />
-        <div className="ml-auto flex items-center gap-2">
-            <Button
-                variant="outline"
-                onClick={handleExport}
-                >
-                <Download className="mr-2 h-4 w-4" />
-                Unduh Daftar Insiden
-            </Button>
-            <Button
-                onClick={() => setIsSkpReportOpen(true)}
-                >
-                <FileText className="mr-2 h-4 w-4" />
-                Laporan SKP Triwulan
-            </Button>
-        </div>
       </div>
       <div className="rounded-md border">
         <Table>
@@ -168,4 +163,4 @@ export function IncidentTable({ incidents, lineChart, barChart, chartDescription
       <SkpReportDialog open={isSkpReportOpen} onOpenChange={setIsSkpReportOpen} />
     </div>
   )
-}
+})

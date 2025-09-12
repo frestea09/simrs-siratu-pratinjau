@@ -185,7 +185,7 @@ export default function RisksPage() {
                                     <LabelList
                                         dataKey="value"
                                         position="outside"
-                                        formatter={(val: number, entry: any) => `${entry.name}: ${val}`}
+                                        formatter={(val: number, entry: any) => `${entry?.name ? `${entry.name}: ` : ""}${val}`}
                                     />
                                 </Pie>
                                 <Tooltip />
@@ -285,7 +285,7 @@ export default function RisksPage() {
                                         <LabelList
                                             dataKey="value"
                                             position="outside"
-                                            formatter={(val: number, entry: any) => `${entry.name}: ${val}`}
+                                            formatter={(val: number, entry: any) => `${entry?.name ? `${entry.name}: ` : ""}${val}`}
                                         />
                                     </Pie>
                                     <Tooltip />

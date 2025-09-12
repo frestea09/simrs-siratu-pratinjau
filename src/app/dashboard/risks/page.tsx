@@ -112,7 +112,7 @@ export default function RisksPage() {
                           size="icon"
                           onClick={async () => {
                             try {
-                              await copyChartImage(levelChartRef.current)
+                              await copyChartImage(levelChartRef.current, summary.levelData)
                               toast({ title: "Diagram Disalin", description: "Grafik level risiko tersalin." })
                             } catch {
                               toast({ title: "Gagal Menyalin", description: "Tidak dapat menyalin grafik." })
@@ -152,7 +152,7 @@ export default function RisksPage() {
                           size="icon"
                           onClick={async () => {
                             try {
-                              await copyChartImage(statusChartRef.current)
+                              await copyChartImage(statusChartRef.current, summary.statusData)
                               toast({ title: "Diagram Disalin", description: "Grafik status tersalin." })
                             } catch {
                               toast({ title: "Gagal Menyalin", description: "Tidak dapat menyalin grafik." })

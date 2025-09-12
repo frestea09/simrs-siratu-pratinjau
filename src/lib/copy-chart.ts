@@ -1,4 +1,7 @@
-export async function copyChartImage(node: HTMLElement | null) {
+export async function copyChartImage(
+  node: HTMLElement | null,
+  details?: { name: string; value: number }[],
+) {
   if (!node) return Promise.reject("No element")
   const svg = node.querySelector("svg") as SVGSVGElement | null
   if (!svg) return Promise.reject("No chart")
@@ -53,5 +56,20 @@ export async function copyChartImage(node: HTMLElement | null) {
 
   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve))
   if (!blob) return Promise.reject("No blob")
-  await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })])
+
+  const item: Record<string, Blob> = { [blob.type]: blob }
+
+  if (details && details.length > 0) {
+    const text = details.map((d) => `${d.name}: ${d.value}`).join("\n")
+    const dataUrl = canvas.toDataURL("image/png")
+    const tableRows = details
+      .map((d) => `<tr><td>${d.name}</td><td>${d.value}</td></tr>`)
+      .join("")
+    const html = `<div><img src="${dataUrl}"/><table>${tableRows}</table></div>`
+
+    item["text/plain"] = new Blob([text], { type: "text/plain" })
+    item["text/html"] = new Blob([html], { type: "text/html" })
+  }
+
+  await navigator.clipboard.write([new ClipboardItem(item)])
 }

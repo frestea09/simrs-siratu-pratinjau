@@ -165,21 +165,28 @@ export default function RisksPage() {
                     <CardContent>
                         <div ref={statusChartRef} className="h-[300px]">
                         <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
+                                <PieChart>
                                 <Pie
                                     data={summary.statusData}
                                     cx="50%"
                                     cy="50%"
-                                    labelLine={false}
                                     outerRadius={80}
-                                    fill="#8884d8"
                                     dataKey="value"
                                     nameKey="name"
-                                    label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+                                    paddingAngle={2}
                                 >
                                     {summary.statusData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name as RiskStatus]} />
+                                    <Cell
+                                        key={`cell-${index}`}
+                                        fill={STATUS_COLORS[entry.name as RiskStatus]}
+                                        stroke="#fff"
+                                    />
                                     ))}
+                                    <LabelList
+                                        dataKey="value"
+                                        position="outside"
+                                        formatter={(val: number, entry: any) => `${entry.name}: ${val}`}
+                                    />
                                 </Pie>
                                 <Tooltip />
                                 <Legend formatter={(value) => `${value} (${summary.statusData.find((s) => s.name === value)?.value ?? 0})`} />
@@ -263,16 +270,23 @@ export default function RisksPage() {
                                         data={summary.statusData}
                                         cx="50%"
                                         cy="50%"
-                                        labelLine={false}
                                         outerRadius={80}
-                                        fill="#8884d8"
                                         dataKey="value"
                                         nameKey="name"
-                                        label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+                                        paddingAngle={2}
                                     >
                                         {summary.statusData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name as RiskStatus]} />
+                                        <Cell
+                                            key={`cell-${index}`}
+                                            fill={STATUS_COLORS[entry.name as RiskStatus]}
+                                            stroke="#fff"
+                                        />
                                         ))}
+                                        <LabelList
+                                            dataKey="value"
+                                            position="outside"
+                                            formatter={(val: number, entry: any) => `${entry.name}: ${val}`}
+                                        />
                                     </Pie>
                                     <Tooltip />
                                     <Legend formatter={(value) => `${value} (${summary.statusData.find((s) => s.name === value)?.value ?? 0})`} />

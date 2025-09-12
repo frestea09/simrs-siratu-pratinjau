@@ -29,6 +29,12 @@ const STATUS_COLORS: { [key in RiskStatus]: string } = {
   Closed: "hsl(var(--primary))",
 };
 
+const STATUS_COLOR_NAMES: { [key in RiskStatus]: string } = {
+  Open: "Merah",
+  'In Progress': "Kuning",
+  Closed: "Hijau",
+};
+
 
 export default function RisksPage() {
     const [isDialogOpen, setIsDialogOpen] = React.useState(false)
@@ -59,7 +65,12 @@ export default function RisksPage() {
             open: statusCounts['Open'],
             extreme: levelCounts['Ekstrem'],
             levelData: Object.entries(levelCounts).map(([name, value]) => ({ name, value })).reverse(),
-            statusData: Object.entries(statusCounts).map(([name, value]) => ({ name, value }))
+            statusData: Object.entries(statusCounts).map(([name, value]) => ({
+                name,
+                value,
+                color: STATUS_COLORS[name as RiskStatus],
+                colorName: STATUS_COLOR_NAMES[name as RiskStatus],
+            }))
         };
     }, [risks]);
     

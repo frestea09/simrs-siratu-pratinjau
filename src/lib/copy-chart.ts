@@ -1,6 +1,13 @@
+type ChartDetail = {
+  name: string
+  value: number
+  color?: string
+  colorName?: string
+}
+
 export async function copyChartImage(
   node: HTMLElement | null,
-  details?: { name: string; value: number }[],
+  details?: ChartDetail[],
 ) {
   if (!node) return Promise.reject("No element")
   const svg = node.querySelector("svg") as SVGSVGElement | null
@@ -60,10 +67,20 @@ export async function copyChartImage(
   const item: Record<string, Blob> = { [blob.type]: blob }
 
   if (details && details.length > 0) {
-    const text = details.map((d) => `${d.name}: ${d.value}`).join("\n")
+    const text = details
+      .map((d) =>
+        d.colorName ? `${d.name} (${d.colorName}): ${d.value}` : `${d.name}: ${d.value}`,
+      )
+      .join("\n")
     const dataUrl = canvas.toDataURL("image/png")
     const tableRows = details
-      .map((d) => `<tr><td>${d.name}</td><td>${d.value}</td></tr>`)
+      .map((d) => {
+        const colorSwatch = d.color
+          ? `<span style="display:inline-block;width:12px;height:12px;background:${d.color};margin-right:4px;"></span>`
+          : ""
+        const label = d.colorName ? `${d.name} (${d.colorName})` : d.name
+        return `<tr><td>${colorSwatch}${label}</td><td>${d.value}</td></tr>`
+      })
       .join("")
     const html = `<div><img src="${dataUrl}"/><table>${tableRows}</table></div>`
 

@@ -249,9 +249,10 @@ const columns: ColumnDef<Risk>[] = [
     header: () => <div className="text-center">Status & Batas Waktu</div>,
     cell: ({ row }) => {
         const risk = row.original;
-        const status = risk.status;
+        const rawStatus = risk.status as string;
+        const status = (rawStatus === 'InProgress' ? 'In Progress' : rawStatus) as RiskStatus;
         const dueDate = risk.dueDate;
-        
+
         return (
             <div className="text-center flex flex-col items-center justify-center gap-2">
                 <Badge className={cn("text-sm capitalize", getStatusClass(status))}>{status}</Badge>
@@ -260,7 +261,9 @@ const columns: ColumnDef<Risk>[] = [
         )
     },
     filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id))
+      const cellValue = row.getValue(id)
+      const normalized = cellValue === 'InProgress' ? 'In Progress' : cellValue
+      return value.includes(normalized)
     },
     size: 150,
   },

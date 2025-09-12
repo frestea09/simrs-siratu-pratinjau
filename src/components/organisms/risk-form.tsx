@@ -121,6 +121,11 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
             dueDate: riskToEdit.dueDate ? new Date(riskToEdit.dueDate) : undefined,
             residualConsequence: riskToEdit.residualConsequence || 0,
             residualLikelihood: riskToEdit.residualLikelihood || 0,
+            actionPlan: riskToEdit.actionPlan ?? "",
+            reportNotes: riskToEdit.reportNotes ?? "",
+            description: riskToEdit.description ?? "",
+            cause: riskToEdit.cause ?? "",
+            pic: riskToEdit.pic ?? "",
         } : {
             unit: currentUser?.unit,
             description: "",
@@ -212,7 +217,7 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
                             <FormItem>
                             <FormLabel>Deskripsi Risiko/Kejadian</FormLabel>
                             <FormControl>
-                                <Textarea placeholder="Jelaskan risiko potensial atau aktual yang terjadi" {...field} />
+                                <Textarea placeholder="Jelaskan risiko potensial atau aktual yang terjadi" {...field} value={field.value ?? ''} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -226,7 +231,7 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
                             <FormItem>
                             <FormLabel>Penyebab (Akar Masalah)</FormLabel>
                             <FormControl>
-                                <Textarea placeholder="Jelaskan penyebab utama dari risiko/kejadian ini" {...field} />
+                                <Textarea placeholder="Jelaskan penyebab utama dari risiko/kejadian ini" {...field} value={field.value ?? ''} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -364,7 +369,7 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
                             <FormItem>
                             <FormLabel>Rencana Aksi & Tindak Lanjut</FormLabel>
                             <FormControl>
-                                <Textarea placeholder="Jelaskan langkah-langkah yang akan diambil untuk menangani risiko ini..." {...field} />
+                                <Textarea placeholder="Jelaskan langkah-langkah yang akan diambil untuk menangani risiko ini..." {...field} value={field.value ?? ''} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -506,7 +511,7 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
                             <FormItem>
                                 <FormLabel>Laporan Singkat / Monev</FormLabel>
                                 <FormControl>
-                                    <Textarea placeholder="Isi laporan singkat atau hasil monitoring dan evaluasi di sini" {...field} />
+                                    <Textarea placeholder="Isi laporan singkat atau hasil monitoring dan evaluasi di sini" {...field} value={field.value ?? ''} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

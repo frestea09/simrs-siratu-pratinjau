@@ -115,14 +115,25 @@ const calculateRiskProperties = (risk: Partial<Risk>) => {
   return { cxl, riskLevel, riskScore, residualRiskScore, residualRiskLevel }
 }
 
+const normalizeRisk = (r: any): Risk => ({
+  ...r,
+  pic:
+    typeof r.pic === "object" && r.pic !== null
+      ? r.pic.name
+      : r.pic ?? undefined,
+  status: r.status === "InProgress" ? "In Progress" : r.status,
+  reportNotes: r.reportNotes ?? "",
+  actionPlan: r.actionPlan ?? "",
+})
+
 const createRiskStore = () => create<RiskState>((set) => ({
   risks: [],
 
   fetchRisks: async () => {
     const res = await fetch('/api/risks', { cache: 'no-store' })
     if (!res.ok) throw new Error('Failed to fetch risks')
-    const data: Risk[] = await res.json()
-    set({ risks: data })
+    const data: any[] = await res.json()
+    set({ risks: data.map(normalizeRisk) })
   },
 
   addRisk: async (risk) => {
@@ -134,9 +145,10 @@ const createRiskStore = () => create<RiskState>((set) => ({
     if (!res.ok) {
       try { const err = await res.json(); throw new Error(err?.error || 'Failed to create risk') } catch { throw new Error('Failed to create risk') }
     }
-    const created: Risk = await res.json()
-    set((state) => ({ risks: [created, ...state.risks].sort((a,b) => b.riskScore - a.riskScore) }))
-    return created.id
+    const created: any = await res.json()
+    const normalized = normalizeRisk(created)
+    set((state) => ({ risks: [normalized, ...state.risks].sort((a,b) => b.riskScore - a.riskScore) }))
+    return normalized.id
   },
 
   updateRisk: async (id, riskData) => {
@@ -148,9 +160,10 @@ const createRiskStore = () => create<RiskState>((set) => ({
     if (!res.ok) {
       try { const err = await res.json(); throw new Error(err?.error || 'Failed to update risk') } catch { throw new Error('Failed to update risk') }
     }
-    const updated: Risk = await res.json()
+    const updated: any = await res.json()
+    const normalized = normalizeRisk(updated)
     set((state) => ({
-      risks: state.risks.map(r => r.id === id ? updated : r).sort((a,b) => b.riskScore - a.riskScore)
+      risks: state.risks.map(r => r.id === id ? normalized : r).sort((a,b) => b.riskScore - a.riskScore)
     }))
   },
 

@@ -2,16 +2,18 @@
 "use client"
 
 import * as React from "react"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LabelList } from "recharts"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Download, PlusCircle, AlertTriangle, ListTodo, ShieldCheck } from "lucide-react"
+import { Download, PlusCircle, AlertTriangle, ListTodo, ShieldCheck, Copy } from "lucide-react"
 import { useRiskStore, Risk, RiskLevel, RiskStatus } from "@/store/risk-store"
 import { RiskDialog } from "@/components/organisms/risk-dialog"
 import { RiskTable } from "@/components/organisms/risk-table"
 import { ReportPreviewDialog } from "@/components/organisms/report-preview-dialog"
 import { RiskReportTable } from "@/components/organisms/risk-report-table"
 import { RiskAnalysisTable } from "@/components/organisms/risk-analysis-table"
+import { copyChartImage } from "@/lib/copy-chart"
+import { useToast } from "@/hooks/use-toast"
 
 
 const COLORS: {[key in RiskLevel]: string} = {
@@ -21,10 +23,16 @@ const COLORS: {[key in RiskLevel]: string} = {
   Rendah: "hsl(var(--chart-5))",
 };
 
-const STATUS_COLORS: {[key in RiskStatus]: string} = {
-  Open: "hsl(var(--chart-2))",
-  'In Progress': "hsl(var(--chart-4))",
+const STATUS_COLORS: { [key in RiskStatus]: string } = {
+  Open: "hsl(var(--destructive))",
+  'In Progress': "#f59e0b",
   Closed: "hsl(var(--primary))",
+};
+
+const STATUS_COLOR_NAMES: { [key in RiskStatus]: string } = {
+  Open: "Merah",
+  'In Progress': "Kuning",
+  Closed: "Hijau",
 };
 
 
@@ -32,6 +40,9 @@ export default function RisksPage() {
     const [isDialogOpen, setIsDialogOpen] = React.useState(false)
     const [isReportOpen, setIsReportOpen] = React.useState(false)
     const { risks, fetchRisks } = useRiskStore()
+    const { toast } = useToast()
+    const levelChartRef = React.useRef<HTMLDivElement>(null)
+    const statusChartRef = React.useRef<HTMLDivElement>(null)
     React.useEffect(() => {
         fetchRisks().catch(() => {})
     }, [fetchRisks])
@@ -40,9 +51,13 @@ export default function RisksPage() {
         const levelCounts: Record<RiskLevel, number> = { Ekstrem: 0, Tinggi: 0, Moderat: 0, Rendah: 0 };
         const statusCounts: Record<RiskStatus, number> = { Open: 0, 'In Progress': 0, Closed: 0 };
 
-        risks.forEach(risk => {
+        risks.forEach((risk) => {
             levelCounts[risk.riskLevel]++;
-            statusCounts[risk.status]++;
+            const rawStatus = risk.status as string;
+            const status = rawStatus === 'InProgress' ? 'In Progress' : rawStatus;
+            if (statusCounts[status as RiskStatus] !== undefined) {
+                statusCounts[status as RiskStatus]++;
+            }
         });
 
         return {
@@ -50,13 +65,73 @@ export default function RisksPage() {
             open: statusCounts['Open'],
             extreme: levelCounts['Ekstrem'],
             levelData: Object.entries(levelCounts).map(([name, value]) => ({ name, value })).reverse(),
-            statusData: Object.entries(statusCounts).map(([name, value]) => ({ name, value }))
+            statusData: Object.entries(statusCounts).map(([name, value]) => ({
+                name,
+                value,
+                color: STATUS_COLORS[name as RiskStatus],
+                colorName: STATUS_COLOR_NAMES[name as RiskStatus],
+            }))
         };
     }, [risks]);
     
     const risksInProgress = React.useMemo(() => {
         return risks.filter(r => r.status === 'Open' || r.status === 'In Progress');
     }, [risks]);
+
+    const tooltipContent = ({ active, payload, label }: any) => {
+        if (active && payload && payload.length) {
+            const entry = payload[0]
+            const name = entry.payload?.name ?? label
+            const color =
+                entry.payload?.color ||
+                STATUS_COLORS[name as RiskStatus] ||
+                COLORS[name as RiskLevel] ||
+                entry.color ||
+                entry.fill
+            return (
+                <div
+                    className="rounded border bg-background p-2 text-sm shadow"
+                    style={{ color }}
+                >
+                    {`${name}: ${entry.value}`}
+                </div>
+            )
+        }
+        return null
+    }
+
+    const renderLevelLabel = (props: any) => {
+        const { x, y, value, index } = props
+        const entry = summary.levelData[index]
+        return (
+            <text
+                x={(x ?? 0) + 4}
+                y={y}
+                fill={COLORS[entry.name as RiskLevel]}
+                dominantBaseline="middle"
+                fontWeight={600}
+            >
+                {value}
+            </text>
+        )
+    }
+
+    const renderStatusLabel = (props: any) => {
+        const { x, y, value, index, textAnchor } = props
+        const entry = summary.statusData[index]
+        return (
+            <text
+                x={x}
+                y={y}
+                fill={STATUS_COLORS[entry.name as RiskStatus]}
+                textAnchor={textAnchor}
+                dominantBaseline="middle"
+                fontWeight={600}
+            >
+                {`${entry.name}: ${value}`}
+            </text>
+        )
+    }
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -97,53 +172,93 @@ export default function RisksPage() {
             
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
                 <Card className="lg:col-span-4">
-                     <CardHeader>
+                     <CardHeader className="flex items-center justify-between">
+                        <div>
                         <CardTitle>Distribusi Level Risiko</CardTitle>
                         <CardDescription>Jumlah risiko berdasarkan tingkat bahayanya.</CardDescription>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={async () => {
+                            try {
+                              await copyChartImage(levelChartRef.current, summary.levelData)
+                              toast({ title: "Diagram Disalin", description: "Grafik level risiko tersalin." })
+                            } catch {
+                              toast({ title: "Gagal Menyalin", description: "Tidak dapat menyalin grafik." })
+                            }
+                          }}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
                     </CardHeader>
                     <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
+                        <div ref={levelChartRef} className="h-[300px]">
+                        <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={summary.levelData} layout="vertical" margin={{ left: 10 }}>
                                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                                 <XAxis type="number" allowDecimals={false} />
                                 <YAxis type="category" dataKey="name" width={80} />
-                                <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} />
+                                <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} content={tooltipContent} />
                                 <Bar dataKey="value" name="Jumlah Risiko" barSize={40}>
+                                    <LabelList content={renderLevelLabel} />
                                     {summary.levelData.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[entry.name as RiskLevel]} />
                                     ))}
                                 </Bar>
                             </BarChart>
                         </ResponsiveContainer>
+                        </div>
                     </CardContent>
                 </Card>
                 <Card className="lg:col-span-3">
-                     <CardHeader>
+                     <CardHeader className="flex items-center justify-between">
+                        <div>
                         <CardTitle>Status Penyelesaian</CardTitle>
                         <CardDescription>Proporsi risiko berdasarkan status penanganannya.</CardDescription>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={async () => {
+                            try {
+                              await copyChartImage(statusChartRef.current, summary.statusData)
+                              toast({ title: "Diagram Disalin", description: "Grafik status tersalin." })
+                            } catch {
+                              toast({ title: "Gagal Menyalin", description: "Tidak dapat menyalin grafik." })
+                            }
+                          }}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
                     </CardHeader>
                     <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <PieChart>
+                        <div ref={statusChartRef} className="h-[300px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
                                 <Pie
                                     data={summary.statusData}
                                     cx="50%"
                                     cy="50%"
-                                    labelLine={false}
                                     outerRadius={80}
-                                    fill="#8884d8"
                                     dataKey="value"
                                     nameKey="name"
-                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                    paddingAngle={2}
                                 >
                                     {summary.statusData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name as RiskStatus]} />
+                                    <Cell
+                                        key={`cell-${index}`}
+                                        fill={STATUS_COLORS[entry.name as RiskStatus]}
+                                        stroke="#fff"
+                                    />
                                     ))}
+                                    <LabelList content={renderStatusLabel} />
                                 </Pie>
-                                <Tooltip />
-                                <Legend />
+                                <Tooltip content={tooltipContent} />
+                                <Legend formatter={(value) => `${value} (${summary.statusData.find((s) => s.name === value)?.value ?? 0})`} />
                             </PieChart>
                         </ResponsiveContainer>
+                        </div>
                     </CardContent>
                 </Card>
             </div>
@@ -191,8 +306,9 @@ export default function RisksPage() {
                                     <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                                     <XAxis type="number" allowDecimals={false} />
                                     <YAxis type="category" dataKey="name" width={80} />
-                                    <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} />
+                                    <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} content={tooltipContent} />
                                     <Bar dataKey="value" name="Jumlah Risiko" barSize={30}>
+                                        <LabelList content={renderLevelLabel} />
                                         {summary.levelData.map((entry, index) => (
                                             <Cell key={`cell-${index}`} fill={COLORS[entry.name as RiskLevel]} />
                                         ))}
@@ -200,6 +316,16 @@ export default function RisksPage() {
                                 </BarChart>
                             </ResponsiveContainer>
                             </div>
+                            <table className="mt-4 text-sm">
+                              <tbody>
+                                {summary.levelData.map((d) => (
+                                  <tr key={d.name}>
+                                    <td className="pr-2">{d.name}</td>
+                                    <td>{d.value}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
                         </div>
                         <div className="lg:col-span-3">
                             <h3 className="text-lg font-semibold mb-2">Status Penyelesaian Risiko</h3>
@@ -210,22 +336,35 @@ export default function RisksPage() {
                                         data={summary.statusData}
                                         cx="50%"
                                         cy="50%"
-                                        labelLine={false}
                                         outerRadius={80}
-                                        fill="#8884d8"
                                         dataKey="value"
                                         nameKey="name"
-                                        label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                                        paddingAngle={2}
                                     >
                                         {summary.statusData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name as RiskStatus]} />
+                                        <Cell
+                                            key={`cell-${index}`}
+                                            fill={STATUS_COLORS[entry.name as RiskStatus]}
+                                            stroke="#fff"
+                                        />
                                         ))}
+                                        <LabelList content={renderStatusLabel} />
                                     </Pie>
-                                    <Tooltip />
-                                    <Legend />
+                                    <Tooltip content={tooltipContent} />
+                                    <Legend formatter={(value) => `${value} (${summary.statusData.find((s) => s.name === value)?.value ?? 0})`} />
                                 </PieChart>
                             </ResponsiveContainer>
                             </div>
+                            <table className="mt-4 text-sm">
+                              <tbody>
+                                {summary.statusData.map((d) => (
+                                  <tr key={d.name}>
+                                    <td className="pr-2">{d.name}</td>
+                                    <td>{d.value}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

@@ -32,18 +32,19 @@ export const printReport = (
             .no-print { display: none; }
           }
           body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
-          table { border-collapse: collapse; width: 100%; font-size: 11px; }
-          th, td { border: 1px solid #e2e8f0; padding: 6px; text-align: left; }
+          table { border-collapse: collapse; width: 100%; font-size: 11px; table-layout: auto; }
+          th, td { border: 1px solid #e2e8f0; padding: 6px; text-align: left; vertical-align: top; word-break: break-word; }
           th { background-color: #f1f5f9; }
           .print-page { page-break-before: always; padding-top: 2rem; }
           .print-page:first-child { page-break-before: avoid; padding-top: 0; }
+          .print-container, .print-container * { max-width: 100%; overflow: visible !important; }
           h1 { font-size: 24px; font-weight: bold; margin-bottom: 8px; }
           h2 { font-size: 20px; font-weight: bold; margin-bottom: 12px; }
           h3 { font-size: 16px; font-weight: bold; margin-bottom: 8px; }
         </style>
       </head>
       <body>
-        <div class="p-4">
+        <div class="p-4 print-container">
            <h1>${title || 'Laporan'}</h1>
            <p>${description || ''}</p>
            <div class="mt-8">

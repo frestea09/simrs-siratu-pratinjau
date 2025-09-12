@@ -5,13 +5,15 @@ import * as React from "react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Download, PlusCircle, AlertTriangle, ListTodo, ShieldCheck } from "lucide-react"
+import { Download, PlusCircle, AlertTriangle, ListTodo, ShieldCheck, Copy } from "lucide-react"
 import { useRiskStore, Risk, RiskLevel, RiskStatus } from "@/store/risk-store"
 import { RiskDialog } from "@/components/organisms/risk-dialog"
 import { RiskTable } from "@/components/organisms/risk-table"
 import { ReportPreviewDialog } from "@/components/organisms/report-preview-dialog"
 import { RiskReportTable } from "@/components/organisms/risk-report-table"
 import { RiskAnalysisTable } from "@/components/organisms/risk-analysis-table"
+import { copyChartImage } from "@/lib/copy-chart"
+import { useToast } from "@/hooks/use-toast"
 
 
 const COLORS: {[key in RiskLevel]: string} = {
@@ -32,6 +34,9 @@ export default function RisksPage() {
     const [isDialogOpen, setIsDialogOpen] = React.useState(false)
     const [isReportOpen, setIsReportOpen] = React.useState(false)
     const { risks, fetchRisks } = useRiskStore()
+    const { toast } = useToast()
+    const levelChartRef = React.useRef<HTMLDivElement>(null)
+    const statusChartRef = React.useRef<HTMLDivElement>(null)
     React.useEffect(() => {
         fetchRisks().catch(() => {})
     }, [fetchRisks])
@@ -97,12 +102,29 @@ export default function RisksPage() {
             
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
                 <Card className="lg:col-span-4">
-                     <CardHeader>
+                     <CardHeader className="flex items-center justify-between">
+                        <div>
                         <CardTitle>Distribusi Level Risiko</CardTitle>
                         <CardDescription>Jumlah risiko berdasarkan tingkat bahayanya.</CardDescription>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={async () => {
+                            try {
+                              await copyChartImage(levelChartRef.current)
+                              toast({ title: "Diagram Disalin", description: "Grafik level risiko tersalin." })
+                            } catch {
+                              toast({ title: "Gagal Menyalin", description: "Tidak dapat menyalin grafik." })
+                            }
+                          }}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
                     </CardHeader>
                     <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
+                        <div ref={levelChartRef} className="h-[300px]">
+                        <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={summary.levelData} layout="vertical" margin={{ left: 10 }}>
                                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                                 <XAxis type="number" allowDecimals={false} />
@@ -115,15 +137,33 @@ export default function RisksPage() {
                                 </Bar>
                             </BarChart>
                         </ResponsiveContainer>
+                        </div>
                     </CardContent>
                 </Card>
                 <Card className="lg:col-span-3">
-                     <CardHeader>
+                     <CardHeader className="flex items-center justify-between">
+                        <div>
                         <CardTitle>Status Penyelesaian</CardTitle>
                         <CardDescription>Proporsi risiko berdasarkan status penanganannya.</CardDescription>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={async () => {
+                            try {
+                              await copyChartImage(statusChartRef.current)
+                              toast({ title: "Diagram Disalin", description: "Grafik status tersalin." })
+                            } catch {
+                              toast({ title: "Gagal Menyalin", description: "Tidak dapat menyalin grafik." })
+                            }
+                          }}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
                     </CardHeader>
                     <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
+                        <div ref={statusChartRef} className="h-[300px]">
+                        <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie
                                     data={summary.statusData}
@@ -144,6 +184,7 @@ export default function RisksPage() {
                                 <Legend />
                             </PieChart>
                         </ResponsiveContainer>
+                        </div>
                     </CardContent>
                 </Card>
             </div>

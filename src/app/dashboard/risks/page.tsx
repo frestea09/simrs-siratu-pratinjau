@@ -58,6 +58,29 @@ const STATUS_COLOR_NAMES: { [key in RiskStatus]: string } = {
   "In Progress": "Kuning",
   Closed: "Hijau",
 }
+// Label kustom yang selalu terbaca (besar, di luar slice, ada outline untuk kontras)
+const renderStatusLabel = (props: any) => {
+  const { cx, cy, midAngle, outerRadius, name, value } = props
+  const RADIAN = Math.PI / 180
+  const radius = outerRadius + 24 // jarak label dari pie
+  const x = cx + radius * Math.cos(-midAngle * RADIAN)
+  const y = cy + radius * Math.sin(-midAngle * RADIAN)
+
+  return (
+    <text
+      x={x}
+      y={y}
+      className="text-sm font-medium md:text-base"
+      textAnchor={x > cx ? "start" : "end"}
+      dominantBaseline="central"
+      // Outline putih meningkatkan kontras di atas warna apa pun
+      style={{ paintOrder: "stroke", stroke: "#fff", strokeWidth: 4 }}
+      fill="hsl(var(--foreground))"
+    >
+      {`${name}: ${value}`}
+    </text>
+  )
+}
 
 export default function RisksPage() {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
@@ -250,17 +273,23 @@ export default function RisksPage() {
             </Button>
           </CardHeader>
           <CardContent>
-            <div ref={statusChartRef} className="h-[300px]">
+            <div className="h-[340px] overflow-visible">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={summary.statusData}
                     cx="50%"
                     cy="50%"
-                    outerRadius={80}
+                    outerRadius={100}
                     dataKey="value"
                     nameKey="name"
                     paddingAngle={2}
+                    minAngle={12}
+                    label={renderStatusLabel}
+                    labelLine={{
+                      stroke: "hsl(var(--muted-foreground))",
+                      strokeDasharray: "3 3",
+                    }}
                   >
                     {summary.statusData.map((entry, index) => (
                       <Cell
@@ -269,17 +298,11 @@ export default function RisksPage() {
                         stroke="#fff"
                       />
                     ))}
-                    <LabelList
-                      dataKey="value"
-                      position="outside"
-                      formatter={(val: number, entry: any) =>
-                        `${entry?.name ? `${entry.name}: ` : ""}${val}`
-                      }
-                      fill="hsl(var(--foreground))"
-                    />
                   </Pie>
                   <Tooltip />
                   <Legend
+                    iconType="circle"
+                    wrapperStyle={{ fontSize: 14, lineHeight: "20px" }}
                     formatter={(value) =>
                       `${value} (${summary.statusData.find((s) => s.name === value)?.value ?? 0})`
                     }

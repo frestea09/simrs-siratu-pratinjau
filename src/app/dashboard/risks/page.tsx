@@ -104,6 +104,7 @@ export default function RisksPage() {
         value,
         color: STATUS_COLORS[name as RiskStatus],
         colorName: STATUS_COLOR_NAMES[name as RiskStatus],
+        fill: STATUS_COLORS[name as RiskStatus],
       })),
     }
   }, [risks])
@@ -265,7 +266,7 @@ export default function RisksPage() {
                     {summary.statusData.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
-                        fill={STATUS_COLORS[entry.name as RiskStatus]}
+                        fill={entry.fill}
                         stroke="#fff"
                       />
                     ))}
@@ -275,7 +276,6 @@ export default function RisksPage() {
                       formatter={(val: number, entry: any) =>
                         `${entry?.name ? `${entry.name}: ` : ""}${val}`
                       }
-                      fill="hsl(var(--foreground))"
                     />
                   </Pie>
                   <Tooltip />
@@ -387,7 +387,7 @@ export default function RisksPage() {
                       {summary.statusData.map((entry, index) => (
                         <Cell
                           key={`cell-${index}`}
-                          fill={STATUS_COLORS[entry.name as RiskStatus]}
+                          fill={entry.fill}
                           stroke="#fff"
                         />
                       ))}
@@ -397,7 +397,6 @@ export default function RisksPage() {
                         formatter={(val: number, entry: any) =>
                           `${entry?.name ? `${entry.name}: ` : ""}${val}`
                         }
-                        fill="hsl(var(--foreground))"
                       />
                     </Pie>
                     <Tooltip />

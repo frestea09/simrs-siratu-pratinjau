@@ -23,9 +23,9 @@ const COLORS: {[key in RiskLevel]: string} = {
   Rendah: "hsl(var(--chart-5))",
 };
 
-const STATUS_COLORS: {[key in RiskStatus]: string} = {
-  Open: "hsl(var(--chart-2))",
-  'In Progress': "hsl(var(--chart-4))",
+const STATUS_COLORS: { [key in RiskStatus]: string } = {
+  Open: "hsl(var(--destructive))",
+  'In Progress': "#f59e0b",
   Closed: "hsl(var(--primary))",
 };
 
@@ -45,9 +45,13 @@ export default function RisksPage() {
         const levelCounts: Record<RiskLevel, number> = { Ekstrem: 0, Tinggi: 0, Moderat: 0, Rendah: 0 };
         const statusCounts: Record<RiskStatus, number> = { Open: 0, 'In Progress': 0, Closed: 0 };
 
-        risks.forEach(risk => {
+        risks.forEach((risk) => {
             levelCounts[risk.riskLevel]++;
-            statusCounts[risk.status]++;
+            const rawStatus = risk.status as string;
+            const status = rawStatus === 'InProgress' ? 'In Progress' : rawStatus;
+            if (statusCounts[status as RiskStatus] !== undefined) {
+                statusCounts[status as RiskStatus]++;
+            }
         });
 
         return {

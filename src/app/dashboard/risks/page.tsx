@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LabelList } from "recharts"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Download, PlusCircle, AlertTriangle, ListTodo, ShieldCheck, Copy } from "lucide-react"
@@ -131,6 +131,7 @@ export default function RisksPage() {
                                 <YAxis type="category" dataKey="name" width={80} />
                                 <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} />
                                 <Bar dataKey="value" name="Jumlah Risiko" barSize={40}>
+                                    <LabelList dataKey="value" position="right" />
                                     {summary.levelData.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[entry.name as RiskLevel]} />
                                     ))}
@@ -174,14 +175,14 @@ export default function RisksPage() {
                                     fill="#8884d8"
                                     dataKey="value"
                                     nameKey="name"
-                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                    label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
                                 >
                                     {summary.statusData.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name as RiskStatus]} />
                                     ))}
                                 </Pie>
                                 <Tooltip />
-                                <Legend />
+                                <Legend formatter={(value) => `${value} (${summary.statusData.find((s) => s.name === value)?.value ?? 0})`} />
                             </PieChart>
                         </ResponsiveContainer>
                         </div>
@@ -234,6 +235,7 @@ export default function RisksPage() {
                                     <YAxis type="category" dataKey="name" width={80} />
                                     <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} />
                                     <Bar dataKey="value" name="Jumlah Risiko" barSize={30}>
+                                        <LabelList dataKey="value" position="right" />
                                         {summary.levelData.map((entry, index) => (
                                             <Cell key={`cell-${index}`} fill={COLORS[entry.name as RiskLevel]} />
                                         ))}
@@ -241,6 +243,16 @@ export default function RisksPage() {
                                 </BarChart>
                             </ResponsiveContainer>
                             </div>
+                            <table className="mt-4 text-sm">
+                              <tbody>
+                                {summary.levelData.map((d) => (
+                                  <tr key={d.name}>
+                                    <td className="pr-2">{d.name}</td>
+                                    <td>{d.value}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
                         </div>
                         <div className="lg:col-span-3">
                             <h3 className="text-lg font-semibold mb-2">Status Penyelesaian Risiko</h3>
@@ -256,17 +268,27 @@ export default function RisksPage() {
                                         fill="#8884d8"
                                         dataKey="value"
                                         nameKey="name"
-                                        label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                                        label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
                                     >
                                         {summary.statusData.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name as RiskStatus]} />
                                         ))}
                                     </Pie>
                                     <Tooltip />
-                                    <Legend />
+                                    <Legend formatter={(value) => `${value} (${summary.statusData.find((s) => s.name === value)?.value ?? 0})`} />
                                 </PieChart>
                             </ResponsiveContainer>
                             </div>
+                            <table className="mt-4 text-sm">
+                              <tbody>
+                                {summary.statusData.map((d) => (
+                                  <tr key={d.name}>
+                                    <td className="pr-2">{d.name}</td>
+                                    <td>{d.value}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

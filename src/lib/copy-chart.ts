@@ -27,10 +27,16 @@ export async function copyChartImage(
     cloneEl.setAttribute("font-family", computed.fontFamily)
   })
 
-  const { width, height } = svg.getBoundingClientRect()
+  const bbox = svg.getBBox()
+  const padding = 8
+  const width = bbox.width + padding * 2
+  const height = bbox.height + padding * 2
   clone.setAttribute("width", width.toString())
   clone.setAttribute("height", height.toString())
-  clone.setAttribute("viewBox", `0 0 ${width} ${height}`)
+  clone.setAttribute(
+    "viewBox",
+    `${bbox.x - padding} ${bbox.y - padding} ${width} ${height}`,
+  )
 
   const serializer = new XMLSerializer()
   const svgString = serializer.serializeToString(clone)

@@ -7,8 +7,27 @@ export const printReport = (
 
   const uid = () => `${Date.now().toString(36)}-${Math.random().toString(36).substring(2)}`
 
-  const charts = content.querySelectorAll('canvas')
-  charts.forEach(c => c.setAttribute('data-chart-id', uid()))
+  const clonedContent = content.cloneNode(true) as HTMLDivElement
+  const canvases = clonedContent.querySelectorAll('canvas')
+  canvases.forEach((c) => c.setAttribute('data-chart-id', uid()))
+
+  const originals = content.querySelectorAll('svg')
+  const clones = clonedContent.querySelectorAll('svg')
+  originals.forEach((svg, i) => {
+    try {
+      const bbox = (svg as SVGGraphicsElement).getBBox()
+      const padding = 8
+      const width = bbox.width + padding * 2
+      const height = bbox.height + padding * 2
+      const cloneSvg = clones[i] as SVGSVGElement
+      cloneSvg.setAttribute('width', width.toString())
+      cloneSvg.setAttribute('height', height.toString())
+      cloneSvg.setAttribute(
+        'viewBox',
+        `${bbox.x - padding} ${bbox.y - padding} ${width} ${height}`,
+      )
+    } catch {}
+  })
 
   const printWindow = window.open("", "", "width=1200,height=800")
   if (!printWindow) {
@@ -16,7 +35,7 @@ export const printReport = (
     return
   }
 
-  const contentHtml = content.innerHTML
+  const contentHtml = clonedContent.innerHTML
 
   printWindow.document.write(`<!DOCTYPE html>
     <html>

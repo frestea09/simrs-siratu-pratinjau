@@ -6,11 +6,13 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
-import { Download } from "lucide-react"
+import { Download, Copy } from "lucide-react"
 
 import { ReportPreviewDialogProps } from "./report-preview-dialog.interface"
 import { printReport } from "./report-preview-dialog.print"
+import { copyReport } from "./report-preview-dialog.copy"
 import { defaultFilterFns } from "@/lib/default-filter-fns"
+import { useToast } from "@/hooks/use-toast"
 
 export function ReportPreviewDialog({
   open,
@@ -33,6 +35,7 @@ export function ReportPreviewDialog({
   })
 
   const contentRef = React.useRef<HTMLDivElement>(null)
+  const { toast } = useToast()
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -105,9 +108,30 @@ export function ReportPreviewDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Tutup
           </Button>
+          <Button
+            variant="outline"
+            onClick={async () => {
+              try {
+                await copyReport(contentRef.current, title, description)
+                toast({
+                  title: "Laporan Disalin",
+                  description: "Konten laporan siap ditempel ke Word.",
+                })
+              } catch {
+                toast({
+                  title: "Gagal Menyalin",
+                  description: "Terjadi kesalahan saat menyalin laporan.",
+                  variant: "destructive",
+                })
+              }
+            }}
+          >
+            <Copy className="mr-2 h-4 w-4" />
+            Salin Teks
+          </Button>
           <Button onClick={() => printReport(contentRef.current, title, description)}>
-              <Download className="mr-2 h-4 w-4" />
-              Cetak / Unduh PDF
+            <Download className="mr-2 h-4 w-4" />
+            Cetak / Unduh PDF
           </Button>
         </div>
       </DialogContent>

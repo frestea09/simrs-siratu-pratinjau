@@ -17,44 +17,60 @@ import type { NavItemProps } from './nav-item.type'
 import { useActivePath } from './nav-item.utils'
 
 const NavSubMenu = ({ item, openMenus, setOpenMenus, isSubItem }: NavItemProps) => {
+  const { label, icon: Icon, subItems } = item
   const isParentActive = useActivePath(item)
-  const isOpen = openMenus[item.label] || false
+  const isOpen = openMenus[label] || false
 
   React.useEffect(() => {
     if (isParentActive && !isOpen) {
-      setOpenMenus(prev => ({ ...prev, [item.label]: true }))
+      setOpenMenus(prev => ({ ...prev, [label]: true }))
     }
-  }, [isParentActive, isOpen, item.label, setOpenMenus])
+  }, [isParentActive, isOpen, label, setOpenMenus])
 
-  const commonProps = {
-    onClick: () =>
-      setOpenMenus(prev => ({ ...prev, [item.label]: !isOpen })),
-    isActive: isParentActive,
-    tooltip: item.label,
-    className: cn('w-full justify-between', isSubItem ? 'h-10' : ''),
-    children: (
-      <>
-        <div className="flex items-center gap-3">
-          {item.icon && <item.icon className="size-6" />}
-          <span>{item.label}</span>
-        </div>
-        <ChevronDown
-          className={`ml-auto size-5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-        />
-      </>
-    ),
-  }
+  const handleToggle = React.useCallback(() => {
+    setOpenMenus(prev => ({
+      ...prev,
+      [label]: !prev[label],
+    }))
+  }, [label, setOpenMenus])
+
+  const content = (
+    <>
+      <div className="flex items-center gap-3">
+        {Icon && <Icon className="size-6" />}
+        <span>{label}</span>
+      </div>
+      <ChevronDown
+        className={`ml-auto size-5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+      />
+    </>
+  )
 
   return (
     <>
       {isSubItem ? (
-        <SidebarMenuSubButton size="sm" {...commonProps} />
+        <SidebarMenuSubButton
+          size="sm"
+          onClick={handleToggle}
+          isActive={isParentActive}
+          className={cn('w-full justify-between', 'h-10')}
+        >
+          {content}
+        </SidebarMenuSubButton>
       ) : (
-        <SidebarMenuButton size="lg" {...commonProps} />
+        <SidebarMenuButton
+          size="lg"
+          onClick={handleToggle}
+          isActive={isParentActive}
+          tooltip={label}
+          className={cn('w-full justify-between')}
+        >
+          {content}
+        </SidebarMenuButton>
       )}
       <SidebarMenuSub className={cn('mt-1 pr-0', isSubItem ? 'pl-4' : '')}>
         {isOpen &&
-          item.subItems?.map((subItem, index) => (
+          subItems?.map((subItem, index) => (
             <NavItem
               key={index}
               item={subItem}

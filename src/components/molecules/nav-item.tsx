@@ -21,12 +21,6 @@ const NavSubMenu = ({ item, openMenus, setOpenMenus, isSubItem }: NavItemProps) 
   const isParentActive = useActivePath(item)
   const isOpen = openMenus[label] || false
 
-  React.useEffect(() => {
-    if (isParentActive && !isOpen) {
-      setOpenMenus(prev => ({ ...prev, [label]: true }))
-    }
-  }, [isParentActive, isOpen, label, setOpenMenus])
-
   const handleToggle = React.useCallback(() => {
     setOpenMenus(prev => ({
       ...prev,

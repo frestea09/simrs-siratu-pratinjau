@@ -1,0 +1,26 @@
+# Node dependencies
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+.next
+out
+coverage
+
+# Environment and configuration overrides
+.env
+.env.*
+*.local
+
+# Git and Docker metadata
+.git
+.gitignore
+.dockerignore
+
+# Miscellaneous
+apphosting.yaml
+.idea
+.vscode
+*.DS_Store

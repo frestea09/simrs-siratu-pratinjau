@@ -34,33 +34,39 @@ const NavSubMenu = ({ item, openMenus, setOpenMenus, isSubItem }: NavItemProps) 
     }))
   }, [label, setOpenMenus])
 
-  const commonProps = React.useMemo(
-    () => ({
-      onClick: handleToggle,
-      isActive: isParentActive,
-      tooltip: label,
-      className: cn('w-full justify-between', isSubItem ? 'h-10' : ''),
-      children: (
-        <>
-          <div className="flex items-center gap-3">
-            {Icon && <Icon className="size-6" />}
-            <span>{label}</span>
-          </div>
-          <ChevronDown
-            className={`ml-auto size-5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-          />
-        </>
-      ),
-    }),
-    [handleToggle, Icon, isParentActive, isOpen, isSubItem, label],
+  const content = (
+    <>
+      <div className="flex items-center gap-3">
+        {Icon && <Icon className="size-6" />}
+        <span>{label}</span>
+      </div>
+      <ChevronDown
+        className={`ml-auto size-5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+      />
+    </>
   )
 
   return (
     <>
       {isSubItem ? (
-        <SidebarMenuSubButton size="sm" {...commonProps} />
+        <SidebarMenuSubButton
+          size="sm"
+          onClick={handleToggle}
+          isActive={isParentActive}
+          className={cn('w-full justify-between', 'h-10')}
+        >
+          {content}
+        </SidebarMenuSubButton>
       ) : (
-        <SidebarMenuButton size="lg" {...commonProps} />
+        <SidebarMenuButton
+          size="lg"
+          onClick={handleToggle}
+          isActive={isParentActive}
+          tooltip={label}
+          className={cn('w-full justify-between')}
+        >
+          {content}
+        </SidebarMenuButton>
       )}
       <SidebarMenuSub className={cn('mt-1 pr-0', isSubItem ? 'pl-4' : '')}>
         {isOpen &&

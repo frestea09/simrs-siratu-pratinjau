@@ -78,7 +78,11 @@ const navItems: NavItemType[] = [
           { href: "/dashboard/spm", icon: ListChecks, label: "SPM" },
           { href: "/dashboard/inm", icon: Target, label: "INM" },
           { href: "/dashboard/imp-rs", icon: Building, label: "IMP-RS" },
-          { href: "/dashboard/impu", icon: Network, label: "IMPU" },
+          {
+            href: "/dashboard/impu",
+            icon: Network,
+            label: "Indikator Mutu Prioritas Unit (IMPU)",
+          },
         ],
       },
       {
@@ -116,6 +120,27 @@ const adminNavItems: NavItemType[] = [
   },
 ];
 
+const allNavItems: NavItemType[] = [...navItems, ...adminNavItems];
+
+const findPath = (items: NavItemType[], currentPath: string): NavItemType[] => {
+  const findPathRecursive = (navItemsToSearch: NavItemType[]): NavItemType[] => {
+    for (const item of navItemsToSearch) {
+      if (item.href === currentPath) {
+        return [item];
+      }
+      if (item.subItems) {
+        const subPath = findPathRecursive(item.subItems);
+        if (subPath.length > 0) {
+          return [item, ...subPath];
+        }
+      }
+    }
+    return [];
+  };
+
+  return findPathRecursive(items);
+};
+
 export default function DashboardClientLayout({
   children,
 }: {
@@ -125,12 +150,10 @@ export default function DashboardClientLayout({
   const router = useRouter();
   const { currentUser, clearCurrentUser } = useUserStore();
   const { addLog } = useLogStore();
-  const currentUserName = currentUser?.name;
-
   const handleLogout = React.useCallback(async () => {
-    if (currentUserName) {
+    if (currentUser?.name) {
       addLog({
-        user: currentUserName,
+        user: currentUser.name,
         action: "LOGOUT",
         details: "Pengguna berhasil logout.",
       });
@@ -138,58 +161,22 @@ export default function DashboardClientLayout({
     await logout();
     clearCurrentUser();
     router.push("/");
-  }, [addLog, clearCurrentUser, currentUserName, router]);
-
-  const findPath = React.useCallback(
-    (items: NavItemType[], currentPath: string): NavItemType[] => {
-      const findPathRecursive = (navItemsToSearch: NavItemType[]): NavItemType[] => {
-        for (const item of navItemsToSearch) {
-          if (item.href === currentPath) {
-            return [item];
-          }
-          if (item.subItems) {
-            const subPath = findPathRecursive(item.subItems);
-            if (subPath.length > 0) {
-              return [item, ...subPath];
-            }
-          }
-        }
-        return [];
-      };
-
-      return findPathRecursive(items);
-    },
-    [],
-  );
-
-  const allNavItems = React.useMemo(() => {
-    const fullNav = JSON.parse(JSON.stringify(navItems)) as NavItemType[];
-    if (fullNav[1]?.subItems?.[1]?.subItems?.[3]) {
-      fullNav[1].subItems[1].subItems[3].label =
-        "Indikator Mutu Prioritas Unit (IMPU)";
-    }
-    return fullNav.concat(adminNavItems);
-  }, []);
+  }, [addLog, clearCurrentUser, currentUser, router]);
 
   const breadcrumbPath = React.useMemo(
     () => findPath(allNavItems, pathname),
-    [allNavItems, findPath, pathname],
+    [pathname],
   );
-  const currentPage = React.useMemo(
-    () => breadcrumbPath[breadcrumbPath.length - 1],
-    [breadcrumbPath],
-  );
+  const currentPage = breadcrumbPath[breadcrumbPath.length - 1];
+
   const [openMenus, setOpenMenus] = React.useState<{ [key: string]: boolean }>(
     {}
   );
-  const logoutNavItem = React.useMemo(
-    () => ({
-      label: "Logout",
-      icon: LogOut,
-      onClick: handleLogout,
-    }),
-    [handleLogout],
-  );
+  const logoutNavItem = {
+    label: "Logout",
+    icon: LogOut,
+    onClick: handleLogout,
+  };
   return (
     <>
       <SidebarProvider>

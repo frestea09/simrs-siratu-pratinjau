@@ -18,6 +18,13 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import React from "react"
 
+const getInitials = (name: string) =>
+  name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+
 export function UserNav() {
   const router = useRouter()
   const { currentUser, clearCurrentUser } = useUserStore()
@@ -28,27 +35,10 @@ export function UserNav() {
     router.push("/")
   }, [clearCurrentUser, router])
 
-  const getInitials = React.useCallback((name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-  }, [])
-
-  const userInitials = React.useMemo(() => {
-    if (!currentUser?.name) {
-      return ""
-    }
-    return getInitials(currentUser.name)
-  }, [currentUser?.name, getInitials])
-
-  const avatarImageSrc = React.useMemo(() => {
-    if (!userInitials) {
-      return ""
-    }
-    return `https://placehold.co/100x100.png?text=${userInitials}`
-  }, [userInitials])
+  const userInitials = currentUser?.name ? getInitials(currentUser.name) : ""
+  const avatarImageSrc = userInitials
+    ? `https://placehold.co/100x100.png?text=${userInitials}`
+    : ""
 
   if (!currentUser) {
     return <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />

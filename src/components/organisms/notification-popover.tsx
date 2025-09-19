@@ -28,32 +28,19 @@ export function NotificationPopover() {
         [markAsRead, router],
     )
 
-    const createNotificationClickHandler = React.useCallback(
-        (notificationId: string, link?: string) => () =>
-            handleNotificationClick(notificationId, link),
-        [handleNotificationClick],
-    )
-
     const handleMarkAllAsRead = React.useCallback(() => {
         markAllAsRead()
     }, [markAllAsRead])
 
-    const formattedNotifications = React.useMemo(
-        () =>
-            notifications.map((notif) => ({
-                ...notif,
-                formattedTimestamp: new Date(notif.timestamp).toLocaleString("id-ID", {
-                    dateStyle: "medium",
-                    timeStyle: "short",
-                }),
-            })),
-        [notifications],
-    )
+    const formattedNotifications = notifications.map((notif) => ({
+        ...notif,
+        formattedTimestamp: new Date(notif.timestamp).toLocaleString("id-ID", {
+            dateStyle: "medium",
+            timeStyle: "short",
+        }),
+    }))
 
-    const hasNotifications = React.useMemo(
-        () => formattedNotifications.length > 0,
-        [formattedNotifications],
-    )
+    const hasNotifications = formattedNotifications.length > 0
 
     return (
         <Popover>
@@ -92,7 +79,7 @@ export function NotificationPopover() {
                             {formattedNotifications.map((notif) => (
                                 <div
                                     key={notif.id}
-                                    onClick={createNotificationClickHandler(notif.id, notif.link)}
+                                    onClick={() => handleNotificationClick(notif.id, notif.link)}
                                     className={cn(
                                         "p-3 hover:bg-muted/50 cursor-pointer",
                                         !notif.isRead && "bg-primary/5"

@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
@@ -31,7 +31,12 @@ import {
   ShieldCheck,
   Copy,
 } from "lucide-react"
-import { useRiskStore, Risk, RiskLevel, RiskStatus } from "@/store/risk-store"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { useRiskStore, RiskLevel, RiskStatus } from "@/store/risk-store"
 import { RiskDialog } from "@/components/organisms/risk-dialog"
 import { RiskTable } from "@/components/organisms/risk-table"
 import { ReportPreviewDialog } from "@/components/organisms/report-preview-dialog"
@@ -163,33 +168,43 @@ export default function RisksPage() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="lg:col-span-4">
-          <CardHeader className="flex items-center justify-between">
+          <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <CardTitle>Distribusi Level Risiko</CardTitle>
               <CardDescription>
                 Jumlah risiko berdasarkan tingkat bahayanya.
               </CardDescription>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={async () => {
-                try {
-                  await copyChartImage(levelChartRef.current, summary.levelData)
-                  toast({
-                    title: "Diagram Disalin",
-                    description: "Grafik level risiko tersalin.",
-                  })
-                } catch {
-                  toast({
-                    title: "Gagal Menyalin",
-                    description: "Tidak dapat menyalin grafik.",
-                  })
-                }
-              }}
-            >
-              <Copy className="h-4 w-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full gap-2 sm:w-auto"
+                  onClick={async () => {
+                    try {
+                      await copyChartImage(
+                        levelChartRef.current,
+                        summary.levelData
+                      )
+                      toast({
+                        title: "Diagram Disalin",
+                        description: "Grafik level risiko tersalin.",
+                      })
+                    } catch {
+                      toast({
+                        title: "Gagal Menyalin",
+                        description: "Tidak dapat menyalin grafik.",
+                      })
+                    }
+                  }}
+                >
+                  <Copy className="h-4 w-4" />
+                  Salin Grafik
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="left">Salin grafik level risiko</TooltipContent>
+            </Tooltip>
           </CardHeader>
           <CardContent>
             <div ref={levelChartRef} className="h-[300px]">
@@ -202,7 +217,7 @@ export default function RisksPage() {
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                   <XAxis type="number" allowDecimals={false} />
                   <YAxis type="category" dataKey="name" width={80} />
-                  <Tooltip cursor={{ fill: "hsl(var(--muted))" }} />
+                  <RechartsTooltip cursor={{ fill: "hsl(var(--muted))" }} />
                   <Bar dataKey="value" name="Jumlah Risiko" barSize={40}>
                     <LabelList dataKey="value" position="right" />
                     {summary.levelData.map((entry, index) => (
@@ -218,36 +233,45 @@ export default function RisksPage() {
           </CardContent>
         </Card>
         <Card className="lg:col-span-3">
-          <CardHeader className="flex items-center justify-between">
+          <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <CardTitle>Status Penyelesaian</CardTitle>
               <CardDescription>
                 Proporsi risiko berdasarkan status penanganannya.
               </CardDescription>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={async () => {
-                try {
-                  await copyChartImage(
-                    statusChartRef.current,
-                    summary.statusData
-                  )
-                  toast({
-                    title: "Diagram Disalin",
-                    description: "Grafik status tersalin.",
-                  })
-                } catch {
-                  toast({
-                    title: "Gagal Menyalin",
-                    description: "Tidak dapat menyalin grafik.",
-                  })
-                }
-              }}
-            >
-              <Copy className="h-4 w-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full gap-2 sm:w-auto"
+                  onClick={async () => {
+                    try {
+                      await copyChartImage(
+                        statusChartRef.current,
+                        summary.statusData
+                      )
+                      toast({
+                        title: "Diagram Disalin",
+                        description: "Grafik status tersalin.",
+                      })
+                    } catch {
+                      toast({
+                        title: "Gagal Menyalin",
+                        description: "Tidak dapat menyalin grafik.",
+                      })
+                    }
+                  }}
+                >
+                  <Copy className="h-4 w-4" />
+                  Salin Grafik
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="left">
+                Salin grafik status penyelesaian
+              </TooltipContent>
+            </Tooltip>
           </CardHeader>
           <CardContent>
             <div ref={statusChartRef} className="h-[300px]">
@@ -278,7 +302,7 @@ export default function RisksPage() {
                       fill="hsl(var(--foreground))"
                     />
                   </Pie>
-                  <Tooltip />
+                  <RechartsTooltip />
                   <Legend
                     formatter={(value) =>
                       `${value} (${summary.statusData.find((s) => s.name === value)?.value ?? 0})`
@@ -344,7 +368,7 @@ export default function RisksPage() {
                     <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                     <XAxis type="number" allowDecimals={false} />
                     <YAxis type="category" dataKey="name" width={80} />
-                    <Tooltip cursor={{ fill: "hsl(var(--muted))" }} />
+                    <RechartsTooltip cursor={{ fill: "hsl(var(--muted))" }} />
                     <Bar dataKey="value" name="Jumlah Risiko" barSize={30}>
                       <LabelList dataKey="value" position="right" />
                       {summary.levelData.map((entry, index) => (
@@ -400,7 +424,7 @@ export default function RisksPage() {
                         fill="hsl(var(--foreground))"
                       />
                     </Pie>
-                    <Tooltip />
+                    <RechartsTooltip />
                     <Legend
                       formatter={(value) =>
                         `${value} (${summary.statusData.find((s) => s.name === value)?.value ?? 0})`

@@ -125,11 +125,12 @@ export default function DashboardClientLayout({
   const router = useRouter();
   const { currentUser, clearCurrentUser } = useUserStore();
   const { addLog } = useLogStore();
-  
-  const handleLogout = async () => {
-    if (currentUser) {
+  const currentUserName = currentUser?.name;
+
+  const handleLogout = React.useCallback(async () => {
+    if (currentUserName) {
       addLog({
-        user: currentUser.name,
+        user: currentUserName,
         action: "LOGOUT",
         details: "Pengguna berhasil logout.",
       });
@@ -137,22 +138,29 @@ export default function DashboardClientLayout({
     await logout();
     clearCurrentUser();
     router.push("/");
-  };
+  }, [addLog, clearCurrentUser, currentUserName, router]);
 
-  const findPath = (items: any[], currentPath: string): any[] => {
-    for (const item of items) {
-      if (item.href === currentPath) {
-        return [item];
-      }
-      if (item.subItems) {
-        const subPath = findPath(item.subItems, currentPath);
-        if (subPath.length > 0) {
-          return [item, ...subPath];
+  const findPath = React.useCallback(
+    (items: NavItemType[], currentPath: string): NavItemType[] => {
+      const findPathRecursive = (navItemsToSearch: NavItemType[]): NavItemType[] => {
+        for (const item of navItemsToSearch) {
+          if (item.href === currentPath) {
+            return [item];
+          }
+          if (item.subItems) {
+            const subPath = findPathRecursive(item.subItems);
+            if (subPath.length > 0) {
+              return [item, ...subPath];
+            }
+          }
         }
-      }
-    }
-    return [];
-  };
+        return [];
+      };
+
+      return findPathRecursive(items);
+    },
+    [],
+  );
 
   const allNavItems = React.useMemo(() => {
     const fullNav = JSON.parse(JSON.stringify(navItems)) as NavItemType[];
@@ -163,10 +171,24 @@ export default function DashboardClientLayout({
     return fullNav.concat(adminNavItems);
   }, []);
 
-  const breadcrumbPath = findPath(allNavItems, pathname);
-  const currentPage = breadcrumbPath[breadcrumbPath.length - 1];
+  const breadcrumbPath = React.useMemo(
+    () => findPath(allNavItems, pathname),
+    [allNavItems, findPath, pathname],
+  );
+  const currentPage = React.useMemo(
+    () => breadcrumbPath[breadcrumbPath.length - 1],
+    [breadcrumbPath],
+  );
   const [openMenus, setOpenMenus] = React.useState<{ [key: string]: boolean }>(
     {}
+  );
+  const logoutNavItem = React.useMemo(
+    () => ({
+      label: "Logout",
+      icon: LogOut,
+      onClick: handleLogout,
+    }),
+    [handleLogout],
   );
   return (
     <>
@@ -222,11 +244,7 @@ export default function DashboardClientLayout({
           <SidebarFooter className="p-2 mt-auto">
             <SidebarMenu>
               <NavItem
-                item={{
-                  label: "Logout",
-                  icon: LogOut,
-                  onClick: handleLogout,
-                }}
+                item={logoutNavItem}
                 openMenus={openMenus}
                 setOpenMenus={setOpenMenus}
               />

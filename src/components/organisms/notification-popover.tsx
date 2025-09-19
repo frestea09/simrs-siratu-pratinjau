@@ -2,7 +2,7 @@
 "use client"
 
 import React from "react"
-import { Bell, CheckCheck, CircleAlert } from "lucide-react"
+import { Bell, CheckCheck } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
@@ -18,12 +18,42 @@ export function NotificationPopover() {
     const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotificationStore()
     const router = useRouter()
 
-    const handleNotificationClick = (notificationId: string, link?: string) => {
-        markAsRead(notificationId)
-        if (link) {
-            router.push(link)
-        }
-    }
+    const handleNotificationClick = React.useCallback(
+        (notificationId: string, link?: string) => {
+            markAsRead(notificationId)
+            if (link) {
+                router.push(link)
+            }
+        },
+        [markAsRead, router],
+    )
+
+    const createNotificationClickHandler = React.useCallback(
+        (notificationId: string, link?: string) => () =>
+            handleNotificationClick(notificationId, link),
+        [handleNotificationClick],
+    )
+
+    const handleMarkAllAsRead = React.useCallback(() => {
+        markAllAsRead()
+    }, [markAllAsRead])
+
+    const formattedNotifications = React.useMemo(
+        () =>
+            notifications.map((notif) => ({
+                ...notif,
+                formattedTimestamp: new Date(notif.timestamp).toLocaleString("id-ID", {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                }),
+            })),
+        [notifications],
+    )
+
+    const hasNotifications = React.useMemo(
+        () => formattedNotifications.length > 0,
+        [formattedNotifications],
+    )
 
     return (
         <Popover>
@@ -44,12 +74,12 @@ export function NotificationPopover() {
             <PopoverContent className="w-80 p-0">
                 <div className="flex items-center justify-between p-3 border-b">
                     <h3 className="font-semibold text-lg">Notifikasi</h3>
-                    {notifications.length > 0 && (
+                    {hasNotifications && (
                         <Button
                             variant="link"
                             size="sm"
                             className="text-primary p-0 h-auto"
-                            onClick={() => markAllAsRead()}
+                            onClick={handleMarkAllAsRead}
                             disabled={unreadCount === 0}
                         >
                             Tandai semua dibaca
@@ -57,12 +87,12 @@ export function NotificationPopover() {
                     )}
                 </div>
                 <ScrollArea className="h-96">
-                    {notifications.length > 0 ? (
+                    {hasNotifications ? (
                         <div className="divide-y">
-                            {notifications.map((notif) => (
+                            {formattedNotifications.map((notif) => (
                                 <div
                                     key={notif.id}
-                                    onClick={() => handleNotificationClick(notif.id, notif.link)}
+                                    onClick={createNotificationClickHandler(notif.id, notif.link)}
                                     className={cn(
                                         "p-3 hover:bg-muted/50 cursor-pointer",
                                         !notif.isRead && "bg-primary/5"
@@ -74,7 +104,7 @@ export function NotificationPopover() {
                                             <p className="font-medium">{notif.title}</p>
                                             <p className="text-sm text-muted-foreground">{notif.description}</p>
                                             <p className="text-xs text-muted-foreground/80">
-                                                {new Date(notif.timestamp).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })}
+                                                {notif.formattedTimestamp}
                                             </p>
                                         </div>
                                     </div>

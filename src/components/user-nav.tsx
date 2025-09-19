@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -13,30 +12,46 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { logout } from "@/lib/actions/auth"
 import { useUserStore } from "@/store/user-store.tsx"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import React from "react"
-import { logout } from "@/lib/actions/auth"
 
 export function UserNav() {
   const router = useRouter()
   const { currentUser, clearCurrentUser } = useUserStore()
 
-  const handleLogout = async () => {
+  const handleLogout = React.useCallback(async () => {
     await logout()
     clearCurrentUser()
     router.push("/")
-  }
+  }, [clearCurrentUser, router])
+
+  const getInitials = React.useCallback((name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+  }, [])
+
+  const userInitials = React.useMemo(() => {
+    if (!currentUser?.name) {
+      return ""
+    }
+    return getInitials(currentUser.name)
+  }, [currentUser?.name, getInitials])
+
+  const avatarImageSrc = React.useMemo(() => {
+    if (!userInitials) {
+      return ""
+    }
+    return `https://placehold.co/100x100.png?text=${userInitials}`
+  }, [userInitials])
 
   if (!currentUser) {
-     return (
-        <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
-     )
-  }
-
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    return <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
   }
 
   return (
@@ -44,8 +59,8 @@ export function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar className="h-10 w-10">
-            <AvatarImage src={`https://placehold.co/100x100.png?text=${getInitials(currentUser.name)}`} alt={currentUser.name} />
-            <AvatarFallback>{getInitials(currentUser.name)}</AvatarFallback>
+            <AvatarImage src={avatarImageSrc} alt={currentUser.name} />
+            <AvatarFallback>{userInitials}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>

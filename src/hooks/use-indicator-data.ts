@@ -6,6 +6,7 @@ import { format, parseISO } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
 import { Indicator } from "@/store/indicator-store"
 import { FilterType, getFilterRange } from "@/lib/indicator-utils"
+import { INDICATOR_TEXTS } from "@/lib/constants"
 
 type UseIndicatorDataProps = {
   allIndicators: Indicator[];
@@ -18,20 +19,25 @@ type UseIndicatorDataProps = {
 export function useIndicatorData({ allIndicators, selectedUnit, selectedIndicator, filterType, selectedDate }: UseIndicatorDataProps) {
   
   const indicatorsForUnit = React.useMemo(() => {
-    if (selectedUnit === "Semua Unit") return allIndicators
+    if (selectedUnit === INDICATOR_TEXTS.defaults.allUnits) return allIndicators
     return allIndicators.filter(i => i.unit === selectedUnit)
   }, [allIndicators, selectedUnit])
 
   const uniqueIndicatorNames = React.useMemo(() => {
     const names = new Set(indicatorsForUnit.map(i => i.indicator))
     return [
-      { value: "Semua Indikator", label: "Semua Indikator" },
+      {
+        value: INDICATOR_TEXTS.defaults.allIndicators,
+        label: INDICATOR_TEXTS.defaults.allIndicators,
+      },
       ...Array.from(names).map(name => ({ value: name, label: name }))
     ]
   }, [indicatorsForUnit])
 
   const selectedIndicatorData = React.useMemo(() => {
-    return indicatorsForUnit.filter(i => selectedIndicator === "Semua Indikator" || i.indicator === selectedIndicator)
+    return indicatorsForUnit.filter(
+      i => selectedIndicator === INDICATOR_TEXTS.defaults.allIndicators || i.indicator === selectedIndicator
+    )
   }, [indicatorsForUnit, selectedIndicator])
 
   const { totalIndicators, meetingStandard, notMeetingStandard } = React.useMemo(() => {
@@ -73,7 +79,10 @@ export function useIndicatorData({ allIndicators, selectedUnit, selectedIndicato
           acc[key] = {
             date: parseISO(curr.period),
             Capaian: 0,
-            Standar: selectedIndicator !== "Semua Indikator" ? curr.standard : undefined,
+            Standar:
+              selectedIndicator !== INDICATOR_TEXTS.defaults.allIndicators
+                ? curr.standard
+                : undefined,
             count: 0,
             unit: curr.standardUnit,
           }
@@ -89,14 +98,17 @@ export function useIndicatorData({ allIndicators, selectedUnit, selectedIndicato
       .map(d => {
         const capaian = parseFloat((d.Capaian / d.count).toFixed(1));
         return {
-        ...d,
-        Capaian: capaian,
-        Standar: d.Standar,
-        name: ["daily"].includes(filterType) ? format(d.date, "HH:mm")
-            : ["yearly", "3m", "6m", "1y", "3y"].includes(filterType) ? format(d.date, "MMM", { locale: IndonesianLocale })
-            : format(d.date, "dd MMM"),
-        label: `${capaian}${d.unit}`
-      }})
+          ...d,
+          Capaian: capaian,
+          Standar: d.Standar,
+          name: ["daily"].includes(filterType)
+            ? format(d.date, "HH:mm")
+            : ["yearly", "3m", "6m", "1y", "3y"].includes(filterType)
+              ? format(d.date, "MMM", { locale: IndonesianLocale })
+              : format(d.date, "dd MMM"),
+          label: `${capaian}${d.unit}`,
+        }
+      })
       .sort((a, b) => a.date.getTime() - b.date.getTime())
   }, [filteredIndicatorsForTable, filterType, selectedIndicator])
 

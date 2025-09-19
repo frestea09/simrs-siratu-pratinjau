@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/card"
 import { format } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
+import { INDICATOR_TEXTS } from "@/lib/constants"
 
 type IndicatorChartCardProps = {
   chartData: any[]
@@ -54,9 +55,9 @@ export function IndicatorChartCard({
       return (
         <div className="p-2 bg-background border rounded-md shadow-lg">
           <p className="font-bold text-foreground">{formattedDate}</p>
-          <p className="text-sm text-primary">{`Capaian: ${data.Capaian}${data.unit}`}</p>
+          <p className="text-sm text-primary">{`${INDICATOR_TEXTS.chartCard.tooltip.capaian}: ${data.Capaian}${data.unit}`}</p>
           {data.Standar && (
-            <p className="text-sm text-destructive">{`Standar: ${data.Standar}${data.unit}`}</p>
+            <p className="text-sm text-destructive">{`${INDICATOR_TEXTS.chartCard.tooltip.standar}: ${data.Standar}${data.unit}`}</p>
           )}
         </div>
       )
@@ -100,7 +101,7 @@ export function IndicatorChartCard({
         >
           <LabelList dataKey="label" position="top" />
         </MainChartElement>
-        {chartType === "line" && selectedIndicator !== "Semua Indikator" && chartData.some(d => d.Standar) && (
+        {chartType === "line" && selectedIndicator !== INDICATOR_TEXTS.defaults.allIndicators && chartData.some(d => d.Standar) && (
           <Line
             type="monotone"
             dataKey="Standar"
@@ -117,7 +118,7 @@ export function IndicatorChartCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Capaian Indikator Terkini</CardTitle>
+        <CardTitle>{INDICATOR_TEXTS.chartCard.title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className="pl-2">
@@ -126,7 +127,7 @@ export function IndicatorChartCard({
             renderChart()
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">
-              Tidak cukup data untuk menampilkan grafik.
+              {INDICATOR_TEXTS.chartCard.emptyState}
             </div>
           )}
         </ResponsiveContainer>

@@ -3,7 +3,6 @@
 "use client"
 
 import * as React from "react"
-import { parseISO } from "date-fns"
 
 import { useIndicatorStore, IndicatorCategory } from "@/store/indicator-store"
 import { useUserStore } from "@/store/user-store.tsx"
@@ -14,7 +13,8 @@ import { IndicatorFilterCard } from "@/components/organisms/indicator-filter-car
 import { IndicatorChartCard } from "@/components/organisms/indicator-chart-card"
 import { IndicatorReport } from "@/components/organisms/indicator-report"
 import { IndicatorStatCards } from "@/components/organisms/indicator-stat-cards"
-import {centralRoles} from "@/store/central-roles.ts";
+import { centralRoles } from "@/store/central-roles.ts"
+import { INDICATOR_TEXTS } from "@/lib/constants"
 
 type IndicatorDashboardTemplateProps = {
   category: IndicatorCategory
@@ -36,8 +36,13 @@ export function IndicatorDashboardTemplate({ category, pageTitle }: IndicatorDas
     // No unit filtering here, it will be handled by useIndicatorData hook
   }, [indicators, category])
 
-  const [selectedUnit, setSelectedUnit] = React.useState<string>(userIsCentral ? "Semua Unit" : currentUser?.unit || "Semua Unit")
-  const [selectedIndicator, setSelectedIndicator] = React.useState<string>("Semua Indikator")
+  const allUnitsLabel = INDICATOR_TEXTS.defaults.allUnits
+  const allIndicatorsLabel = INDICATOR_TEXTS.defaults.allIndicators
+
+  const [selectedUnit, setSelectedUnit] = React.useState<string>(
+    userIsCentral ? allUnitsLabel : currentUser?.unit || allUnitsLabel
+  )
+  const [selectedIndicator, setSelectedIndicator] = React.useState<string>(allIndicatorsLabel)
   const [filterType, setFilterType] = React.useState<FilterType>("this_month")
   const [selectedDate, setSelectedDate] = React.useState<Date>(new Date())
   const [chartType, setChartType] = React.useState<"line" | "bar">("line")
@@ -67,9 +72,10 @@ export function IndicatorDashboardTemplate({ category, pageTitle }: IndicatorDas
   })
   
   const getChartDescription = () => {
-    const base = selectedIndicator === "Semua Indikator"
-        ? `Menampilkan rata-rata capaian semua indikator ${category}.`
-        : `Menampilkan tren untuk: ${selectedIndicator}.`
+    const base =
+      selectedIndicator === allIndicatorsLabel
+        ? INDICATOR_TEXTS.dashboard.chartDescriptions.all(category)
+        : INDICATOR_TEXTS.dashboard.chartDescriptions.specific(selectedIndicator)
     return `${base} ${getFilterDescription(filterType, selectedDate)}`
   }
   
@@ -112,8 +118,8 @@ export function IndicatorDashboardTemplate({ category, pageTitle }: IndicatorDas
 
         <IndicatorReport
           category={category}
-          title={`Laporan ${pageTitle}`}
-          description={`Riwayat data ${pageTitle} yang telah diinput.`}
+          title={INDICATOR_TEXTS.dashboard.report.title(pageTitle)}
+          description={INDICATOR_TEXTS.dashboard.report.description(pageTitle)}
           showInputButton={true}
           chartData={chartData}
           reportDescription={getFilterDescription(filterType, selectedDate)}

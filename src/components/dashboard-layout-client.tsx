@@ -170,8 +170,34 @@ export default function DashboardClientLayout({
   const currentPage = breadcrumbPath[breadcrumbPath.length - 1];
 
   const [openMenus, setOpenMenus] = React.useState<{ [key: string]: boolean }>(
-    {}
+    () => {
+      const initialState: { [key: string]: boolean } = {};
+
+      for (const item of breadcrumbPath) {
+        if (item.subItems) {
+          initialState[item.label] = true;
+        }
+      }
+
+      return initialState;
+    },
   );
+
+  React.useEffect(() => {
+    setOpenMenus(prev => {
+      let hasChanges = false;
+      const nextState = { ...prev };
+
+      for (const item of breadcrumbPath) {
+        if (item.subItems && !nextState[item.label]) {
+          nextState[item.label] = true;
+          hasChanges = true;
+        }
+      }
+
+      return hasChanges ? nextState : prev;
+    });
+  }, [breadcrumbPath]);
   const logoutNavItem = {
     label: "Logout",
     icon: LogOut,

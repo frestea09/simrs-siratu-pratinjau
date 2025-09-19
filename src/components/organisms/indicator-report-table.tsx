@@ -33,6 +33,7 @@ import { categoryFilter } from "./indicator-report-table/table-filters.utils"
 import { format, parseISO, isValid } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
+import { INDICATOR_TEXTS } from "@/lib/constants"
 
 type IndicatorReportTableProps = {
   indicators: Indicator[]
@@ -60,7 +61,7 @@ export function IndicatorReportTable({
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Indikator <ArrowUpDown className="ml-2 h-4 w-4" />
+            {INDICATOR_TEXTS.reportTable.headers.indicator} <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         ),
         cell: ({ row }) => (
@@ -69,7 +70,7 @@ export function IndicatorReportTable({
       },
       {
         accessorKey: "category",
-        header: "Kategori",
+        header: INDICATOR_TEXTS.reportTable.headers.category,
         cell: ({ row }) => (
           <Badge variant="outline">{row.getValue("category")}</Badge>
         ),
@@ -82,14 +83,14 @@ export function IndicatorReportTable({
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Periode <ArrowUpDown className="ml-2 h-4 w-4" />
+            {INDICATOR_TEXTS.reportTable.headers.period} <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         ),
         cell: ({ row }) => {
           const dateValue = row.getValue("period") as string
           const parsedDate = parseISO(dateValue)
           if (!isValid(parsedDate)) {
-            return <span>Tanggal Invalid</span>
+            return <span>{INDICATOR_TEXTS.reportTable.invalidDate}</span>
           }
           return (
             <div>
@@ -100,7 +101,7 @@ export function IndicatorReportTable({
       },
       {
         accessorKey: "ratio",
-        header: () => <div className="text-right">Capaian</div>,
+        header: () => <div className="text-right">{INDICATOR_TEXTS.reportTable.headers.ratio}</div>,
         cell: ({ row }) => {
           const ratio = row.getValue("ratio") as string
           const {
@@ -127,13 +128,13 @@ export function IndicatorReportTable({
               </TooltipTrigger>
               <TooltipContent>
                 <div className="space-y-1 p-1">
-                  <p className="font-bold text-base">Rincian Perhitungan</p>
+                  <p className="font-bold text-base">{INDICATOR_TEXTS.reportTable.tooltip.title}</p>
                   <p>
-                    <span className="font-semibold">Formula:</span>{" "}
+                    <span className="font-semibold">{INDICATOR_TEXTS.reportTable.tooltip.formulaLabel}</span>{" "}
                     {formulaText}
                   </p>
                   <p>
-                    <span className="font-semibold">Substitusi:</span>{" "}
+                    <span className="font-semibold">{INDICATOR_TEXTS.reportTable.tooltip.substitutionLabel}</span>{" "}
                     {substitutionText}
                   </p>
                 </div>
@@ -144,7 +145,7 @@ export function IndicatorReportTable({
       },
       {
         accessorKey: "standard",
-        header: () => <div className="text-right">Standar</div>,
+        header: () => <div className="text-right">{INDICATOR_TEXTS.reportTable.headers.standard}</div>,
         cell: ({ row }) => {
           const standard = row.original.standard
           const unit = row.original.standardUnit
@@ -153,7 +154,7 @@ export function IndicatorReportTable({
       },
       {
         accessorKey: "status",
-        header: () => <div className="text-center">Status</div>,
+        header: () => <div className="text-center">{INDICATOR_TEXTS.reportTable.headers.status}</div>,
         cell: ({ row }) => {
           const status = row.getValue("status") as Indicator["status"]
           return (
@@ -171,7 +172,7 @@ export function IndicatorReportTable({
       },
       {
         id: "actions",
-        header: () => <div className="text-center">Aksi</div>,
+        header: () => <div className="text-center">{INDICATOR_TEXTS.reportTable.headers.actions}</div>,
         cell: ({ row }) => <ActionsCell row={row} onEdit={onEdit} />,
       },
     ],
@@ -255,7 +256,7 @@ export function IndicatorReportTable({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  Tidak ada hasil.
+                  {INDICATOR_TEXTS.reportTable.emptyState}
                 </TableCell>
               </TableRow>
             )}
@@ -264,8 +265,10 @@ export function IndicatorReportTable({
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          Menampilkan {table.getFilteredRowModel().rows.length} dari{" "}
-          {indicators.length} total data.
+          {INDICATOR_TEXTS.reportTable.summary(
+            table.getFilteredRowModel().rows.length,
+            indicators.length
+          )}
         </div>
         <Button
           variant="outline"
@@ -273,7 +276,7 @@ export function IndicatorReportTable({
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
-          Sebelumnya
+          {INDICATOR_TEXTS.reportTable.pagination.previous}
         </Button>
         <Button
           variant="outline"
@@ -281,7 +284,7 @@ export function IndicatorReportTable({
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >
-          Berikutnya
+          {INDICATOR_TEXTS.reportTable.pagination.next}
         </Button>
       </div>
     </div>

@@ -10,6 +10,7 @@ import { useIndicatorStore, IndicatorCategory, SubmittedIndicator, Indicator } f
 import { ReportPreviewDialog } from "@/components/organisms/report-preview-dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { INDICATOR_TEXTS } from "@/lib/constants"
 
 type YearlyReportData = {
   no: number
@@ -18,12 +19,7 @@ type YearlyReportData = {
   months: (string | null)[]
 }
 
-const categoryLabels: Record<IndicatorCategory, string> = {
-  INM: "Indikator Nasional Mutu",
-  'IMP-RS': "Indikator Mutu Prioritas RS",
-  IMPU: "Indikator Mutu Prioritas Unit",
-  SPM: "Standar Pelayanan Minimal"
-}
+const categoryLabels: Record<IndicatorCategory, string> = INDICATOR_TEXTS.dashboard.categoryLabels
 
 const ReportTable = ({ title, data }: { title: string, data: YearlyReportData[] }) => {
   const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];

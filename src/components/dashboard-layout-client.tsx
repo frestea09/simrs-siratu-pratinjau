@@ -1,5 +1,4 @@
-
-"use client";
+"use client"
 
 import {
   SidebarProvider,
@@ -11,7 +10,7 @@ import {
   SidebarTrigger,
   SidebarInset,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
+} from "@/components/ui/sidebar"
 import {
   LayoutDashboard,
   HeartPulse,
@@ -34,22 +33,22 @@ import {
   Bell,
   Cog,
   FileSignature,
-} from "lucide-react";
-import Link from "next/link";
-import favicon from "@/app/favicon.ico";
-import { usePathname, useRouter } from "next/navigation";
-import { UserNav } from "@/components/user-nav";
-import React from "react";
-import { Breadcrumb } from "@/components/molecules/breadcrumb";
-import { useUserStore } from "@/store/user-store.tsx";
-import { useLogStore } from "@/store/log-store.tsx";
-import { NavItem as NavItemType } from "@/types/nav";
-import { NavItem } from "./molecules/nav-item";
-import { cn } from "@/lib/utils";
-import { NotificationPopover } from "./organisms/notification-popover";
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
-import { logout } from "@/lib/actions/auth";
+} from "lucide-react"
+import Link from "next/link"
+import favicon from "@/app/favicon.ico"
+import { usePathname, useRouter } from "next/navigation"
+import { UserNav } from "@/components/user-nav"
+import React from "react"
+import { Breadcrumb } from "@/components/molecules/breadcrumb"
+import { useUserStore } from "@/store/user-store.tsx"
+import { useLogStore } from "@/store/log-store.tsx"
+import { NavItem as NavItemType } from "@/types/nav"
+import { NavItem } from "./molecules/nav-item"
+import { cn } from "@/lib/utils"
+import { NotificationPopover } from "./organisms/notification-popover"
+import { Button } from "@/components/ui/button"
+import Image from "next/image"
+import { logout } from "@/lib/actions/auth"
 
 const navItems: NavItemType[] = [
   {
@@ -81,7 +80,7 @@ const navItems: NavItemType[] = [
           {
             href: "/dashboard/impu",
             icon: Network,
-            label: "Indikator Mutu Prioritas Unit (IMPU)",
+            label: "IMPU",
           },
         ],
       },
@@ -105,7 +104,7 @@ const navItems: NavItemType[] = [
       { href: "/dashboard/risks", icon: BarChart3, label: "Manajemen Risiko" },
     ],
   },
-];
+]
 
 const adminNavItems: NavItemType[] = [
   {
@@ -118,99 +117,101 @@ const adminNavItems: NavItemType[] = [
       { href: "/dashboard/settings", icon: Settings, label: "Pengaturan Akun" },
     ],
   },
-];
+]
 
-const allNavItems: NavItemType[] = [...navItems, ...adminNavItems];
+const allNavItems: NavItemType[] = [...navItems, ...adminNavItems]
 
 const findPath = (items: NavItemType[], currentPath: string): NavItemType[] => {
-  const findPathRecursive = (navItemsToSearch: NavItemType[]): NavItemType[] => {
+  const findPathRecursive = (
+    navItemsToSearch: NavItemType[]
+  ): NavItemType[] => {
     for (const item of navItemsToSearch) {
       if (item.href === currentPath) {
-        return [item];
+        return [item]
       }
       if (item.subItems) {
-        const subPath = findPathRecursive(item.subItems);
+        const subPath = findPathRecursive(item.subItems)
         if (subPath.length > 0) {
-          return [item, ...subPath];
+          return [item, ...subPath]
         }
       }
     }
-    return [];
-  };
+    return []
+  }
 
-  return findPathRecursive(items);
-};
+  return findPathRecursive(items)
+}
 
 export default function DashboardClientLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const { currentUser, clearCurrentUser } = useUserStore();
-  const { addLog } = useLogStore();
+  const pathname = usePathname()
+  const router = useRouter()
+  const { currentUser, clearCurrentUser } = useUserStore()
+  const { addLog } = useLogStore()
   const handleLogout = React.useCallback(async () => {
     if (currentUser?.name) {
       addLog({
         user: currentUser.name,
         action: "LOGOUT",
         details: "Pengguna berhasil logout.",
-      });
+      })
     }
-    await logout();
-    clearCurrentUser();
-    router.push("/");
-  }, [addLog, clearCurrentUser, currentUser, router]);
+    await logout()
+    clearCurrentUser()
+    router.push("/")
+  }, [addLog, clearCurrentUser, currentUser, router])
 
   const breadcrumbPath = React.useMemo(
     () => findPath(allNavItems, pathname),
-    [pathname],
-  );
-  const currentPage = breadcrumbPath[breadcrumbPath.length - 1];
+    [pathname]
+  )
+  const currentPage = breadcrumbPath[breadcrumbPath.length - 1]
 
   const [openMenus, setOpenMenus] = React.useState<{ [key: string]: boolean }>(
     () => {
-      const initialState: { [key: string]: boolean } = {};
+      const initialState: { [key: string]: boolean } = {}
 
       for (const item of breadcrumbPath) {
         if (item.subItems) {
-          initialState[item.label] = true;
+          initialState[item.label] = true
         }
       }
 
-      return initialState;
-    },
-  );
+      return initialState
+    }
+  )
 
   React.useEffect(() => {
-    setOpenMenus(prev => {
-      let hasChanges = false;
-      const nextState = { ...prev };
+    setOpenMenus((prev) => {
+      let hasChanges = false
+      const nextState = { ...prev }
 
       for (const item of breadcrumbPath) {
         if (item.subItems && !nextState[item.label]) {
-          nextState[item.label] = true;
-          hasChanges = true;
+          nextState[item.label] = true
+          hasChanges = true
         }
       }
 
-      return hasChanges ? nextState : prev;
-    });
-  }, [breadcrumbPath]);
+      return hasChanges ? nextState : prev
+    })
+  }, [breadcrumbPath])
   const logoutNavItem = {
     label: "Logout",
     icon: LogOut,
     onClick: handleLogout,
-  };
+  }
   return (
     <>
       <SidebarProvider>
         <Sidebar
           collapsible="icon"
-          className="bg-sidebar text-sidebar-foreground border-r border-sidebar-border"
+          className="border-r border-sidebar-border bg-sidebar text-sidebar-foreground"
         >
-          <SidebarHeader className="h-20 flex items-center justify-center p-4">
+          <SidebarHeader className="flex h-20 items-center justify-center p-4">
             <div className="flex items-center gap-2 group-data-[state=expanded]:w-full">
               <Button
                 variant="ghost"
@@ -222,7 +223,7 @@ export default function DashboardClientLayout({
                   <Image className="size-8" src={favicon} alt="logorsud" />
                 </Link>
               </Button>
-              <h1 className="text-xl font-semibold tracking-tight truncate group-data-[state=collapsed]:hidden">
+              <h1 className="truncate text-xl font-semibold tracking-tight group-data-[state=collapsed]:hidden">
                 SIRATU
               </h1>
             </div>
@@ -241,7 +242,7 @@ export default function DashboardClientLayout({
             </SidebarMenu>
 
             {currentUser?.name === "Admin Sistem" && (
-              <SidebarMenu className="mt-4 pt-2 border-t border-sidebar-border/50">
+              <SidebarMenu className="mt-4 border-t border-sidebar-border/50 pt-2">
                 {adminNavItems.map((item, index) => (
                   <NavItem
                     key={index}
@@ -254,7 +255,7 @@ export default function DashboardClientLayout({
             )}
           </SidebarContent>
 
-          <SidebarFooter className="p-2 mt-auto">
+          <SidebarFooter className="mt-auto p-2">
             <SidebarMenu>
               <NavItem
                 item={logoutNavItem}
@@ -266,9 +267,9 @@ export default function DashboardClientLayout({
         </Sidebar>
         <SidebarInset>
           <header className="sticky top-0 z-10 flex h-auto min-h-20 flex-col border-b bg-background px-4 md:px-6">
-            <div className="flex items-center w-full py-3">
+            <div className="flex w-full items-center py-3">
               <SidebarTrigger className="md:hidden" />
-              <h1 className="text-3xl font-bold flex-1">
+              <h1 className="flex-1 text-3xl font-bold">
                 {currentPage?.label || "Ringkasan Dasbor"}
               </h1>
               <div className="ml-auto flex items-center gap-2">
@@ -284,5 +285,5 @@ export default function DashboardClientLayout({
         </SidebarInset>
       </SidebarProvider>
     </>
-  );
+  )
 }

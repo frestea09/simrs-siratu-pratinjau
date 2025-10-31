@@ -23,29 +23,56 @@ import { useLogStore } from "@/store/log-store.tsx"
 import { HOSPITAL_UNITS } from "@/lib/constants"
 import { Combobox } from "../ui/combobox"
 
-const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Nama harus memiliki setidaknya 2 karakter.",
-  }),
-  email: z.string().email({
-    message: "Format email tidak valid.",
-  }),
-  password: z.string().min(6, {
-    message: "Password harus memiliki setidaknya 6 karakter.",
-  }),
-  role: z.enum(['Admin Sistem', 'PIC Mutu', 'PJ Ruangan', 'Kepala Unit/Instalasi', 'Direktur', 'Sub. Komite Peningkatan Mutu', 'Sub. Komite Keselamatan Pasien', 'Sub. Komite Manajemen Risiko'], {
-    required_error: "Anda harus memilih peran.",
-  }),
-  unit: z.string().optional(),
-}).refine(data => {
-    if (['PIC Mutu', 'PJ Ruangan', 'Kepala Unit/Instalasi'].includes(data.role) && !data.unit) {
-        return false;
-    }
-    return true;
-}, {
-    message: 'Unit harus dipilih untuk peran ini.',
-    path: ['unit'],
-});
+const createFormSchema = (isEditMode: boolean) =>
+  z
+    .object({
+      name: z.string().min(2, {
+        message: "Nama harus memiliki setidaknya 2 karakter.",
+      }),
+      email: z.string().email({
+        message: "Format email tidak valid.",
+      }),
+      password: isEditMode
+        ? z.union([
+            z.string().min(6, {
+              message: "Password harus memiliki setidaknya 6 karakter.",
+            }),
+            z.literal(""),
+          ])
+        : z.string().min(6, {
+            message: "Password harus memiliki setidaknya 6 karakter.",
+          }),
+      role: z.enum([
+        "Admin Sistem",
+        "PIC Mutu",
+        "PJ Ruangan",
+        "Kepala Unit/Instalasi",
+        "Direktur",
+        "Sub. Komite Peningkatan Mutu",
+        "Sub. Komite Keselamatan Pasien",
+        "Sub. Komite Manajemen Risiko",
+      ], {
+        required_error: "Anda harus memilih peran.",
+      }),
+      unit: z.string().optional(),
+    })
+    .refine(
+      (data) => {
+        if (
+          ["PIC Mutu", "PJ Ruangan", "Kepala Unit/Instalasi"].includes(data.role) &&
+          !data.unit
+        ) {
+          return false;
+        }
+        return true;
+      },
+      {
+        message: "Unit harus dipilih untuk peran ini.",
+        path: ["unit"],
+      },
+    );
+
+type UserFormValues = z.infer<ReturnType<typeof createFormSchema>>;
 
 type UserFormProps = {
     setOpen: (open: boolean) => void;
@@ -69,23 +96,39 @@ const unitAssociatedRoles: UserRole[] = ["PIC Mutu", "PJ Ruangan", "Kepala Unit/
 
 export function UserForm({ setOpen, userToEdit }: UserFormProps) {
   const { toast } = useToast()
-  const { addUser, updateUser } = useUserStore()
-  const { currentUser } = useUserStore()
+  const { addUser, updateUser, currentUser } = useUserStore()
   const { addLog } = useLogStore()
 
   const isEditMode = !!userToEdit;
-  
-  const form = useForm<z.infer<typeof formSchema>>({
+  const formSchema = React.useMemo(() => createFormSchema(isEditMode), [isEditMode]);
+  const defaultValues = React.useMemo<Partial<UserFormValues>>(
+    () =>
+      isEditMode && userToEdit
+        ? {
+            name: userToEdit.name,
+            email: userToEdit.email,
+            role: userToEdit.role,
+            unit: userToEdit.unit ?? undefined,
+            password: "",
+          }
+        : {
+            name: "",
+            email: "",
+            password: "",
+            role: undefined,
+            unit: undefined,
+          },
+    [isEditMode, userToEdit]
+  );
+
+  const form = useForm<UserFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: isEditMode ? {
-        ...userToEdit
-    } : {
-      name: "",
-      email: "",
-      password: "",
-      unit: undefined,
-    },
+    defaultValues,
   })
+
+  React.useEffect(() => {
+    form.reset(defaultValues)
+  }, [defaultValues, form])
   
   const selectedRole = form.watch("role");
 
@@ -95,38 +138,68 @@ export function UserForm({ setOpen, userToEdit }: UserFormProps) {
     }
   }, [selectedRole, form]);
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    const finalValues = { ...values };
-    if (!unitAssociatedRoles.includes(finalValues.role as UserRole)) {
-        delete finalValues.unit;
-    }
+  const onSubmit = React.useCallback(
+    async (values: UserFormValues) => {
+      const finalValues: Partial<UserFormValues> = { ...values }
+      if (!finalValues.password) {
+        delete finalValues.password
+      }
 
-    if (isEditMode && userToEdit) {
-        await updateUser(userToEdit.id, finalValues)
-        addLog({
-            user: currentUser?.name || 'System',
-            action: 'UPDATE_USER',
-            details: `Data pengguna ${values.name} (${values.email}) diperbarui.`
-        })
-        toast({
+      if (!unitAssociatedRoles.includes(finalValues.role as UserRole)) {
+        delete finalValues.unit
+      }
+
+      try {
+        if (isEditMode && userToEdit) {
+          await updateUser(userToEdit.id, finalValues)
+          addLog({
+            user: currentUser?.name || "System",
+            action: "UPDATE_USER",
+            details: `Data pengguna ${values.name} (${values.email}) diperbarui.`,
+          })
+          toast({
             title: "Pengguna Diperbarui",
             description: `Data untuk pengguna "${values.name}" telah berhasil diperbarui.`,
-        })
-    } else {
-        const newId = await addUser(finalValues as Omit<User, 'id'>)
-        addLog({
-            user: currentUser?.name || 'System',
-            action: 'ADD_USER',
-            details: `Pengguna baru ${values.name} (${values.email}) ditambahkan dengan ID ${newId}.`
-        })
+          })
+        } else {
+          const newId = await addUser(finalValues as Omit<User, "id">)
+          addLog({
+            user: currentUser?.name || "System",
+            action: "ADD_USER",
+            details: `Pengguna baru ${values.name} (${values.email}) ditambahkan dengan ID ${newId}.`,
+          })
+          toast({
+            title: "Pengguna Ditambahkan",
+            description: `Pengguna baru "${values.name}" telah berhasil ditambahkan.`,
+          })
+        }
+        setOpen(false)
+        form.reset(defaultValues)
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Terjadi kesalahan saat menyimpan data pengguna."
         toast({
-          title: "Pengguna Ditambahkan",
-          description: `Pengguna baru "${values.name}" telah berhasil ditambahkan.`,
+          variant: "destructive",
+          title: "Gagal Menyimpan Pengguna",
+          description: message,
         })
-    }
-    setOpen(false)
-    form.reset()
-  }
+      }
+    },
+    [
+      addLog,
+      addUser,
+      currentUser,
+      defaultValues,
+      form,
+      isEditMode,
+      setOpen,
+      toast,
+      updateUser,
+      userToEdit,
+    ]
+  )
 
   return (
     <Form {...form}>

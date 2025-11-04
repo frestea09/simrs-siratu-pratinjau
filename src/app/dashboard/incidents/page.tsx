@@ -18,7 +18,7 @@ import { IncidentFilterCard } from "@/components/organisms/incident-filter-card"
 import { useIncidentStore } from "@/store/incident-store"
 import { useUserStore } from "@/store/user-store.tsx"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { PlusCircle, ShieldAlert, Download } from "lucide-react"
+import { PlusCircle, ShieldAlert, Download, Copy } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -41,10 +41,13 @@ import {
 import { format } from "date-fns"
 import { exportIncidentsXlsx } from "@/lib/export-incidents"
 import { getFilterRange, getFilterDescription, FilterType } from "@/lib/indicator-utils"
+import { copyElementAsImage } from "@/lib/copy-element-as-image"
+import { useToast } from "@/hooks/use-toast"
 
 export default function IncidentsPage() {
   const { currentUser } = useUserStore()
   const { incidents, fetchIncidents } = useIncidentStore()
+  const { toast } = useToast()
   React.useEffect(() => {
     fetchIncidents().catch(() => {})
   }, [fetchIncidents])
@@ -56,6 +59,25 @@ export default function IncidentsPage() {
   const [selectedRiskType, setSelectedRiskType] = React.useState<string>("Semua")
   const [selectedRiskLevel, setSelectedRiskLevel] = React.useState<string>("Semua")
   const incidentTableRef = React.useRef<IncidentTableHandle>(null)
+  const incidentChartCardRef = React.useRef<HTMLDivElement>(null)
+
+  const handleCopyIncidentChart = React.useCallback(async () => {
+    if (!incidentChartCardRef.current) return
+
+    try {
+      await copyElementAsImage(incidentChartCardRef.current)
+      toast({
+        title: "Bagian Disalin",
+        description: "Grafik tren insiden siap ditempel ke dokumen.",
+      })
+    } catch (error) {
+      toast({
+        title: "Gagal Menyalin",
+        description: "Tidak dapat menyalin gambar. Silakan coba lagi.",
+        variant: "destructive",
+      })
+    }
+  }, [toast])
 
   const dashboardRoles = [
     "Direktur",
@@ -341,12 +363,26 @@ export default function IncidentsPage() {
               </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Grafik Tren Insiden</CardTitle>
-              <CardDescription>
-                {getFilterDescription(filterType, selectedDate)}
-              </CardDescription>
+          <Card ref={incidentChartCardRef}>
+            <CardHeader className="space-y-2">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="space-y-2">
+                  <CardTitle>Grafik Tren Insiden</CardTitle>
+                  <CardDescription>
+                    {getFilterDescription(filterType, selectedDate)}
+                  </CardDescription>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopyIncidentChart}
+                  data-copy-exclude="true"
+                >
+                  <Copy className="mr-2 h-4 w-4" />
+                  Salin Bagian
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div style={{ width: "100%", height: 350 }}>

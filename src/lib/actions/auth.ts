@@ -4,13 +4,37 @@
 import { z } from "zod"
 import { cookies } from "next/headers"
 import type { User, UserRole } from "@/store/user-store.tsx"
+import { prisma } from "@/lib/prisma"
 
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
 })
 
-// Data pengguna demo sekarang dikelola di sisi server untuk otentikasi.
+const mapRoleDbToUi = (role: string): UserRole => {
+  switch (role) {
+    case "AdminSistem":
+      return "Admin Sistem"
+    case "PICMutu":
+      return "PIC Mutu"
+    case "PJRuangan":
+      return "PJ Ruangan"
+    case "KepalaUnitInstalasi":
+      return "Kepala Unit/Instalasi"
+    case "Direktur":
+      return "Direktur"
+    case "SubKomitePeningkatanMutu":
+      return "Sub. Komite Peningkatan Mutu"
+    case "SubKomiteKeselamatanPasien":
+      return "Sub. Komite Keselamatan Pasien"
+    case "SubKomiteManajemenRisiko":
+      return "Sub. Komite Manajemen Risiko"
+    default:
+      return role as UserRole
+  }
+}
+
+// Fallback demo users to keep seeded access when database is empty.
 const demoUsers: User[] = [
   { id: "user-1", name: "Admin Sistem", email: "admin@sim.rs", password: "123456", role: "Admin Sistem" },
   { id: "user-2", name: "Delina (PIC Mutu)", email: "delina@sim.rs", password: "123456", role: "PIC Mutu", unit: "PPI" },
@@ -20,13 +44,24 @@ const demoUsers: User[] = [
   { id: "user-6", name: "Dr. Direktur", email: "dir@sim.rs", password: "123456", role: "Direktur" },
   { id: "user-7", name: "Dion (Peningkatan Mutu)", email: "dion@sim.rs", password: "123456", role: "Sub. Komite Peningkatan Mutu" },
   { id: "user-8", name: "Dara (Manajemen Risiko)", email: "dara@sim.rs", password: "123456", role: "Sub. Komite Manajemen Risiko" },
-];
+]
 
 
 export async function login(formData: FormData) {
   const { email, password } = loginSchema.parse(Object.fromEntries(formData))
 
-  const user = demoUsers.find((u) => u.email === email)
+  const dbUser = await prisma.user.findUnique({ where: { email } })
+  const user =
+    dbUser
+      ? {
+          id: dbUser.id,
+          name: dbUser.name,
+          email: dbUser.email,
+          password: dbUser.password,
+          role: mapRoleDbToUi(dbUser.role),
+          unit: dbUser.unit ?? undefined,
+        }
+      : demoUsers.find((u) => u.email === email)
 
   if (!user || user.password !== password) {
     throw new Error("Invalid credentials")

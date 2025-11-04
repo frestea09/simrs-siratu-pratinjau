@@ -53,7 +53,7 @@ const ActionsCell = ({ row }: { row: Row<User> }) => {
     const { toast } = useToast();
     const [isEditOpen, setIsEditOpen] = React.useState(false);
 
-    const handleDelete = () => {
+    const handleDelete = React.useCallback(async () => {
         if (currentUser?.id === user.id) {
             toast({
                 variant: "destructive",
@@ -62,17 +62,30 @@ const ActionsCell = ({ row }: { row: Row<User> }) => {
             })
             return;
         }
-        removeUser(user.id);
-        addLog({
-            user: currentUser?.name || 'System',
-            action: 'DELETE_USER',
-            details: `Pengguna ${user.name} (${user.email}) dihapus.`,
-        });
-        toast({
-            title: "Pengguna Dihapus",
-            description: `Pengguna ${user.name} telah berhasil dihapus.`,
-        });
-    }
+
+        try {
+            await removeUser(user.id);
+            addLog({
+                user: currentUser?.name || "System",
+                action: "DELETE_USER",
+                details: `Pengguna ${user.name} (${user.email}) dihapus.`,
+            });
+            toast({
+                title: "Pengguna Dihapus",
+                description: `Pengguna ${user.name} telah berhasil dihapus.`,
+            });
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : "Terjadi kesalahan saat menghapus pengguna.";
+            toast({
+                variant: "destructive",
+                title: "Gagal Menghapus Pengguna",
+                description: message,
+            });
+        }
+    }, [addLog, currentUser, removeUser, toast, user.email, user.id, user.name]);
 
     return (
         <>

@@ -26,6 +26,10 @@ import {
 import { format } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
 import { INDICATOR_TEXTS } from "@/lib/constants"
+import { Button } from "@/components/ui/button"
+import { Copy } from "lucide-react"
+import { copyElementAsImage } from "@/lib/copy-element-as-image"
+import { useToast } from "@/hooks/use-toast"
 
 type IndicatorChartCardProps = {
   chartData: any[]
@@ -42,6 +46,28 @@ export function IndicatorChartCard({
   selectedIndicator,
   chartType,
 }: IndicatorChartCardProps) {
+  const { toast } = useToast()
+  const cardRef = React.useRef<HTMLDivElement>(null)
+
+  const handleCopySection = React.useCallback(async () => {
+    if (!cardRef.current) {
+      return
+    }
+
+    try {
+      await copyElementAsImage(cardRef.current)
+      toast({
+        title: "Bagian Disalin",
+        description: "Capaian indikator terkini siap ditempel ke dokumen.",
+      })
+    } catch (error) {
+      toast({
+        title: "Gagal Menyalin",
+        description: "Tidak dapat menyalin gambar. Silakan coba lagi.",
+        variant: "destructive",
+      })
+    }
+  }, [toast])
 
   const ChartTooltipContent = (props: any) => {
     const { active, payload } = props
@@ -116,10 +142,24 @@ export function IndicatorChartCard({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{INDICATOR_TEXTS.chartCard.title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
+    <Card ref={cardRef}>
+      <CardHeader className="space-y-2">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-2">
+            <CardTitle>{INDICATOR_TEXTS.chartCard.title}</CardTitle>
+            <CardDescription>{description}</CardDescription>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleCopySection}
+            data-copy-exclude="true"
+          >
+            <Copy className="mr-2 h-4 w-4" />
+            Salin Bagian
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="pl-2">
         <ResponsiveContainer width="100%" height={350}>

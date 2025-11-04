@@ -23,7 +23,7 @@ import type { IndicatorReportProps } from "./indicator-report.type"
 
 
 export function IndicatorReport({ indicators, category, title, description, showInputButton = true, chartData, reportDescription }: IndicatorReportProps) {
-    const { submittedIndicators } = useIndicatorStore()
+    const { submittedIndicators, fetchSubmittedIndicators } = useIndicatorStore()
     const { currentUser } = useUserStore();
     const [reportTableData, setReportTableData] = React.useState<any[] | null>(null)
     const [reportColumns, setReportColumns] = React.useState<ColumnDef<any>[] | null>(null)
@@ -32,7 +32,13 @@ export function IndicatorReport({ indicators, category, title, description, show
     const [editingIndicator, setEditingIndicator] = React.useState<Indicator | undefined>(undefined);
 
     const userCanSeeAll = currentUser && centralRoles.includes(currentUser.role);
-    
+
+    React.useEffect(() => {
+        if (!submittedIndicators.length) {
+            fetchSubmittedIndicators().catch(() => {})
+        }
+    }, [submittedIndicators.length, fetchSubmittedIndicators])
+
     const hasVerifiedIndicators = React.useMemo(() => {
         const relevantSubmitted = submittedIndicators.filter(i => i.category === category && i.status === 'Diverifikasi');
         if (userCanSeeAll || !currentUser?.unit) {

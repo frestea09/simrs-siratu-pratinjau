@@ -241,7 +241,7 @@ export default function DashboardClientLayout({
               ))}
             </SidebarMenu>
 
-            {currentUser?.name === "Admin Sistem" && (
+            {currentUser?.role === "Admin Sistem" && (
               <SidebarMenu className="mt-4 border-t border-sidebar-border/50 pt-2">
                 {adminNavItems.map((item, index) => (
                   <NavItem

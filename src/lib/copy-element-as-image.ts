@@ -1,16 +1,62 @@
 const COPY_EXCLUDE_ATTRIBUTE = "copyExclude"
 
+function getRootVariableMap() {
+  const documentElementStyle = window.getComputedStyle(document.documentElement)
+  const bodyStyle = document.body
+    ? window.getComputedStyle(document.body)
+    : (documentElementStyle as CSSStyleDeclaration)
+
+  const variableMap = new Map<string, string>()
+
+  const populateMap = (style: CSSStyleDeclaration) => {
+    for (let index = 0; index < style.length; index += 1) {
+      const propertyName = style.item(index)
+      if (!propertyName || !propertyName.startsWith("--")) {
+        continue
+      }
+
+      const propertyValue = style.getPropertyValue(propertyName)
+      if (!propertyValue) {
+        continue
+      }
+
+      variableMap.set(propertyName, propertyValue.trim())
+    }
+  }
+
+  populateMap(documentElementStyle)
+  populateMap(bodyStyle)
+
+  return variableMap
+}
+
+function applyComputedStyles(source: Element, target: Element) {
+  const computedStyle = window.getComputedStyle(source)
+
+  if (target instanceof HTMLElement || target instanceof SVGElement) {
+    target.setAttribute("style", computedStyle.cssText)
+
+    const fill = computedStyle.getPropertyValue("fill")
+    if (fill && fill !== "none") {
+      target.setAttribute("fill", fill)
+    }
+
+    const stroke = computedStyle.getPropertyValue("stroke")
+    if (stroke && stroke !== "none") {
+      target.setAttribute("stroke", stroke)
+    }
+  }
+}
+
 function cloneNodeWithStyles(element: HTMLElement): HTMLElement {
   const clonedElement = element.cloneNode(true) as HTMLElement
+  const rootVariables = getRootVariableMap()
 
   const traverse = (source: Element, target: Element) => {
     const sourceChildren = Array.from(source.children)
     const targetChildren = Array.from(target.children)
 
-    const computedStyle = window.getComputedStyle(source)
-    if (target instanceof HTMLElement || target instanceof SVGElement) {
-      target.setAttribute("style", computedStyle.cssText)
-    }
+    applyComputedStyles(source, target)
 
     sourceChildren.forEach((child, index) => {
       const targetChild = targetChildren[index]
@@ -31,6 +77,11 @@ function cloneNodeWithStyles(element: HTMLElement): HTMLElement {
   }
 
   traverse(element, clonedElement)
+
+  rootVariables.forEach((value, key) => {
+    clonedElement.style.setProperty(key, value)
+  })
+
   return clonedElement
 }
 
@@ -79,6 +130,14 @@ async function elementToPng(element: HTMLElement, pixelRatio = 2) {
   if (!context) {
     throw new Error("Context tidak tersedia")
   }
+
+  const backgroundColor = window.getComputedStyle(element).backgroundColor
+  const resolvedBackgroundColor =
+    backgroundColor && backgroundColor !== "rgba(0, 0, 0, 0)"
+      ? backgroundColor
+      : "#ffffff"
+  context.fillStyle = resolvedBackgroundColor
+  context.fillRect(0, 0, canvas.width, canvas.height)
 
   context.scale(pixelRatio, pixelRatio)
   context.drawImage(img, 0, 0, width, height)

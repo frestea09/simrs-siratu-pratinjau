@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Download, PlusCircle } from "lucide-react"
+import { Copy, Download, PlusCircle } from "lucide-react"
 import Link from "next/link"
 import { SurveyTable } from "@/components/organisms/survey-table"
 import { SurveyDialog } from "@/components/organisms/survey-dialog"
@@ -30,12 +30,57 @@ import {
   Legend,
 } from "recharts"
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table"
+import { copyElementAsImage } from "@/lib/copy-element-as-image"
+import { useToast } from "@/hooks/use-toast"
 
 export default function SurveysPage() {
   const { surveys } = useSurveyStore()
   const [isSurveyDialogOpen, setIsSurveyDialogOpen] = React.useState(false)
   const [editingSurvey, setEditingSurvey] = React.useState<SurveyResult | null>(null)
   const [isPreviewOpen, setIsPreviewOpen] = React.useState(false)
+  const { toast } = useToast()
+  const scoreTrendCardRef = React.useRef<HTMLDivElement>(null)
+  const respondentCardRef = React.useRef<HTMLDivElement>(null)
+
+  const handleCopy = React.useCallback(
+    async (
+      cardRef: React.MutableRefObject<HTMLDivElement | null>,
+      successDescription: string,
+    ) => {
+      if (!cardRef.current) {
+        return
+      }
+
+      try {
+        await copyElementAsImage(cardRef.current)
+        toast({
+          title: "Bagian Disalin",
+          description: successDescription,
+        })
+      } catch (error) {
+        toast({
+          title: "Gagal Menyalin",
+          description: "Tidak dapat menyalin gambar. Silakan coba lagi.",
+          variant: "destructive",
+        })
+      }
+    },
+    [toast],
+  )
+
+  const handleCopyScoreTrend = React.useCallback(() => {
+    void handleCopy(
+      scoreTrendCardRef,
+      "Grafik tren skor rata-rata siap ditempel ke dokumen.",
+    )
+  }, [handleCopy])
+
+  const handleCopyRespondent = React.useCallback(() => {
+    void handleCopy(
+      respondentCardRef,
+      "Grafik jumlah responden per unit siap ditempel ke dokumen.",
+    )
+  }, [handleCopy])
 
   type SurveySummary = {
     unit: string
@@ -176,23 +221,51 @@ export default function SurveysPage() {
       </div>
 
        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-          <Card className="col-span-full lg:col-span-4">
+          <Card ref={scoreTrendCardRef} className="col-span-full lg:col-span-4">
             <CardHeader>
-              <CardTitle>Tren Skor Rata-rata</CardTitle>
-              <CardDescription>
-                Grafik ini menunjukkan tren skor rata-rata dari semua survei yang masuk dari waktu ke waktu.
-              </CardDescription>
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <CardTitle>Tren Skor Rata-rata</CardTitle>
+                  <CardDescription>
+                    Grafik ini menunjukkan tren skor rata-rata dari semua survei yang masuk dari waktu ke waktu.
+                  </CardDescription>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopyScoreTrend}
+                  data-copy-exclude="true"
+                >
+                  <Copy className="mr-2 h-4 w-4" />
+                  Salin Bagian
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {lineChart}
             </CardContent>
           </Card>
-          <Card className="col-span-full lg:col-span-3">
+          <Card ref={respondentCardRef} className="col-span-full lg:col-span-3">
             <CardHeader>
-              <CardTitle>Jumlah Responden per Unit</CardTitle>
-              <CardDescription>
-                Grafik ini menampilkan jumlah partisipasi survei dari masing-masing unit kerja.
-              </CardDescription>
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <CardTitle>Jumlah Responden per Unit</CardTitle>
+                  <CardDescription>
+                    Grafik ini menampilkan jumlah partisipasi survei dari masing-masing unit kerja.
+                  </CardDescription>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopyRespondent}
+                  data-copy-exclude="true"
+                >
+                  <Copy className="mr-2 h-4 w-4" />
+                  Salin Bagian
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {barChart}

@@ -22,10 +22,10 @@ const DetailSection = ({ title, children }: { title: string, children: React.Rea
     </div>
 )
 
-const DetailItem = ({ label, value }: { label: string, value: React.ReactNode }) => (
+const DetailItem = ({ label, value }: { label: string, value?: React.ReactNode }) => (
     <div className="flex flex-col">
         <p className="text-muted-foreground">{label}</p>
-        <p className="font-medium">{value || "-"}</p>
+        <div className="font-medium">{value ?? "-"}</div>
     </div>
 )
 

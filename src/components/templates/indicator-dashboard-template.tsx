@@ -23,13 +23,14 @@ type IndicatorDashboardTemplateProps = {
 
 
 export function IndicatorDashboardTemplate({ category, pageTitle }: IndicatorDashboardTemplateProps) {
-  const { indicators, fetchIndicators } = useIndicatorStore()
+  const { indicators, fetchIndicators, fetchSubmittedIndicators } = useIndicatorStore()
   const { currentUser } = useUserStore()
   const userIsCentral = currentUser ? centralRoles.includes(currentUser.role) : false
 
   React.useEffect(() => {
     fetchIndicators()
-  }, [fetchIndicators])
+    fetchSubmittedIndicators()
+  }, [fetchIndicators, fetchSubmittedIndicators])
 
   const categoryIndicators = React.useMemo(() => {
     return indicators.filter(i => i.category === category)

@@ -4,7 +4,7 @@
 
 import * as React from "react"
 import { Row } from "@tanstack/react-table"
-import { MoreHorizontal, Eye, Pencil, Trash2 } from "lucide-react"
+import { MoreHorizontal, Eye, Pencil, Trash2, Lock } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -28,7 +28,7 @@ import { useToast } from "@/hooks/use-toast"
 import { IndicatorSubmissionDialog } from "../indicator-submission-dialog"
 import { IndicatorSubmissionDetailDialog } from "../indicator-submission-detail-dialog"
 import { RejectionReasonDialog } from "../rejection-reason-dialog"
-import { statusOptions } from "../indicator-submission-table"
+import { centralRoles } from "@/store/central-roles"
 
 
 type ActionsCellProps = {
@@ -66,26 +66,50 @@ export function ActionsCell({ row }: ActionsCellProps) {
         setRejectionDialog({ isOpen: true, indicator });
     };
 
-    const canVerify = currentUser?.role === 'Admin Sistem' ||
-                      currentUser?.role === 'Direktur' ||
-                      currentUser?.role === 'Sub. Komite Peningkatan Mutu';
+    const isCentralUser = currentUser ? centralRoles.includes(currentUser.role) : false
+    const canManageSubmission = currentUser ? (isCentralUser || indicator.submittedById === currentUser.id) : false
+    const canEdit = canManageSubmission
+    const canVerify = isCentralUser && indicator.status === 'Menunggu Persetujuan'
+    const canDelete = canManageSubmission
+    const isLocked = Boolean(indicator.locked)
+    const lockedReason = indicator.lockedReason ?? 'Pengajuan indikator ini tidak dapat dihapus karena sudah diproses. Silakan nonaktifkan atau perbarui data tanpa menghapusnya.'
 
     const handleDelete = async () => {
-        await removeSubmittedIndicator(indicator.id)
-        addLog({
-            user: currentUser?.name || 'System',
-            action: 'DELETE_SUBMITTED_INDICATOR',
-            details: `Pengajuan indikator "${indicator.name}" (${indicator.id}) dihapus.`,
-        })
-        addNotification({
-            title: 'Pengajuan Indikator Dihapus',
-            description: `Pengajuan indikator "${indicator.name}" telah dihapus.`,
-            link: '/dashboard/indicators',
-            recipientUnit: indicator.unit,
-        })
+        try {
+            await removeSubmittedIndicator(indicator.id)
+            addLog({
+                user: currentUser?.name || 'System',
+                action: 'DELETE_SUBMITTED_INDICATOR',
+                details: `Pengajuan indikator "${indicator.name}" (${indicator.id}) dihapus.`,
+            })
+            addNotification({
+                title: 'Pengajuan Indikator Dihapus',
+                description: `Pengajuan indikator "${indicator.name}" telah dihapus.`,
+                link: '/dashboard/indicators',
+                recipientUnit: indicator.unit,
+            })
+            toast({
+                title: 'Indikator Dihapus',
+                description: `Pengajuan indikator "${indicator.name}" telah dihapus.`,
+            })
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : 'Pengajuan indikator tidak dapat dihapus karena sudah diproses dalam manajemen indikator. Pertimbangkan untuk menonaktifkan atau memperbarui data tanpa menghapusnya.'
+            toast({
+                title: 'Tidak dapat menghapus pengajuan',
+                description: message,
+                variant: 'destructive',
+            })
+        }
+    }
+
+    const notifyLocked = () => {
         toast({
-            title: 'Indikator Dihapus',
-            description: `Pengajuan indikator "${indicator.name}" telah dihapus.`,
+            title: 'Pengajuan terkunci',
+            description: lockedReason,
+            variant: 'destructive',
         })
     }
 
@@ -104,14 +128,16 @@ export function ActionsCell({ row }: ActionsCellProps) {
                         <Eye className="mr-2 h-4 w-4" />
                         Lihat Detail
                     </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => setIsEditOpen(true)}>
-                        <Pencil className="mr-2 h-4 w-4" />
-                        Edit
-                    </DropdownMenuItem>
+                    {canEdit && (
+                        <DropdownMenuItem onSelect={() => setIsEditOpen(true)}>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Edit
+                        </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem onClick={() => navigator.clipboard.writeText(indicator.id)}>
                         Salin ID Indikator
                     </DropdownMenuItem>
-                    {canVerify && indicator.status === 'Menunggu Persetujuan' && (
+                    {canVerify && (
                         <>
                             <DropdownMenuSeparator />
                             <DropdownMenuSub>
@@ -127,27 +153,46 @@ export function ActionsCell({ row }: ActionsCellProps) {
                             </DropdownMenuSub>
                         </>
                     )}
-                    <DropdownMenuSeparator />
-                    <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full text-destructive">
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Hapus
-                            </button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Anda yakin?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Aksi ini tidak dapat dibatalkan. Ini akan menghapus pengajuan indikator secara permanen.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Batal</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Hapus</AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
+                    {canDelete && (
+                        <>
+                            <DropdownMenuSeparator />
+                            {isLocked ? (
+                                <DropdownMenuItem
+                                    onSelect={(event) => {
+                                        event.preventDefault()
+                                        notifyLocked()
+                                    }}
+                                    className="text-muted-foreground focus:bg-muted focus:text-muted-foreground"
+                                >
+                                    <Lock className="mr-2 h-4 w-4" />
+                                    Tidak dapat dihapus
+                                </DropdownMenuItem>
+                            ) : (
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full text-destructive">
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Hapus
+                                        </button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Anda yakin?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Aksi ini tidak dapat dibatalkan. Ini akan menghapus pengajuan indikator secara permanen.
+                                                <br />
+                                                Jika pengajuan ini sudah digunakan dalam pelaporan capaian, pertimbangkan untuk menonaktifkan atau memperbarui data tanpa menghapusnya.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Batal</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Hapus</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            )}
+                        </>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
 

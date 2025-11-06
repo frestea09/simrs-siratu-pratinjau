@@ -56,16 +56,28 @@ export function ActionsCell({ row }: ActionsCellProps) {
     }
 
     const handleDelete = async () => {
-        await removeProfile(profile.id)
-        addLog({
-            user: currentUser?.name || 'System',
-            action: 'DELETE_INDICATOR', // Assuming this is a valid log action
-            details: `Profil indikator "${profile.title}" dihapus.`,
-        })
-        toast({
-            title: 'Profil Dihapus',
-            description: `Profil indikator "${profile.title}" telah dihapus.`,
-        })
+        try {
+            await removeProfile(profile.id)
+            addLog({
+                user: currentUser?.name || 'System',
+                action: 'DELETE_INDICATOR', // Assuming this is a valid log action
+                details: `Profil indikator "${profile.title}" dihapus.`,
+            })
+            toast({
+                title: 'Profil Dihapus',
+                description: `Profil indikator "${profile.title}" telah dihapus.`,
+            })
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : 'Profil indikator tidak dapat dihapus karena sudah dipakai dalam manajemen indikator.'
+            toast({
+                title: 'Tidak dapat menghapus profil',
+                description: message,
+                variant: 'destructive',
+            })
+        }
     }
 
     return (

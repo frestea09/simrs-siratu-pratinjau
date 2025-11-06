@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 
 function mapTargetUnitToDb(u: string): 'percent' | 'minute' {
@@ -61,6 +62,15 @@ export async function DELETE(
     await prisma.indicatorProfile.delete({ where: { id } })
     return NextResponse.json({ ok: true })
   } catch (e: any) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2003') {
+      return NextResponse.json(
+        {
+          error:
+            'Profil indikator tidak dapat dihapus karena sudah digunakan dalam manajemen indikator atau memiliki capaian yang dilaporkan.'
+        },
+        { status: 400 }
+      )
+    }
     return NextResponse.json(
       { error: e.message || 'Failed to delete profile' },
       { status: 500 },

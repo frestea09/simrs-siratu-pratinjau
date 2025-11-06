@@ -28,6 +28,18 @@ const inlineComputedStyles = (source: Element, target: Element) => {
   })
 }
 
+const copyTransferableAttributes = (
+  source: Element,
+  target: Element,
+  predicate: (name: string) => boolean = (name) =>
+    name.startsWith("data-") || name.startsWith("aria-") || name === "role"
+) => {
+  Array.from(source.attributes).forEach((attribute) => {
+    if (!predicate(attribute.name)) return
+    target.setAttribute(attribute.name, attribute.value)
+  })
+}
+
 const replaceCanvasWithImages = (original: HTMLElement, clone: HTMLElement) => {
   const originalCanvases = Array.from(original.querySelectorAll("canvas"))
   const cloneCanvases = Array.from(clone.querySelectorAll("canvas"))
@@ -54,6 +66,8 @@ const replaceCanvasWithImages = (original: HTMLElement, clone: HTMLElement) => {
       if (existingStyle) {
         image.setAttribute("style", existingStyle)
       }
+
+      copyTransferableAttributes(cloneCanvas, image)
 
       image.src = dataUrl
       cloneCanvas.replaceWith(image)
@@ -114,6 +128,8 @@ const replaceSvgWithImages = async (original: HTMLElement, clone: HTMLElement) =
           svgClone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink")
         }
 
+        inlineComputedStyles(svg, svgClone)
+
         const { width, height } = getSvgDimensions(svgClone)
         svgClone.setAttribute("width", `${width}`)
         svgClone.setAttribute("height", `${height}`)
@@ -170,6 +186,16 @@ const replaceSvgWithImages = async (original: HTMLElement, clone: HTMLElement) =
           if (svgClass) {
             image.className = svgClass
           }
+
+          copyTransferableAttributes(
+            cloneSvg,
+            image,
+            (name) =>
+              name.startsWith("data-") ||
+              name.startsWith("aria-") ||
+              name === "role" ||
+              name === "alt"
+          )
 
           cloneSvg.replaceWith(image)
         } finally {
@@ -293,6 +319,8 @@ const replaceChartContainersWithImages = async (
         image.style.maxWidth = image.style.maxWidth || "100%"
 
         image.className = cloneChart.className
+
+        copyTransferableAttributes(cloneChart, image)
 
         cloneChart.replaceWith(image)
       } catch (error) {

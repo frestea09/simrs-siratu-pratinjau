@@ -138,7 +138,7 @@ export default function SurveysPage() {
 
   const lineChart =
     lineChartData.length > 0 ? (
-      <div style={{ width: "100%", height: 300 }}>
+      <div data-export-chart style={{ width: "100%", height: 300 }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={lineChartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -163,7 +163,7 @@ export default function SurveysPage() {
 
   const barChart =
     barChartData.length > 0 ? (
-      <div style={{ width: "100%", height: 300 }}>
+      <div data-export-chart style={{ width: "100%", height: 300 }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={barChartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />

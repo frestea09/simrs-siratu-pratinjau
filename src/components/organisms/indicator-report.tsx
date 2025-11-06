@@ -88,7 +88,7 @@ export function IndicatorReport({ indicators, category, title, description, show
     };
     
     const lineChartComponent = chartData && chartData.length > 0 ? (
-        <div style={{ width: '100%', height: 350 }}>
+        <div data-export-chart style={{ width: '100%', height: 350 }}>
             <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -110,7 +110,7 @@ export function IndicatorReport({ indicators, category, title, description, show
     )
 
     const barChartComponent = chartData && chartData.length > 0 ? (
-        <div style={{ width: '100%', height: 350 }}>
+        <div data-export-chart style={{ width: '100%', height: 350 }}>
             <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />

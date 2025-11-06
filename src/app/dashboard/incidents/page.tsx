@@ -181,7 +181,7 @@ export default function IncidentsPage() {
   const typesToShow = selectedType === "Semua" ? Object.keys(colorMap) : [selectedType]
 
   const lineChart = (
-    <div style={{ width: "100%", height: 350 }}>
+    <div data-export-chart style={{ width: "100%", height: 350 }}>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={incidentChartData}>
           <CartesianGrid strokeDasharray="3 3" />
@@ -198,7 +198,7 @@ export default function IncidentsPage() {
   )
 
   const barChart = (
-    <div style={{ width: "100%", height: 350 }}>
+    <div data-export-chart style={{ width: "100%", height: 350 }}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={incidentChartData}>
           <CartesianGrid strokeDasharray="3 3" />

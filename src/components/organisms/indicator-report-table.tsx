@@ -61,7 +61,8 @@ export function IndicatorReportTable({
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {INDICATOR_TEXTS.reportTable.headers.indicator} <ArrowUpDown className="ml-2 h-4 w-4" />
+            {INDICATOR_TEXTS.reportTable.headers.indicator}{" "}
+            <ArrowUpDown data-export-exclude className="ml-2 h-4 w-4" />
           </Button>
         ),
         cell: ({ row }) => (
@@ -83,7 +84,8 @@ export function IndicatorReportTable({
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {INDICATOR_TEXTS.reportTable.headers.period} <ArrowUpDown className="ml-2 h-4 w-4" />
+            {INDICATOR_TEXTS.reportTable.headers.period}{" "}
+            <ArrowUpDown data-export-exclude className="ml-2 h-4 w-4" />
           </Button>
         ),
         cell: ({ row }) => {

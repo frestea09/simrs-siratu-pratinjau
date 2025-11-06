@@ -190,6 +190,26 @@ const blobToDataUrl = (blob: Blob) =>
     reader.readAsDataURL(blob)
   })
 
+const isTransparentColor = (value?: string | null) => {
+  if (!value) return true
+
+  const normalized = value.replace(/\s+/g, "").toLowerCase()
+
+  if (normalized === "transparent" || normalized === "rgba(0,0,0,0)" || normalized === "hsla(0,0%,0%,0)" || normalized === "#0000") {
+    return true
+  }
+
+  if (normalized.startsWith("rgba(") && normalized.endsWith(",0)")) {
+    return true
+  }
+
+  if (normalized.startsWith("hsla(") && normalized.endsWith(",0)")) {
+    return true
+  }
+
+  return false
+}
+
 const replaceChartContainersWithImages = async (
   original: HTMLElement,
   clone: HTMLElement
@@ -216,11 +236,33 @@ const replaceChartContainersWithImages = async (
 
       if (!width || !height) return
 
+      const computedStyle = window.getComputedStyle(chart)
+      const backgroundImage = computedStyle.backgroundImage
+      const hasBackgroundImage = !!backgroundImage && backgroundImage !== "none"
+      const backgroundColor = computedStyle.backgroundColor
+
       try {
         const snapshotBlob = await createImageBlob(
           cloneChart.outerHTML,
           width,
-          height
+          height,
+          {
+            background: {
+              color: isTransparentColor(backgroundColor) ? undefined : backgroundColor,
+              image: hasBackgroundImage ? backgroundImage : undefined,
+              position: hasBackgroundImage
+                ? computedStyle.backgroundPosition
+                : undefined,
+              size: hasBackgroundImage ? computedStyle.backgroundSize : undefined,
+              repeat: hasBackgroundImage
+                ? computedStyle.backgroundRepeat
+                : undefined,
+              origin: hasBackgroundImage
+                ? computedStyle.backgroundOrigin
+                : undefined,
+              clip: hasBackgroundImage ? computedStyle.backgroundClip : undefined,
+            },
+          }
         )
 
         if (!snapshotBlob) return
@@ -293,13 +335,76 @@ const sanitizeContent = async (content: HTMLElement) => {
   return clone
 }
 
-const createImageBlob = async (html: string, width: number, height: number) => {
+type CreateImageBlobOptions = {
+  background?: {
+    color?: string
+    image?: string
+    position?: string
+    size?: string
+    repeat?: string
+    origin?: string
+    clip?: string
+  }
+}
+
+const createImageBlob = async (
+  html: string,
+  width: number,
+  height: number,
+  options?: CreateImageBlobOptions
+) => {
   if (!width || !height) return null
+
+  const background = options?.background
+  const hasBackgroundImage = !!background?.image && background.image !== "none"
+
+  let fillColor = background?.color
+
+  if (fillColor && isTransparentColor(fillColor)) {
+    fillColor = undefined
+  }
+
+  if (!fillColor && !hasBackgroundImage) {
+    fillColor = "#ffffff"
+  }
+
+  const backgroundSegments: string[] = []
+
+  if (hasBackgroundImage && background?.image) {
+    backgroundSegments.push(`background-image:${background.image};`)
+
+    if (background.position) {
+      backgroundSegments.push(`background-position:${background.position};`)
+    }
+
+    if (background.size) {
+      backgroundSegments.push(`background-size:${background.size};`)
+    }
+
+    if (background.repeat) {
+      backgroundSegments.push(`background-repeat:${background.repeat};`)
+    }
+
+    if (background.origin) {
+      backgroundSegments.push(`background-origin:${background.origin};`)
+    }
+
+    if (background.clip) {
+      backgroundSegments.push(`background-clip:${background.clip};`)
+    }
+  }
+
+  if (fillColor) {
+    backgroundSegments.push(`background-color:${fillColor};`)
+  }
+
+  const dimensionSegments = [`width:${width}px;`, `height:${height}px;`]
+  const wrapperStyle = [...backgroundSegments, ...dimensionSegments].join(" ")
 
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
   <foreignObject width="100%" height="100%">
-    <div xmlns="http://www.w3.org/1999/xhtml" style="width:${width}px;height:${height}px;background:white;">${html}</div>
+    <div xmlns="http://www.w3.org/1999/xhtml" style="${wrapperStyle}">${html}</div>
   </foreignObject>
 </svg>`
 
@@ -321,6 +426,13 @@ const createImageBlob = async (html: string, width: number, height: number) => {
 
     const context = canvas.getContext("2d")
     if (!context) return null
+
+    if (fillColor && !isTransparentColor(fillColor)) {
+      context.fillStyle = fillColor
+      context.fillRect(0, 0, canvas.width, canvas.height)
+    } else {
+      context.clearRect(0, 0, canvas.width, canvas.height)
+    }
 
     context.scale(scale, scale)
     context.drawImage(image, 0, 0)

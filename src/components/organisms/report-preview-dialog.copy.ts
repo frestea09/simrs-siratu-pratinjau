@@ -1,27 +1,30 @@
-export const copyReport = async (
-  content: HTMLDivElement | null,
-  title?: string,
-  description?: string
-) => {
+const sanitizeContent = (content: HTMLElement) => {
+  const clone = content.cloneNode(true) as HTMLElement
+
+  const removableSelectors = [
+    "[data-copy-exclude]",
+    "[data-print-exclude]",
+    "[data-export-exclude]",
+    ".no-print",
+  ]
+  clone.querySelectorAll(removableSelectors.join(",")).forEach((node) => {
+    node.remove()
+  })
+
+  clone.querySelectorAll<HTMLElement>('[data-export-scroll]').forEach((node) => {
+    node.classList.remove('overflow-y-auto', '-mr-6')
+    node.classList.add('overflow-visible')
+  })
+
+  return clone
+}
+
+export const copyReport = async (content: HTMLDivElement | null) => {
   if (!content) return Promise.reject("No content")
 
-  const htmlParts: string[] = []
-  const textParts: string[] = []
-
-  if (title) {
-    htmlParts.push(`<h1>${title}</h1>`)
-    textParts.push(title)
-  }
-  if (description) {
-    htmlParts.push(`<p>${description}</p>`)
-    textParts.push(description)
-  }
-
-  htmlParts.push(content.innerHTML)
-  textParts.push(content.innerText)
-
-  const html = htmlParts.join("\n")
-  const text = textParts.join("\n\n")
+  const clone = sanitizeContent(content)
+  const html = clone.outerHTML
+  const text = clone.innerText
 
   try {
     await navigator.clipboard.write([

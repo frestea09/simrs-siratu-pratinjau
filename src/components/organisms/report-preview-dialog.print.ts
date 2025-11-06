@@ -1,8 +1,25 @@
-export const printReport = (
-  content: HTMLDivElement | null,
-  title?: string,
-  description?: string,
-) => {
+const sanitizeContent = (content: HTMLElement) => {
+  const clone = content.cloneNode(true) as HTMLElement
+
+  const removableSelectors = [
+    "[data-print-exclude]",
+    "[data-copy-exclude]",
+    "[data-export-exclude]",
+    ".no-print",
+  ]
+  clone.querySelectorAll(removableSelectors.join(",")).forEach((node) => {
+    node.remove()
+  })
+
+  clone.querySelectorAll<HTMLElement>('[data-export-scroll]').forEach((node) => {
+    node.classList.remove('overflow-y-auto', '-mr-6')
+    node.classList.add('overflow-visible')
+  })
+
+  return clone
+}
+
+export const printReport = (content: HTMLDivElement | null) => {
   if (!content) return
 
   const uid = () => `${Date.now().toString(36)}-${Math.random().toString(36).substring(2)}`
@@ -29,7 +46,7 @@ export const printReport = (
     return
   }
 
-  const contentHtml = content.innerHTML
+  const sanitizedContent = sanitizeContent(content)
 
   const printDocument = printWindow.document
   printDocument.open()
@@ -39,7 +56,8 @@ export const printReport = (
   const { head, body, documentElement } = printDocument
 
   const pageTitle = printDocument.createElement('title')
-  pageTitle.textContent = title || 'Laporan'
+  const heading = sanitizedContent.querySelector('[data-dialog-title]')
+  pageTitle.textContent = heading?.textContent?.trim() || 'Laporan'
   head.appendChild(pageTitle)
 
   const sourceHeadElements = Array.from(
@@ -105,11 +123,8 @@ export const printReport = (
 
   const container = printDocument.createElement('div')
   container.className = 'p-6 print-container'
-  container.innerHTML = `
-    <h1 class="text-2xl font-bold text-primary mb-2">${title || 'Laporan'}</h1>
-    <p class="text-sm text-muted-foreground">${description || ''}</p>
-    <div class="mt-8 space-y-6">${contentHtml}</div>
-  `
+  const importedContent = printDocument.importNode(sanitizedContent, true)
+  container.appendChild(importedContent)
   body.appendChild(container)
 
   chartImages.forEach((chart, id) => {

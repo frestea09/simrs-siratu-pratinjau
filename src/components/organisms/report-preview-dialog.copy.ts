@@ -102,20 +102,106 @@ const replaceSvgWithImages = (original: HTMLElement, clone: HTMLElement) => {
   })
 }
 
-const sanitizeContent = (content: HTMLElement) => {
+const blobToDataUrl = (blob: Blob) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = reject
+    reader.readAsDataURL(blob)
+  })
+
+const replaceChartContainersWithImages = async (
+  original: HTMLElement,
+  clone: HTMLElement
+) => {
+  const originalCharts = Array.from(
+    original.querySelectorAll<HTMLElement>("[data-export-chart]")
+  )
+  const cloneCharts = Array.from(
+    clone.querySelectorAll<HTMLElement>("[data-export-chart]")
+  )
+
+  await Promise.all(
+    originalCharts.map(async (chart, index) => {
+      const cloneChart = cloneCharts[index]
+      if (!cloneChart) return
+
+      const rect = chart.getBoundingClientRect()
+      const width = Math.ceil(
+        rect.width || chart.scrollWidth || chart.clientWidth || 0
+      )
+      const height = Math.ceil(
+        rect.height || chart.scrollHeight || chart.clientHeight || 0
+      )
+
+      if (!width || !height) return
+
+      try {
+        const snapshotBlob = await createImageBlob(
+          cloneChart.outerHTML,
+          width,
+          height
+        )
+
+        if (!snapshotBlob) return
+
+        const dataUrl = await blobToDataUrl(snapshotBlob)
+        const image = document.createElement("img")
+
+        image.src = dataUrl
+        image.width = width
+        image.height = height
+
+        const fallbackWidth = `${width}px`
+        const fallbackHeight = `${height}px`
+
+        const existingStyle = cloneChart.getAttribute("style")
+        if (existingStyle) {
+          image.setAttribute("style", existingStyle)
+        }
+
+        if (!image.style.width) {
+          image.style.width = fallbackWidth
+        }
+        if (!image.style.height) {
+          image.style.height = fallbackHeight
+        }
+
+        image.style.display = image.style.display || "block"
+        image.style.maxWidth = image.style.maxWidth || "100%"
+
+        image.className = cloneChart.className
+
+        cloneChart.replaceWith(image)
+      } catch (error) {
+        console.warn("Unable to capture chart container", error)
+      }
+    })
+  )
+}
+
+const sanitizeContent = async (content: HTMLElement) => {
   const clone = content.cloneNode(true) as HTMLElement
 
   inlineComputedStyles(content, clone)
   replaceCanvasWithImages(content, clone)
   replaceSvgWithImages(content, clone)
 
+  await replaceChartContainersWithImages(content, clone)
+
   clone.querySelectorAll(removableSelectors.join(",")).forEach((node) => {
     node.remove()
   })
 
-  clone.querySelectorAll<HTMLElement>('[data-export-scroll]').forEach((node) => {
-    node.classList.remove("overflow-y-auto", "-mr-6")
-    node.classList.add("overflow-visible")
+  clone
+    .querySelectorAll<HTMLElement>('[data-export-scroll]')
+    .forEach((node) => {
+      node.classList.remove("overflow-y-auto", "-mr-6")
+      node.classList.add("overflow-visible")
+    })
+
+  clone.querySelectorAll("[data-export-chart]").forEach((node) => {
+    node.removeAttribute("data-export-chart")
   })
 
   if (!clone.style.backgroundColor) {
@@ -170,7 +256,7 @@ const createImageBlob = async (html: string, width: number, height: number) => {
 export const copyReport = async (content: HTMLDivElement | null) => {
   if (!content) return Promise.reject("No content")
 
-  const clone = sanitizeContent(content)
+  const clone = await sanitizeContent(content)
 
   const width = Math.ceil(Math.max(content.scrollWidth, content.getBoundingClientRect().width))
   const height = Math.ceil(

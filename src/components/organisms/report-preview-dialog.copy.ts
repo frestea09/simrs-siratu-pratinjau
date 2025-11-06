@@ -63,43 +63,123 @@ const replaceCanvasWithImages = (original: HTMLElement, clone: HTMLElement) => {
   })
 }
 
-const replaceSvgWithImages = (original: HTMLElement, clone: HTMLElement) => {
+const getSvgDimensions = (svg: SVGSVGElement) => {
+  const rect = svg.getBoundingClientRect()
+  const svgElement = svg as SVGSVGElement
+  const viewBox = svgElement.viewBox?.baseVal
+
+  const widthAttr = svg.getAttribute("width")
+  const heightAttr = svg.getAttribute("height")
+
+  const width = Math.ceil(
+    rect.width ||
+      (widthAttr ? parseFloat(widthAttr) : 0) ||
+      (viewBox ? viewBox.width : 0) ||
+      svg.clientWidth ||
+      svg.scrollWidth ||
+      0
+  )
+
+  const height = Math.ceil(
+    rect.height ||
+      (heightAttr ? parseFloat(heightAttr) : 0) ||
+      (viewBox ? viewBox.height : 0) ||
+      svg.clientHeight ||
+      svg.scrollHeight ||
+      0
+  )
+
+  return {
+    width: width || 1,
+    height: height || 1,
+  }
+}
+
+const replaceSvgWithImages = async (original: HTMLElement, clone: HTMLElement) => {
   const originalSvgs = Array.from(original.querySelectorAll("svg"))
   const cloneSvgs = Array.from(clone.querySelectorAll("svg"))
   const serializer = new XMLSerializer()
 
-  originalSvgs.forEach((svg, index) => {
-    const cloneSvg = cloneSvgs[index]
-    if (!cloneSvg) return
+  await Promise.all(
+    originalSvgs.map(async (svg, index) => {
+      const cloneSvg = cloneSvgs[index]
+      if (!cloneSvg) return
 
-    try {
-      const svgClone = svg.cloneNode(true) as SVGElement
-      if (!svgClone.getAttribute("xmlns")) {
-        svgClone.setAttribute("xmlns", "http://www.w3.org/2000/svg")
+      try {
+        const svgClone = svg.cloneNode(true) as SVGSVGElement
+        if (!svgClone.getAttribute("xmlns")) {
+          svgClone.setAttribute("xmlns", "http://www.w3.org/2000/svg")
+        }
+        if (!svgClone.getAttribute("xmlns:xlink")) {
+          svgClone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink")
+        }
+
+        const { width, height } = getSvgDimensions(svgClone)
+        svgClone.setAttribute("width", `${width}`)
+        svgClone.setAttribute("height", `${height}`)
+
+        const svgString = serializer.serializeToString(svgClone)
+        const svgBlob = new Blob([svgString], {
+          type: "image/svg+xml;charset=utf-8",
+        })
+        const url = URL.createObjectURL(svgBlob)
+
+        try {
+          const imageElement = await new Promise<HTMLImageElement>((resolve, reject) => {
+            const img = new Image()
+            img.onload = () => resolve(img)
+            img.onerror = reject
+            img.src = url
+          })
+
+          const canvas = document.createElement("canvas")
+          canvas.width = width
+          canvas.height = height
+          const context = canvas.getContext("2d")
+          if (!context) return
+
+          context.drawImage(imageElement, 0, 0, width, height)
+          const dataUrl = canvas.toDataURL("image/png")
+
+          const image = document.createElement("img")
+          image.src = dataUrl
+
+          image.width = width
+          image.height = height
+
+          const existingStyle = cloneSvg.getAttribute("style")
+          if (existingStyle) {
+            image.setAttribute("style", existingStyle)
+          }
+
+          if (!image.style.width) {
+            image.style.width = `${width}px`
+          }
+          if (!image.style.height) {
+            image.style.height = `${height}px`
+          }
+
+          if (!image.style.display) {
+            image.style.display = "block"
+          }
+          if (!image.style.maxWidth) {
+            image.style.maxWidth = "100%"
+          }
+
+          const svgClass = cloneSvg.getAttribute("class")
+          if (svgClass) {
+            image.className = svgClass
+          }
+
+          cloneSvg.replaceWith(image)
+        } finally {
+          URL.revokeObjectURL(url)
+        }
+      } catch (error) {
+        console.warn("Unable to capture svg for clipboard", error)
       }
-
-      const svgString = serializer.serializeToString(svgClone)
-      const image = document.createElement("img")
-      image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`
-
-      const rect = svg.getBoundingClientRect()
-      if (rect.width) {
-        image.style.width = `${rect.width}px`
-      }
-      if (rect.height) {
-        image.style.height = `${rect.height}px`
-      }
-
-      const existingStyle = cloneSvg.getAttribute("style")
-      if (existingStyle) {
-        image.setAttribute("style", existingStyle)
-      }
-
-      cloneSvg.replaceWith(image)
-    } catch (error) {
-      console.warn("Unable to capture svg for clipboard", error)
-    }
-  })
+    })
+  )
 }
 
 const blobToDataUrl = (blob: Blob) =>
@@ -185,7 +265,7 @@ const sanitizeContent = async (content: HTMLElement) => {
 
   inlineComputedStyles(content, clone)
   replaceCanvasWithImages(content, clone)
-  replaceSvgWithImages(content, clone)
+  await replaceSvgWithImages(content, clone)
 
   await replaceChartContainersWithImages(content, clone)
 

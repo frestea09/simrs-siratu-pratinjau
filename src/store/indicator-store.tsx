@@ -33,6 +33,8 @@ export type IndicatorProfile = {
   createdBy: string // user id
   createdAt: string
   unit: string
+  locked?: boolean
+  lockedReason?: string
 }
 
 export type SubmittedIndicator = {

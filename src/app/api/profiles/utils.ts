@@ -26,6 +26,28 @@ export function mapStatusToDb(
 }
 
 export function mapProfileToFrontend(p: any) {
+  const submissions: any[] = Array.isArray(p.submittedIndicators)
+    ? p.submittedIndicators
+    : []
+  const hasSubmissions = submissions.length > 0
+  const hasAchievements = submissions.some(
+    (s) => Array.isArray(s.achievements) && s.achievements.length > 0,
+  )
+  const hasVerifiedSubmission = submissions.some(
+    (s) => s.status === "Diverifikasi",
+  )
+
+  let lockedReason: string | undefined
+  if (hasSubmissions) {
+    if (hasAchievements || hasVerifiedSubmission) {
+      lockedReason =
+        "Profil ini sudah digunakan untuk pengisian capaian indikator sehingga tidak dapat dihapus. Anda dapat menonaktifkan atau memperbarui data tanpa menghapusnya."
+    } else {
+      lockedReason =
+        "Profil ini sedang digunakan dalam manajemen indikator sehingga tidak dapat dihapus. Anda dapat menonaktifkan atau memperbarui data tanpa menghapusnya."
+    }
+  }
+
   return {
     id: p.id,
     title: p.title,
@@ -51,6 +73,8 @@ export function mapProfileToFrontend(p: any) {
       p.createdAt instanceof Date ? p.createdAt : new Date(p.createdAt)
     ).toISOString(),
     unit: p.unit,
+    locked: hasSubmissions,
+    lockedReason,
   }
 }
 

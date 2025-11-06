@@ -67,11 +67,21 @@ export function ProfileTable({ profiles }: ProfileTableProps) {
       cell: ({ row }) => {
         const profile = row.original
         const hasFullActions = currentUserIsCentral || (!!currentUserId && profile.createdBy === currentUserId)
+        const isLocked = Boolean(profile.locked)
         return (
           <div className="flex items-center gap-2">
             <span className="font-medium">{row.getValue("title")}</span>
             {hasFullActions && (
               <Badge variant="secondary">Aksi Lengkap</Badge>
+            )}
+            {isLocked && (
+              <Badge
+                variant="outline"
+                className="border-destructive text-destructive"
+                title={profile.lockedReason ?? "Profil ini tidak dapat dihapus karena sudah diproses."}
+              >
+                Terkunci
+              </Badge>
             )}
           </div>
         )

@@ -10,7 +10,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDown, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import { ArrowUpDown, Lock, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { format } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
 
@@ -40,10 +40,14 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu"
 import { useToast } from "@/hooks/use-toast"
 import { Progress } from "../ui/progress"
+import { Badge } from "../ui/badge"
+import { useUserStore } from "@/store/user-store"
+import { centralRoles } from "@/store/central-roles"
 
 type SurveyTableProps = {
   surveys: SurveyResult[]
@@ -56,6 +60,9 @@ export function SurveyTable({ surveys, onEdit }: SurveyTableProps) {
   ])
   const { removeSurvey } = useSurveyStore()
   const { toast } = useToast()
+  const { currentUser } = useUserStore()
+  const currentUserId = currentUser?.id
+  const currentUserIsCentral = currentUser ? centralRoles.includes(currentUser.role) : false
 
   const handleDelete = React.useCallback(
     (survey: SurveyResult) => {
@@ -66,7 +73,20 @@ export function SurveyTable({ surveys, onEdit }: SurveyTableProps) {
         variant: "destructive",
       })
     },
-    [removeSurvey, toast]
+    [removeSurvey, toast],
+  )
+
+  const notifyLocked = React.useCallback(
+    (reason?: string) => {
+      toast({
+        title: "Hasil survei terkunci",
+        description:
+          reason ??
+          "Hasil survei ini tidak dapat dihapus karena telah digunakan dalam analisis laporan.",
+        variant: "destructive",
+      })
+    },
+    [toast],
   )
 
   const columns = React.useMemo<ColumnDef<SurveyResult>[]>(
@@ -93,6 +113,39 @@ export function SurveyTable({ surveys, onEdit }: SurveyTableProps) {
       {
         accessorKey: "unit",
         header: "Unit Kerja",
+        cell: ({ row }) => {
+          const survey = row.original
+          const isOwner = !!currentUserId && survey.submittedById === currentUserId
+          const hasFullActions = currentUserIsCentral || isOwner
+          const isLocked = Boolean(survey.locked)
+          const lockedReason =
+            survey.lockedReason ??
+            "Hasil survei ini tidak dapat dihapus karena telah diproses dalam laporan kinerja."
+
+          return (
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-medium">{row.getValue("unit") as string}</span>
+                {hasFullActions && <Badge variant="secondary">Aksi Lengkap</Badge>}
+                {isLocked && (
+                  <Badge
+                    variant="outline"
+                    className="border-destructive text-destructive"
+                    title={lockedReason}
+                  >
+                    Terkunci
+                  </Badge>
+                )}
+              </div>
+              {survey.submittedByName && (
+                <p className="text-xs text-muted-foreground">
+                  Diisi oleh {survey.submittedByName}
+                  {survey.submittedByRole ? ` (${survey.submittedByRole})` : ""}
+                </p>
+              )}
+            </div>
+          )
+        },
       },
       {
         accessorKey: "totalScore",
@@ -120,6 +173,22 @@ export function SurveyTable({ surveys, onEdit }: SurveyTableProps) {
         id: "actions",
         cell: ({ row }) => {
           const survey = row.original
+          const isOwner = !!currentUserId && survey.submittedById === currentUserId
+          const hasFullActions = currentUserIsCentral || isOwner
+          const isLocked = Boolean(survey.locked)
+          const lockedReason =
+            survey.lockedReason ??
+            "Hasil survei ini tidak dapat dihapus karena telah digunakan dalam laporan resmi."
+
+          if (!hasFullActions) {
+            return (
+              <Button variant="ghost" className="h-8 w-8 p-0" disabled>
+                <span className="sr-only">Tidak ada aksi</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            )
+          }
+
           return (
             <AlertDialog>
               <DropdownMenu>
@@ -134,37 +203,62 @@ export function SurveyTable({ surveys, onEdit }: SurveyTableProps) {
                     <Pencil className="mr-2 h-4 w-4" />
                     Edit
                   </DropdownMenuItem>
-                  <AlertDialogTrigger asChild>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                      <Trash2 className="mr-2 h-4 w-4 text-destructive" />
-                      <span className="text-destructive">Hapus</span>
+                  <DropdownMenuSeparator />
+                  {isLocked ? (
+                    <DropdownMenuItem
+                      onSelect={(event) => {
+                        event.preventDefault()
+                        notifyLocked(lockedReason)
+                      }}
+                      className="text-muted-foreground focus:bg-muted focus:text-muted-foreground"
+                    >
+                      <Lock className="mr-2 h-4 w-4" />
+                      Tidak dapat dihapus
                     </DropdownMenuItem>
-                  </AlertDialogTrigger>
+                  ) : (
+                    <AlertDialogTrigger asChild>
+                      <DropdownMenuItem
+                        onSelect={(event) => event.preventDefault()}
+                        className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Hapus
+                      </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Anda yakin?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Aksi ini tidak dapat dibatalkan. Ini akan menghapus data hasil survei secara permanen.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Batal</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => handleDelete(survey)}
-                    className="bg-destructive hover:bg-destructive/90"
-                  >
-                    Hapus
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
+              {!isLocked && (
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Anda yakin?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Aksi ini tidak dapat dibatalkan. Ini akan menghapus data hasil survei secara permanen.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Batal</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => handleDelete(survey)}
+                      className="bg-destructive hover:bg-destructive/90"
+                    >
+                      Hapus
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              )}
             </AlertDialog>
           )
         },
       },
     ],
-    [onEdit, handleDelete]
+    [
+      currentUserId,
+      currentUserIsCentral,
+      handleDelete,
+      notifyLocked,
+      onEdit,
+    ],
   )
 
   const table = useReactTable({
@@ -193,7 +287,7 @@ export function SurveyTable({ surveys, onEdit }: SurveyTableProps) {
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                   </TableHead>
                 ))}
@@ -211,7 +305,7 @@ export function SurveyTable({ surveys, onEdit }: SurveyTableProps) {
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

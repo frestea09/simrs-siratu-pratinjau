@@ -190,14 +190,31 @@ export function SurveyForm({ survey, onCancel, onSuccess }: SurveyFormProps) {
       return
     }
     const results = calculateResults()
+    const metadata = survey
+      ? {
+          submittedById: survey.submittedById,
+          submittedByName: survey.submittedByName,
+          submittedByRole: survey.submittedByRole,
+          ...(survey.locked !== undefined ? { locked: survey.locked } : {}),
+          ...(survey.lockedReason !== undefined
+            ? { lockedReason: survey.lockedReason }
+            : {}),
+        }
+      : {
+          submittedById: currentUser?.id,
+          submittedByName: currentUser?.name,
+          submittedByRole: currentUser?.role,
+        }
+    const payload = { ...results, ...metadata }
+
     if (isEdit && survey) {
-      updateSurvey(survey.id, results)
+      updateSurvey(survey.id, payload)
       toast({
         title: "Survei Berhasil Diperbarui",
         description: `Data survei dari unit ${survey.unit} telah diperbarui.`,
       })
     } else {
-      addSurvey(results)
+      addSurvey(payload)
       toast({
         title: "Survei Berhasil Disimpan",
         description:

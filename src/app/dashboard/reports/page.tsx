@@ -57,10 +57,19 @@ const ReportTable = ({ title, data }: { title: string, data: YearlyReportData[] 
 
 
 export default function ReportsPage() {
-  const { indicators, submittedIndicators } = useIndicatorStore()
+  const { indicators, submittedIndicators, fetchIndicators, fetchSubmittedIndicators } = useIndicatorStore()
   const [selectedYear, setSelectedYear] = React.useState<string>(new Date().getFullYear().toString())
   const [reportData, setReportData] = React.useState<Record<IndicatorCategory, YearlyReportData[]> | null>(null)
   const [isPreviewOpen, setPreviewOpen] = React.useState(false)
+
+  React.useEffect(() => {
+    if (!indicators.length) {
+      fetchIndicators().catch(() => {})
+    }
+    if (!submittedIndicators.length) {
+      fetchSubmittedIndicators().catch(() => {})
+    }
+  }, [indicators.length, submittedIndicators.length, fetchIndicators, fetchSubmittedIndicators])
 
   const availableYears = React.useMemo(() => {
     const years = new Set(indicators.map(i => new Date(i.period).getFullYear().toString()))

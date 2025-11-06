@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { IndicatorProfile, useIndicatorStore } from "@/store/indicator-store"
 import { useUserStore } from "@/store/user-store.tsx"
+import { centralRoles } from "@/store/central-roles"
 import { useLogStore } from "@/store/log-store.tsx"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
@@ -37,9 +38,12 @@ export function ActionsCell({ row }: ActionsCellProps) {
     const { addLog } = useLogStore()
     const { toast } = useToast()
 
-    const canEdit = currentUser?.id === profile.createdBy || currentUser?.role === 'Admin Sistem'
-    const canSubmit = profile.status === 'Draf' || profile.status === 'Ditolak'
-    const canApprove = (currentUser?.role === 'Admin Sistem' || currentUser?.role === 'Sub. Komite Peningkatan Mutu') && profile.status === 'Menunggu Persetujuan'
+    const isCentralUser = currentUser ? centralRoles.includes(currentUser.role) : false
+    const canManageProfile = currentUser ? (isCentralUser || currentUser.id === profile.createdBy) : false
+    const canEdit = canManageProfile
+    const canSubmit = canManageProfile && (profile.status === 'Draf' || profile.status === 'Ditolak')
+    const canApprove = isCentralUser && profile.status === 'Menunggu Persetujuan'
+    const hasAnyAction = canEdit || canSubmit || canApprove
 
     const handleStatusChange = async (status: IndicatorProfile['status']) => {
         await updateProfile(profile.id, { status });
@@ -68,11 +72,12 @@ export function ActionsCell({ row }: ActionsCellProps) {
         <>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
+                    <Button variant="ghost" className="h-8 w-8 p-0" disabled={!hasAnyAction}>
                         <span className="sr-only">Open menu</span>
                         <MoreHorizontal className="h-4 w-4" />
                     </Button>
                 </DropdownMenuTrigger>
+                {hasAnyAction && (
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Aksi</DropdownMenuLabel>
                     {/* <DropdownMenuItem onSelect={() => setIsDetailOpen(true)}>
@@ -123,6 +128,7 @@ export function ActionsCell({ row }: ActionsCellProps) {
                         </>
                     )}
                 </DropdownMenuContent>
+                )}
             </DropdownMenu>
 
             {/* <ProfileDetailDialog profile={profile} open={isDetailOpen} onOpenChange={setIsDetailOpen} /> */}

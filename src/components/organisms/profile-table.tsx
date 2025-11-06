@@ -30,6 +30,8 @@ import { useTableState } from "@/hooks/use-table-state"
 import { ActionsCell } from "./profile-table/actions-cell"
 import { Input } from "../ui/input"
 import { defaultFilterFns } from "@/lib/default-filter-fns"
+import { useUserStore } from "@/store/user-store.tsx"
+import { centralRoles } from "@/store/central-roles"
 
 export const getStatusVariant = (status: IndicatorProfile['status']) => {
     switch (status) {
@@ -50,6 +52,9 @@ export function ProfileTable({ profiles }: ProfileTableProps) {
   const { tableState, setTableState } = useTableState({
     sorting: [{ id: "createdAt", desc: true }]
   });
+  const { currentUser } = useUserStore()
+  const currentUserId = currentUser?.id
+  const currentUserIsCentral = currentUser ? centralRoles.includes(currentUser.role) : false
 
   const columns: ColumnDef<IndicatorProfile>[] = React.useMemo(() => [
     {
@@ -59,7 +64,18 @@ export function ProfileTable({ profiles }: ProfileTableProps) {
           Judul Profil Indikator <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => <div className="font-medium">{row.getValue("title")}</div>,
+      cell: ({ row }) => {
+        const profile = row.original
+        const hasFullActions = currentUserIsCentral || (!!currentUserId && profile.createdBy === currentUserId)
+        return (
+          <div className="flex items-center gap-2">
+            <span className="font-medium">{row.getValue("title")}</span>
+            {hasFullActions && (
+              <Badge variant="secondary">Aksi Lengkap</Badge>
+            )}
+          </div>
+        )
+      },
     },
     {
       accessorKey: "unit",
@@ -82,7 +98,7 @@ export function ProfileTable({ profiles }: ProfileTableProps) {
       enableHiding: false,
       cell: ({row}) => <ActionsCell row={row} />,
     },
-  ], []);
+  ], [currentUserId, currentUserIsCentral]);
 
   const table = useReactTable({
     data: profiles,

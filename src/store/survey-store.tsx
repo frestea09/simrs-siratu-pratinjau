@@ -1,101 +1,132 @@
-
 "use client"
 
 import { create } from "zustand"
-import { persist, createJSONStorage } from 'zustand/middleware'
+import { persist, createJSONStorage } from "zustand/middleware"
 import React, { createContext, useContext, useRef } from "react"
+
+import type { UserRole } from "./user-store"
 
 // --- Tipe Data ---
 
 // Struktur untuk skor per dimensi survei
 export type DimensionScore = {
-    score: number;
-    positiveResponses: number;
-    neutralResponses: number;
-    negativeResponses: number;
-};
+  score: number
+  positiveResponses: number
+  neutralResponses: number
+  negativeResponses: number
+}
 
 // Struktur utama untuk satu entri hasil survei
 export type SurveyResult = {
-    id: string;
-    submissionDate: string;
-    unit: string;
-    scores: Record<string, DimensionScore>; // Kunci adalah ID dimensi
-    totalScore: number;
-    positivePercentage: number;
-    neutralPercentage: number;
-    negativePercentage: number;
-    answers: Record<string, string>;
-};
+  id: string
+  submissionDate: string
+  unit: string
+  scores: Record<string, DimensionScore> // Kunci adalah ID dimensi
+  totalScore: number
+  positivePercentage: number
+  neutralPercentage: number
+  negativePercentage: number
+  answers: Record<string, string>
+  submittedById?: string
+  submittedByName?: string
+  submittedByRole?: UserRole
+  locked?: boolean
+  lockedReason?: string
+}
 
 // State untuk store Zustand
 type SurveyState = {
-    surveys: SurveyResult[];
-    addSurvey: (survey: Omit<SurveyResult, 'id' | 'submissionDate'>) => void;
-    removeSurvey: (id: string) => void;
-    updateSurvey: (id: string, survey: Omit<SurveyResult, 'id' | 'submissionDate'>) => void;
-};
+  surveys: SurveyResult[]
+  addSurvey: (survey: Omit<SurveyResult, "id" | "submissionDate">) => void
+  removeSurvey: (id: string) => void
+  updateSurvey: (id: string, survey: Omit<SurveyResult, "id" | "submissionDate">) => void
+}
 
 // --- Store Zustand ---
 
-const createSurveyStore = () => create<SurveyState>()(
+const createSurveyStore = () =>
+  create<SurveyState>()(
     persist(
-        (set) => ({
-            surveys: [], // Data awal kosong
+      (set) => ({
+        surveys: [],
 
-            // Aksi untuk menambah hasil survei baru
-            addSurvey: (surveyData) => {
-                const newSurvey: SurveyResult = {
-                    ...surveyData,
-                    id: `SURVEY-${Date.now()}`, // ID unik berdasarkan waktu
-                    submissionDate: new Date().toISOString(),
-                };
-                set((state) => ({
-                    surveys: [newSurvey, ...state.surveys],
-                }));
-            },
+        addSurvey: (surveyData) => {
+          const newSurvey: SurveyResult = {
+            ...surveyData,
+            id: `SURVEY-${Date.now()}`,
+            submissionDate: new Date().toISOString(),
+            locked: surveyData.locked ?? false,
+            lockedReason: surveyData.lockedReason,
+          }
+          set((state) => ({
+            surveys: [newSurvey, ...state.surveys],
+          }))
+        },
 
-            // Aksi untuk menghapus hasil survei
-            removeSurvey: (id) => {
-                set((state) => ({
-                    surveys: state.surveys.filter((survey) => survey.id !== id),
-                }));
-            },
+        removeSurvey: (id) => {
+          set((state) => ({
+            surveys: state.surveys.filter((survey) => survey.id !== id),
+          }))
+        },
 
-            // Aksi untuk memperbarui hasil survei
-            updateSurvey: (id, surveyData) => {
-                set((state) => ({
-                    surveys: state.surveys.map((survey) =>
-                        survey.id === id ? { ...survey, submissionDate: survey.submissionDate, ...surveyData } : survey
-                    ),
-                }));
-            },
-        }),
-        {
-            name: 'survey-results-storage', // Nama untuk penyimpanan di localStorage
-            storage: createJSONStorage(() => localStorage),
-        }
-    )
-);
+        updateSurvey: (id, surveyData) => {
+          set((state) => ({
+            surveys: state.surveys.map((survey) => {
+              if (survey.id !== id) return survey
 
-const SurveyStoreContext = createContext<ReturnType<typeof createSurveyStore> | null>(null);
+              const updated: SurveyResult = {
+                ...survey,
+                ...surveyData,
+                submissionDate: survey.submissionDate,
+                locked: surveyData.locked ?? survey.locked,
+                lockedReason:
+                  surveyData.lockedReason === undefined
+                    ? survey.lockedReason
+                    : surveyData.lockedReason,
+                submittedById:
+                  surveyData.submittedById === undefined
+                    ? survey.submittedById
+                    : surveyData.submittedById,
+                submittedByName:
+                  surveyData.submittedByName === undefined
+                    ? survey.submittedByName
+                    : surveyData.submittedByName,
+                submittedByRole:
+                  surveyData.submittedByRole === undefined
+                    ? survey.submittedByRole
+                    : surveyData.submittedByRole,
+              }
+
+              return updated
+            }),
+          }))
+        },
+      }),
+      {
+        name: "survey-results-storage",
+        storage: createJSONStorage(() => localStorage),
+      },
+    ),
+  )
+
+const SurveyStoreContext = createContext<ReturnType<typeof createSurveyStore> | null>(null)
 
 export const SurveyStoreProvider = ({ children }: { children: React.ReactNode }) => {
-    const storeRef = useRef<ReturnType<typeof createSurveyStore>>();
-    if (!storeRef.current) {
-        storeRef.current = createSurveyStore();
-    }
-    return (
-        <SurveyStoreContext.Provider value={storeRef.current}>
-            {children}
-        </SurveyStoreContext.Provider>
-    );
-};
+  const storeRef = useRef<ReturnType<typeof createSurveyStore>>()
+  if (!storeRef.current) {
+    storeRef.current = createSurveyStore()
+  }
+  return (
+    <SurveyStoreContext.Provider value={storeRef.current}>
+      {children}
+    </SurveyStoreContext.Provider>
+  )
+}
 
 export const useSurveyStore = (): SurveyState => {
-    const store = useContext(SurveyStoreContext);
-    if (!store) {
-        throw new Error('useSurveyStore must be used within a SurveyStoreProvider');
-    }
-    return store(state => state);
-};
+  const store = useContext(SurveyStoreContext)
+  if (!store) {
+    throw new Error("useSurveyStore must be used within a SurveyStoreProvider")
+  }
+  return store((state) => state)
+}

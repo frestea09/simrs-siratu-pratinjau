@@ -33,6 +33,8 @@ export type IndicatorProfile = {
   createdBy: string // user id
   createdAt: string
   unit: string
+  locked?: boolean
+  lockedReason?: string
 }
 
 export type SubmittedIndicator = {
@@ -49,6 +51,8 @@ export type SubmittedIndicator = {
   rejectionReason?: string
   submittedById?: string;
   profileId?: string;
+  locked?: boolean;
+  lockedReason?: string;
 }
 
 export type Indicator = {
@@ -305,7 +309,14 @@ const createIndicatorStore = () => create<IndicatorState>((set, get) => ({
   },
   removeProfile: async (id) => {
     const res = await fetch(`/api/profiles/${id}`, { method: 'DELETE' })
-    if (!res.ok) throw new Error('Failed to delete profile')
+    if (!res.ok) {
+      try {
+        const err = await res.json()
+        throw new Error(err?.error || 'Failed to delete profile')
+      } catch {
+        throw new Error('Failed to delete profile')
+      }
+    }
     set((state) => ({ profiles: state.profiles.filter((p) => p.id !== id) }))
   },
 
@@ -428,7 +439,14 @@ const createIndicatorStore = () => create<IndicatorState>((set, get) => ({
 
   removeSubmittedIndicator: async (id) => {
     const res = await fetch(`/api/submitted-indicators/${id}`, { method: 'DELETE' })
-    if (!res.ok) throw new Error('Failed to delete submitted indicator')
+    if (!res.ok) {
+      try {
+        const err = await res.json()
+        throw new Error(err?.error || 'Failed to delete submitted indicator')
+      } catch {
+        throw new Error('Failed to delete submitted indicator')
+      }
+    }
     set((state) => ({
       submittedIndicators: state.submittedIndicators.filter((i) => i.id !== id),
     }))

@@ -4,7 +4,7 @@
 
 import * as React from "react"
 import { Row } from "@tanstack/react-table"
-import { MoreHorizontal, Eye, Pencil, Trash2, Send, FileCheck2 } from "lucide-react"
+import { MoreHorizontal, Eye, Pencil, Trash2, Send, FileCheck2, Lock } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { IndicatorProfile, useIndicatorStore } from "@/store/indicator-store"
 import { useUserStore } from "@/store/user-store.tsx"
+import { centralRoles } from "@/store/central-roles"
 import { useLogStore } from "@/store/log-store.tsx"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
@@ -37,9 +38,14 @@ export function ActionsCell({ row }: ActionsCellProps) {
     const { addLog } = useLogStore()
     const { toast } = useToast()
 
-    const canEdit = currentUser?.id === profile.createdBy || currentUser?.role === 'Admin Sistem'
-    const canSubmit = profile.status === 'Draf' || profile.status === 'Ditolak'
-    const canApprove = (currentUser?.role === 'Admin Sistem' || currentUser?.role === 'Sub. Komite Peningkatan Mutu') && profile.status === 'Menunggu Persetujuan'
+    const isCentralUser = currentUser ? centralRoles.includes(currentUser.role) : false
+    const canManageProfile = currentUser ? (isCentralUser || currentUser.id === profile.createdBy) : false
+    const canEdit = canManageProfile
+    const canSubmit = canManageProfile && (profile.status === 'Draf' || profile.status === 'Ditolak')
+    const canApprove = isCentralUser && profile.status === 'Menunggu Persetujuan'
+    const isLocked = Boolean(profile.locked)
+    const lockedReason = profile.lockedReason ?? 'Profil indikator ini tidak dapat dihapus karena sudah diproses. Anda dapat menonaktifkan atau memperbarui data sebagai alternatif.'
+    const hasAnyAction = canEdit || canSubmit || canApprove
 
     const handleStatusChange = async (status: IndicatorProfile['status']) => {
         await updateProfile(profile.id, { status });
@@ -52,15 +58,35 @@ export function ActionsCell({ row }: ActionsCellProps) {
     }
 
     const handleDelete = async () => {
-        await removeProfile(profile.id)
-        addLog({
-            user: currentUser?.name || 'System',
-            action: 'DELETE_INDICATOR', // Assuming this is a valid log action
-            details: `Profil indikator "${profile.title}" dihapus.`,
-        })
+        try {
+            await removeProfile(profile.id)
+            addLog({
+                user: currentUser?.name || 'System',
+                action: 'DELETE_INDICATOR', // Assuming this is a valid log action
+                details: `Profil indikator "${profile.title}" dihapus.`,
+            })
+            toast({
+                title: 'Profil Dihapus',
+                description: `Profil indikator "${profile.title}" telah dihapus.`,
+            })
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : 'Profil indikator tidak dapat dihapus karena sudah dipakai dalam manajemen indikator. Pertimbangkan untuk menonaktifkan atau memperbarui data tanpa menghapusnya.'
+            toast({
+                title: 'Tidak dapat menghapus profil',
+                description: message,
+                variant: 'destructive',
+            })
+        }
+    }
+
+    const notifyLocked = () => {
         toast({
-            title: 'Profil Dihapus',
-            description: `Profil indikator "${profile.title}" telah dihapus.`,
+            title: 'Profil terkunci',
+            description: lockedReason,
+            variant: 'destructive',
         })
     }
 
@@ -68,11 +94,12 @@ export function ActionsCell({ row }: ActionsCellProps) {
         <>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
+                    <Button variant="ghost" className="h-8 w-8 p-0" disabled={!hasAnyAction}>
                         <span className="sr-only">Open menu</span>
                         <MoreHorizontal className="h-4 w-4" />
                     </Button>
                 </DropdownMenuTrigger>
+                {hasAnyAction && (
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Aksi</DropdownMenuLabel>
                     {/* <DropdownMenuItem onSelect={() => setIsDetailOpen(true)}>
@@ -100,29 +127,45 @@ export function ActionsCell({ row }: ActionsCellProps) {
                     {canEdit && (
                         <>
                             <DropdownMenuSeparator />
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full text-destructive">
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Hapus
-                                    </button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Anda yakin?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            Aksi ini tidak dapat dibatalkan. Ini akan menghapus draf profil indikator secara permanen.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Batal</AlertDialogCancel>
-                                        <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Hapus</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
+                            {isLocked ? (
+                                <DropdownMenuItem
+                                    onSelect={(event) => {
+                                        event.preventDefault()
+                                        notifyLocked()
+                                    }}
+                                    className="text-muted-foreground focus:bg-muted focus:text-muted-foreground"
+                                >
+                                    <Lock className="mr-2 h-4 w-4" />
+                                    Tidak dapat dihapus
+                                </DropdownMenuItem>
+                            ) : (
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full text-destructive">
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Hapus
+                                        </button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Anda yakin?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Aksi ini tidak dapat dibatalkan. Ini akan menghapus draf profil indikator secara permanen.
+                                                <br />
+                                                Jika profil telah digunakan dalam manajemen indikator, pertimbangkan untuk menonaktifkan atau memperbarui data tanpa menghapusnya.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Batal</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Hapus</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            )}
                         </>
                     )}
                 </DropdownMenuContent>
+                )}
             </DropdownMenu>
 
             {/* <ProfileDetailDialog profile={profile} open={isDetailOpen} onOpenChange={setIsDetailOpen} /> */}

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 
 function mapTargetUnitToDb(u: string): 'percent' | 'minute' {
@@ -58,9 +59,37 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
+    const linked = await prisma.submittedIndicator.findMany({
+      where: { profileId: id },
+      select: {
+        status: true,
+        achievements: { select: { id: true }, take: 1 },
+      },
+    })
+    if (linked.length > 0) {
+      const hasAchievements = linked.some(
+        (item) => (item.achievements?.length ?? 0) > 0,
+      )
+      const hasVerifiedSubmission = linked.some(
+        (item) => item.status === "Diverifikasi",
+      )
+      const reason = hasAchievements || hasVerifiedSubmission
+        ? "Profil indikator tidak dapat dihapus karena indikator ini sudah diproses dan memiliki data capaian. Silakan nonaktifkan atau edit data tanpa menghapusnya."
+        : "Profil indikator tidak dapat dihapus karena sedang digunakan di manajemen indikator. Silakan nonaktifkan atau edit data tanpa menghapusnya."
+      return NextResponse.json({ error: reason }, { status: 400 })
+    }
     await prisma.indicatorProfile.delete({ where: { id } })
     return NextResponse.json({ ok: true })
   } catch (e: any) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2003') {
+      return NextResponse.json(
+        {
+          error:
+            "Profil indikator tidak dapat dihapus karena sudah digunakan dalam manajemen indikator atau memiliki capaian yang dilaporkan. Silakan nonaktifkan atau edit data tanpa menghapusnya."
+        },
+        { status: 400 }
+      )
+    }
     return NextResponse.json(
       { error: e.message || 'Failed to delete profile' },
       { status: 500 },

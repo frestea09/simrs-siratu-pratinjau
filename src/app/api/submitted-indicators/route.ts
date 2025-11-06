@@ -14,7 +14,32 @@ const mapStatusToUi = (s: string): 'Menunggu Persetujuan' | 'Diverifikasi' | 'Di
   s === 'MenungguPersetujuan' ? 'Menunggu Persetujuan' : (s as any)
 )
 
+function resolveLockState(si: any) {
+  const achievementsCount = si?._count?.achievements ?? 0
+  const hasAchievements = achievementsCount > 0
+  const isVerified = si.status === 'Diverifikasi'
+
+  if (hasAchievements) {
+    return {
+      locked: true,
+      lockedReason:
+        'Pengajuan indikator ini tidak dapat dihapus karena sudah memiliki data capaian yang diproses. Silakan nonaktifkan atau perbarui datanya tanpa menghapus.',
+    }
+  }
+
+  if (isVerified) {
+    return {
+      locked: true,
+      lockedReason:
+        'Pengajuan indikator ini tidak dapat dihapus karena telah diverifikasi. Silakan nonaktifkan atau perbarui data tanpa menghapusnya.',
+    }
+  }
+
+  return { locked: false, lockedReason: undefined }
+}
+
 function toFrontend(si: any) {
+  const lock = resolveLockState(si)
   return {
     id: si.id,
     name: si.name,
@@ -29,12 +54,19 @@ function toFrontend(si: any) {
     rejectionReason: si.rejectionReason ?? undefined,
     submittedById: si.submittedById,
     profileId: si.profileId,
+    locked: lock.locked,
+    lockedReason: lock.lockedReason,
   }
 }
 
 export async function GET() {
   try {
-    const items = await prisma.submittedIndicator.findMany({ orderBy: { submissionDate: 'desc' } })
+    const items = await prisma.submittedIndicator.findMany({
+      orderBy: { submissionDate: 'desc' },
+      include: {
+        _count: { select: { achievements: true } },
+      },
+    })
     return NextResponse.json(items.map(toFrontend))
   } catch (e: any) {
     return NextResponse.json({ error: e.message || 'Failed to fetch submitted indicators' }, { status: 500 })

@@ -35,6 +35,29 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
+    const existing = await prisma.submittedIndicator.findUnique({
+      where: { id },
+      select: {
+        status: true,
+        _count: { select: { achievements: true } },
+      },
+    })
+
+    if (!existing) {
+      return NextResponse.json({ error: 'Indicator not found' }, { status: 404 })
+    }
+
+    const achievementsCount = existing._count?.achievements ?? 0
+    const hasAchievements = achievementsCount > 0
+    const isVerified = existing.status === 'Diverifikasi'
+
+    if (hasAchievements || isVerified) {
+      const reason = hasAchievements
+        ? 'Pengajuan indikator tidak dapat dihapus karena sudah memiliki data capaian yang dilaporkan. Silakan nonaktifkan atau perbarui data tanpa menghapusnya.'
+        : 'Pengajuan indikator tidak dapat dihapus karena telah diverifikasi. Silakan nonaktifkan atau perbarui data tanpa menghapusnya.'
+      return NextResponse.json({ error: reason }, { status: 400 })
+    }
+
     await prisma.$transaction([
       prisma.indicator.deleteMany({ where: { submissionId: id } }),
       prisma.submittedIndicator.delete({ where: { id } }),

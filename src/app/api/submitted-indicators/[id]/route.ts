@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { eventBus } from '@/lib/realtime-event-bus'
+import { loadSubmittedIndicatorForEvent, submittedIndicatorToFrontend } from '@/lib/indicator-mapper'
 
 const mapCategoryToDb = (c: string): 'INM' | 'IMP_RS' | 'IMPU' | 'SPM' => (c === 'IMP-RS' ? 'IMP_RS' : (c as any))
 const mapFreqToDb = (f: string): 'Harian' | 'Mingguan' | 'Bulanan' | 'Triwulan' | 'Tahunan' => (f as any)
@@ -23,7 +25,12 @@ export async function PATCH(
     if ('rejectionReason' in body) data.rejectionReason = body.rejectionReason ?? null
     if ('status' in body) data.status = body.status === 'Menunggu Persetujuan' ? 'MenungguPersetujuan' : body.status
     const updated = await prisma.submittedIndicator.update({ where: { id }, data })
-    return NextResponse.json(updated)
+    const payload = await loadSubmittedIndicatorForEvent(updated.id)
+    if (payload) {
+      eventBus.emit('submittedIndicator:updated', payload)
+      return NextResponse.json(payload)
+    }
+    return NextResponse.json(submittedIndicatorToFrontend(updated))
   } catch (e: any) {
     return NextResponse.json({ error: e.message || 'Failed to update submitted indicator' }, { status: 500 })
   }
@@ -62,6 +69,7 @@ export async function DELETE(
       prisma.indicator.deleteMany({ where: { submissionId: id } }),
       prisma.submittedIndicator.delete({ where: { id } }),
     ])
+    eventBus.emit('submittedIndicator:deleted', { id })
     return NextResponse.json({ ok: true })
   } catch (e: any) {
     return NextResponse.json({ error: e.message || 'Failed to delete submitted indicator' }, { status: 500 })

@@ -3,7 +3,6 @@
 
 import { create } from "zustand"
 import React, { createContext, useContext, useEffect, useRef } from "react"
-import { useNotificationStore } from "./notification-store"
 
 export type UserRole =
   | "Admin Sistem"
@@ -126,14 +125,5 @@ export const useUserStore = (): UserState => {
     throw new Error("useUserStore must be used within a UserStoreProvider")
   }
 
-  const userState = store((state) => state)
-  const setNotificationsForUser = useNotificationStore(
-    (state) => state.setNotificationsForUser
-  )
-
-  useEffect(() => {
-    setNotificationsForUser(userState.currentUser, userState.users)
-  }, [userState.currentUser, userState.users, setNotificationsForUser])
-
-  return userState
+  return store((state) => state)
 }

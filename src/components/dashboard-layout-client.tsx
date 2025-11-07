@@ -49,6 +49,7 @@ import { NotificationPopover } from "./organisms/notification-popover"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { logout } from "@/lib/actions/auth"
+import { useRealtimeEvents } from "@/hooks/use-realtime-events"
 
 const navItems: NavItemType[] = [
   {
@@ -151,6 +152,7 @@ export default function DashboardClientLayout({
   const router = useRouter()
   const { currentUser, clearCurrentUser } = useUserStore()
   const { addLog } = useLogStore()
+  useRealtimeEvents(currentUser)
   const handleLogout = React.useCallback(async () => {
     if (currentUser?.name) {
       addLog({

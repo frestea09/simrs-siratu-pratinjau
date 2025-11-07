@@ -1,63 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { cookies } from 'next/headers'
+import { eventBus } from '@/lib/realtime-event-bus'
+import { submittedIndicatorToFrontend } from '@/lib/indicator-mapper'
 
 const mapCategoryToDb = (c: string): 'INM' | 'IMP_RS' | 'IMPU' | 'SPM' => (c === 'IMP-RS' ? 'IMP_RS' : (c as any))
-const mapCategoryToUi = (c: string): 'INM' | 'IMP-RS' | 'IMPU' | 'SPM' => (c === 'IMP_RS' ? 'IMP-RS' : (c as any))
 const mapFreqToDb = (f: string): 'Harian' | 'Mingguan' | 'Bulanan' | 'Triwulan' | 'Tahunan' => (f as any)
 const mapUnitToDb = (u: string): 'percent' | 'minute' => (u === '%' ? 'percent' : 'minute')
-const mapUnitToUi = (u: string): '%' | 'menit' => (u === 'percent' ? '%' : 'menit')
 const mapStatusToDb = (s?: string): 'MenungguPersetujuan' | 'Diverifikasi' | 'Ditolak' => (
   s === 'Diverifikasi' ? 'Diverifikasi' : s === 'Ditolak' ? 'Ditolak' : 'MenungguPersetujuan'
 )
-const mapStatusToUi = (s: string): 'Menunggu Persetujuan' | 'Diverifikasi' | 'Ditolak' => (
-  s === 'MenungguPersetujuan' ? 'Menunggu Persetujuan' : (s as any)
-)
-
-function resolveLockState(si: any) {
-  const achievementsCount = si?._count?.achievements ?? 0
-  const hasAchievements = achievementsCount > 0
-  const isVerified = si.status === 'Diverifikasi'
-
-  if (hasAchievements) {
-    return {
-      locked: true,
-      lockedReason:
-        'Pengajuan indikator ini tidak dapat dihapus karena sudah memiliki data capaian yang diproses. Silakan nonaktifkan atau perbarui datanya tanpa menghapus.',
-    }
-  }
-
-  if (isVerified) {
-    return {
-      locked: true,
-      lockedReason:
-        'Pengajuan indikator ini tidak dapat dihapus karena telah diverifikasi. Silakan nonaktifkan atau perbarui data tanpa menghapusnya.',
-    }
-  }
-
-  return { locked: false, lockedReason: undefined }
-}
-
-function toFrontend(si: any) {
-  const lock = resolveLockState(si)
-  return {
-    id: si.id,
-    name: si.name,
-    category: mapCategoryToUi(si.category),
-    description: si.description ?? '',
-    unit: si.unit,
-    frequency: si.frequency,
-    status: mapStatusToUi(si.status),
-    submissionDate: (si.submissionDate instanceof Date ? si.submissionDate : new Date(si.submissionDate)).toISOString(),
-    standard: si.standard,
-    standardUnit: mapUnitToUi(si.standardUnit),
-    rejectionReason: si.rejectionReason ?? undefined,
-    submittedById: si.submittedById,
-    profileId: si.profileId,
-    locked: lock.locked,
-    lockedReason: lock.lockedReason,
-  }
-}
 
 export async function GET() {
   try {
@@ -67,7 +19,7 @@ export async function GET() {
         _count: { select: { achievements: true } },
       },
     })
-    return NextResponse.json(items.map(toFrontend))
+    return NextResponse.json(items.map(submittedIndicatorToFrontend))
   } catch (e: any) {
     return NextResponse.json({ error: e.message || 'Failed to fetch submitted indicators' }, { status: 500 })
   }
@@ -139,7 +91,15 @@ export async function POST(req: NextRequest) {
         submittedById,
       },
     })
-    return NextResponse.json(toFrontend(created), { status: 201 })
+    const createdWithMeta = await prisma.submittedIndicator.findUnique({
+      where: { id: created.id },
+      include: {
+        _count: { select: { achievements: true } },
+      },
+    })
+    const payload = submittedIndicatorToFrontend(createdWithMeta ?? created)
+    eventBus.emit('submittedIndicator:created', payload)
+    return NextResponse.json(payload, { status: 201 })
   } catch (e: any) {
     return NextResponse.json({ error: e.message || 'Failed to submit indicator' }, { status: 500 })
   }

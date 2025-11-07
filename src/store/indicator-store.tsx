@@ -266,6 +266,8 @@ type IndicatorState = {
     data: Partial<Omit<SubmittedIndicator, "id" | "submissionDate">>
   ) => Promise<void>
   removeSubmittedIndicator: (id: string) => Promise<void>
+  upsertSubmittedIndicatorFromServer: (indicator: SubmittedIndicator) => void
+  removeSubmittedIndicatorFromServer: (id: string) => void
 }
 
 const createIndicatorStore = () => create<IndicatorState>((set, get) => ({
@@ -391,9 +393,15 @@ const createIndicatorStore = () => create<IndicatorState>((set, get) => ({
       try { const err = await res.json(); throw new Error(err?.error || 'Failed to submit indicator') } catch { throw new Error('Failed to submit indicator') }
     }
     const created: SubmittedIndicator = await res.json()
-    set((state) => ({
-      submittedIndicators: [created, ...state.submittedIndicators].sort((a,b) => new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime()),
-    }))
+    set((state) => {
+      const exists = state.submittedIndicators.some((item) => item.id === created.id)
+      const next = exists
+        ? state.submittedIndicators.map((item) => (item.id === created.id ? created : item))
+        : [created, ...state.submittedIndicators]
+      return {
+        submittedIndicators: next.sort((a,b) => new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime()),
+      }
+    })
     if (sendNotificationCallback) sendNotificationCallback()
     return created.id
   },
@@ -447,6 +455,28 @@ const createIndicatorStore = () => create<IndicatorState>((set, get) => ({
         throw new Error('Failed to delete submitted indicator')
       }
     }
+    set((state) => ({
+      submittedIndicators: state.submittedIndicators.filter((i) => i.id !== id),
+    }))
+  },
+
+  upsertSubmittedIndicatorFromServer: (indicator) => {
+    set((state) => {
+      const existingIndex = state.submittedIndicators.findIndex((item) => item.id === indicator.id)
+      if (existingIndex >= 0) {
+        const updated = [...state.submittedIndicators]
+        updated[existingIndex] = indicator
+        return {
+          submittedIndicators: updated.sort((a, b) => new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime()),
+        }
+      }
+      return {
+        submittedIndicators: [indicator, ...state.submittedIndicators].sort((a, b) => new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime()),
+      }
+    })
+  },
+
+  removeSubmittedIndicatorFromServer: (id) => {
     set((state) => ({
       submittedIndicators: state.submittedIndicators.filter((i) => i.id !== id),
     }))

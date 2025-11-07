@@ -393,9 +393,15 @@ const createIndicatorStore = () => create<IndicatorState>((set, get) => ({
       try { const err = await res.json(); throw new Error(err?.error || 'Failed to submit indicator') } catch { throw new Error('Failed to submit indicator') }
     }
     const created: SubmittedIndicator = await res.json()
-    set((state) => ({
-      submittedIndicators: [created, ...state.submittedIndicators].sort((a,b) => new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime()),
-    }))
+    set((state) => {
+      const exists = state.submittedIndicators.some((item) => item.id === created.id)
+      const next = exists
+        ? state.submittedIndicators.map((item) => (item.id === created.id ? created : item))
+        : [created, ...state.submittedIndicators]
+      return {
+        submittedIndicators: next.sort((a,b) => new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime()),
+      }
+    })
     if (sendNotificationCallback) sendNotificationCallback()
     return created.id
   },

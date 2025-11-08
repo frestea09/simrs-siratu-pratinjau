@@ -295,9 +295,18 @@ const createIndicatorStore = () => create<IndicatorState>((set, get) => ({
       }
     }
     const created: IndicatorProfile = await res.json()
-    set((state) => ({
-      profiles: [created, ...state.profiles].sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
-    }))
+    set((state) => {
+      const alreadyExists = state.profiles.some((profile) => profile.id === created.id)
+      if (alreadyExists) {
+        return state
+      }
+
+      return {
+        profiles: [created, ...state.profiles].sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        ),
+      }
+    })
     return created.id
   },
   updateProfile: async (id, data) => {

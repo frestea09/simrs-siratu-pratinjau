@@ -40,6 +40,7 @@ export type IndicatorProfileEventPayload = {
   rejectionReason?: string
   createdBy: string
   createdAt: string
+  updatedAt: string
   unit: string
   locked?: boolean
   lockedReason?: string

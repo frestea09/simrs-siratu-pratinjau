@@ -72,6 +72,9 @@ export function mapProfileToFrontend(p: any) {
     createdAt: (
       p.createdAt instanceof Date ? p.createdAt : new Date(p.createdAt)
     ).toISOString(),
+    updatedAt: (
+      p.updatedAt instanceof Date ? p.updatedAt : new Date(p.updatedAt)
+    ).toISOString(),
     unit: p.unit,
     locked: hasSubmissions,
     lockedReason,

@@ -13,11 +13,17 @@ export function GET(req: NextRequest) {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`))
       }
 
+      const onProfileCreated = (payload: any) => send('profile:created', payload)
+      const onProfileUpdated = (payload: any) => send('profile:updated', payload)
+      const onProfileDeleted = (payload: any) => send('profile:deleted', payload)
       const onCreated = (payload: any) => send('submittedIndicator:created', payload)
       const onUpdated = (payload: any) => send('submittedIndicator:updated', payload)
       const onDeleted = (payload: any) => send('submittedIndicator:deleted', payload)
       const onNotification = (payload: any) => send('notification:new', payload)
 
+      eventBus.on('profile:created', onProfileCreated)
+      eventBus.on('profile:updated', onProfileUpdated)
+      eventBus.on('profile:deleted', onProfileDeleted)
       eventBus.on('submittedIndicator:created', onCreated)
       eventBus.on('submittedIndicator:updated', onUpdated)
       eventBus.on('submittedIndicator:deleted', onDeleted)
@@ -27,6 +33,9 @@ export function GET(req: NextRequest) {
       controller.enqueue(encoder.encode(': connected\n\n'))
 
       const close = () => {
+        eventBus.off('profile:created', onProfileCreated)
+        eventBus.off('profile:updated', onProfileUpdated)
+        eventBus.off('profile:deleted', onProfileDeleted)
         eventBus.off('submittedIndicator:created', onCreated)
         eventBus.off('submittedIndicator:updated', onUpdated)
         eventBus.off('submittedIndicator:deleted', onDeleted)

@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-
-function mapTargetUnitToDb(u: string): 'percent' | 'minute' {
-  return u === '%' ? 'percent' : 'minute'
-}
+import { eventBus } from '@/lib/realtime-event-bus'
+import { mapProfileToFrontend, mapTargetUnitToDb } from '../utils'
 
 export async function PATCH(
   req: NextRequest,
@@ -43,8 +41,22 @@ export async function PATCH(
           : body.status
     }
 
-    const updated = await prisma.indicatorProfile.update({ where: { id }, data })
-    return NextResponse.json(updated)
+    const updated = await prisma.indicatorProfile.update({
+      where: { id },
+      data,
+      include: {
+        submittedIndicators: {
+          select: {
+            id: true,
+            status: true,
+            achievements: { select: { id: true }, take: 1 },
+          },
+        },
+      },
+    })
+    const mapped = mapProfileToFrontend(updated)
+    eventBus.emit('profile:updated', mapped)
+    return NextResponse.json(mapped)
   } catch (e: any) {
     return NextResponse.json(
       { error: e.message || 'Failed to update profile' },
@@ -79,6 +91,7 @@ export async function DELETE(
       return NextResponse.json({ error: reason }, { status: 400 })
     }
     await prisma.indicatorProfile.delete({ where: { id } })
+    eventBus.emit('profile:deleted', { id })
     return NextResponse.json({ ok: true })
   } catch (e: any) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2003') {

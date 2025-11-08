@@ -32,6 +32,7 @@ export type IndicatorProfile = {
   rejectionReason?: string
   createdBy: string // user id
   createdAt: string
+  updatedAt: string
   unit: string
   locked?: boolean
   lockedReason?: string
@@ -98,6 +99,7 @@ const initialProfiles: IndicatorProfile[] = [
     status: 'Disetujui',
     createdBy: "user-1",
     createdAt: new Date("2023-01-10T10:00:00Z").toISOString(),
+    updatedAt: new Date("2023-01-10T10:00:00Z").toISOString(),
     unit: "IGD"
   },
   {
@@ -121,6 +123,7 @@ const initialProfiles: IndicatorProfile[] = [
     status: 'Disetujui',
     createdBy: "user-1",
     createdAt: new Date("2023-01-11T10:00:00Z").toISOString(),
+    updatedAt: new Date("2023-01-11T10:00:00Z").toISOString(),
     unit: "PPI"
   },
   {
@@ -144,6 +147,7 @@ const initialProfiles: IndicatorProfile[] = [
     status: 'Disetujui',
     createdBy: "user-1",
     createdAt: new Date("2023-01-12T10:00:00Z").toISOString(),
+    updatedAt: new Date("2023-01-12T10:00:00Z").toISOString(),
     unit: "IBS"
   },
   {
@@ -167,6 +171,7 @@ const initialProfiles: IndicatorProfile[] = [
     status: 'Disetujui',
     createdBy: "user-1",
     createdAt: new Date("2023-01-13T10:00:00Z").toISOString(),
+    updatedAt: new Date("2023-01-13T10:00:00Z").toISOString(),
     unit: "RANAP"
   },
 ];
@@ -233,12 +238,49 @@ const initialSubmittedIndicators: SubmittedIndicator[] = [
 
 
 
+const sortProfiles = (profiles: IndicatorProfile[]) =>
+  [...profiles].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  )
+
+const mergeProfiles = (
+  current: IndicatorProfile[],
+  incoming: IndicatorProfile[],
+) => {
+  const currentMap = new Map(current.map((profile) => [profile.id, profile]))
+
+  const incomingIds = new Set(incoming.map((profile) => profile.id))
+
+  const merged = incoming.map((profile) => {
+    const existing = currentMap.get(profile.id)
+    if (!existing) {
+      return profile
+    }
+
+    const existingUpdatedAt = new Date(existing.updatedAt).getTime()
+    const incomingUpdatedAt = new Date(profile.updatedAt).getTime()
+
+    return existingUpdatedAt > incomingUpdatedAt ? existing : profile
+  })
+
+  const extras = current.filter((profile) => !incomingIds.has(profile.id))
+
+  return sortProfiles([...merged, ...extras])
+}
+
 type IndicatorState = {
   profiles: IndicatorProfile[]
   fetchProfiles: () => Promise<void>
-  addProfile: (profile: Omit<IndicatorProfile, "id" | "createdAt">) => Promise<string>
-  updateProfile: (id: string, data: Partial<Omit<IndicatorProfile, "id" | "createdAt">>) => Promise<void>
+  addProfile: (
+    profile: Omit<IndicatorProfile, "id" | "createdAt" | "updatedAt">
+  ) => Promise<string>
+  updateProfile: (
+    id: string,
+    data: Partial<Omit<IndicatorProfile, "id" | "createdAt" | "updatedAt">>,
+  ) => Promise<void>
   removeProfile: (id: string) => Promise<void>
+  upsertProfileFromServer: (profile: IndicatorProfile) => void
+  removeProfileFromServer: (id: string) => void
 
   indicators: Indicator[]
   submittedIndicators: SubmittedIndicator[]
@@ -276,7 +318,7 @@ const createIndicatorStore = () => create<IndicatorState>((set, get) => ({
     const res = await fetch('/api/profiles', { cache: 'no-store' })
     if (!res.ok) throw new Error('Failed to fetch profiles')
     const data: IndicatorProfile[] = await res.json()
-    set({ profiles: data })
+    set((state) => ({ profiles: mergeProfiles(state.profiles, data) }))
   },
   addProfile: async (profileData) => {
     const res = await fetch('/api/profiles', {
@@ -293,9 +335,18 @@ const createIndicatorStore = () => create<IndicatorState>((set, get) => ({
       }
     }
     const created: IndicatorProfile = await res.json()
-    set((state) => ({
-      profiles: [created, ...state.profiles].sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
-    }))
+    set((state) => {
+      const existing = state.profiles.find((profile) => profile.id === created.id)
+      if (existing) {
+        const existingUpdatedAt = new Date(existing.updatedAt).getTime()
+        const incomingUpdatedAt = new Date(created.updatedAt).getTime()
+        if (existingUpdatedAt >= incomingUpdatedAt) {
+          return state
+        }
+      }
+
+      return { profiles: sortProfiles([created, ...state.profiles]) }
+    })
     return created.id
   },
   updateProfile: async (id, data) => {
@@ -305,8 +356,11 @@ const createIndicatorStore = () => create<IndicatorState>((set, get) => ({
       body: JSON.stringify(data),
     })
     if (!res.ok) throw new Error('Failed to update profile')
+    const updated: IndicatorProfile = await res.json()
     set((state) => ({
-      profiles: state.profiles.map((p) => (p.id === id ? { ...p, ...data } as IndicatorProfile : p)),
+      profiles: sortProfiles(
+        state.profiles.map((p) => (p.id === id ? updated : p))
+      ),
     }))
   },
   removeProfile: async (id) => {
@@ -319,6 +373,25 @@ const createIndicatorStore = () => create<IndicatorState>((set, get) => ({
         throw new Error('Failed to delete profile')
       }
     }
+    set((state) => ({ profiles: state.profiles.filter((p) => p.id !== id) }))
+  },
+  upsertProfileFromServer: (profile) => {
+    set((state) => {
+      const existing = state.profiles.find((p) => p.id === profile.id)
+      if (existing) {
+        const existingUpdatedAt = new Date(existing.updatedAt).getTime()
+        const incomingUpdatedAt = new Date(profile.updatedAt).getTime()
+        if (incomingUpdatedAt < existingUpdatedAt) {
+          return state
+        }
+        const updated = state.profiles.map((p) => (p.id === profile.id ? profile : p))
+        return { profiles: sortProfiles(updated) }
+      }
+
+      return { profiles: sortProfiles([profile, ...state.profiles]) }
+    })
+  },
+  removeProfileFromServer: (id) => {
     set((state) => ({ profiles: state.profiles.filter((p) => p.id !== id) }))
   },
 

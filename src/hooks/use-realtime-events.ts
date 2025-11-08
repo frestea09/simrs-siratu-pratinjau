@@ -9,6 +9,8 @@ export function useRealtimeEvents(currentUser: User | null) {
   const indicatorStore = useIndicatorStore()
   const notificationStore = useNotificationStore()
   const {
+    upsertProfileFromServer,
+    removeProfileFromServer,
     upsertSubmittedIndicatorFromServer: upsertSubmittedIndicator,
     removeSubmittedIndicatorFromServer: removeSubmittedIndicator,
   } = indicatorStore
@@ -38,6 +40,35 @@ export function useRealtimeEvents(currentUser: User | null) {
 
     const source = new EventSource('/api/realtime')
     eventSourceRef.current = source
+
+    source.addEventListener('profile:created', (event) => {
+      try {
+        const data = JSON.parse((event as MessageEvent).data)
+        upsertProfileFromServer(data)
+      } catch (error) {
+        console.error('Failed to process profile creation event', error)
+      }
+    })
+
+    source.addEventListener('profile:updated', (event) => {
+      try {
+        const data = JSON.parse((event as MessageEvent).data)
+        upsertProfileFromServer(data)
+      } catch (error) {
+        console.error('Failed to process profile update event', error)
+      }
+    })
+
+    source.addEventListener('profile:deleted', (event) => {
+      try {
+        const data = JSON.parse((event as MessageEvent).data)
+        if (data?.id) {
+          removeProfileFromServer(data.id)
+        }
+      } catch (error) {
+        console.error('Failed to process profile deletion event', error)
+      }
+    })
 
     source.addEventListener('submittedIndicator:created', (event) => {
       try {
@@ -85,5 +116,11 @@ export function useRealtimeEvents(currentUser: User | null) {
       source.close()
       eventSourceRef.current = null
     }
-  }, [upsertSubmittedIndicator, removeSubmittedIndicator, receiveNotification])
+  }, [
+    upsertProfileFromServer,
+    removeProfileFromServer,
+    upsertSubmittedIndicator,
+    removeSubmittedIndicator,
+    receiveNotification,
+  ])
 }

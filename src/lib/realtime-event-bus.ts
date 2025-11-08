@@ -18,6 +18,34 @@ export type SubmittedIndicatorEventPayload = {
   lockedReason?: string
 }
 
+export type IndicatorProfileEventPayload = {
+  id: string
+  title: string
+  purpose: string
+  definition: string
+  implication: string
+  calculationMethod: 'percentage' | 'average'
+  numerator: string
+  denominator: string
+  target: number
+  targetUnit: '%' | 'menit'
+  inclusionCriteria: string
+  exclusionCriteria: string
+  dataRecording: string
+  unitRecap: string
+  analysisReporting: string
+  area: string
+  pic: string
+  status: 'Draf' | 'Menunggu Persetujuan' | 'Disetujui' | 'Ditolak'
+  rejectionReason?: string
+  createdBy: string
+  createdAt: string
+  updatedAt: string
+  unit: string
+  locked?: boolean
+  lockedReason?: string
+}
+
 export type NotificationEventPayload = {
   id: string
   timestamp: string
@@ -30,6 +58,9 @@ export type NotificationEventPayload = {
 }
 
 type AppEvents = {
+  'profile:created': IndicatorProfileEventPayload
+  'profile:updated': IndicatorProfileEventPayload
+  'profile:deleted': { id: string }
   'submittedIndicator:created': SubmittedIndicatorEventPayload
   'submittedIndicator:updated': SubmittedIndicatorEventPayload
   'submittedIndicator:deleted': { id: string }

@@ -239,6 +239,8 @@ type IndicatorState = {
   addProfile: (profile: Omit<IndicatorProfile, "id" | "createdAt">) => Promise<string>
   updateProfile: (id: string, data: Partial<Omit<IndicatorProfile, "id" | "createdAt">>) => Promise<void>
   removeProfile: (id: string) => Promise<void>
+  upsertProfileFromServer: (profile: IndicatorProfile) => void
+  removeProfileFromServer: (id: string) => void
 
   indicators: Indicator[]
   submittedIndicators: SubmittedIndicator[]
@@ -319,6 +321,22 @@ const createIndicatorStore = () => create<IndicatorState>((set, get) => ({
         throw new Error('Failed to delete profile')
       }
     }
+    set((state) => ({ profiles: state.profiles.filter((p) => p.id !== id) }))
+  },
+  upsertProfileFromServer: (profile) => {
+    set((state) => {
+      const exists = state.profiles.some((p) => p.id === profile.id)
+      const updated = exists
+        ? state.profiles.map((p) => (p.id === profile.id ? profile : p))
+        : [profile, ...state.profiles]
+      return {
+        profiles: updated.sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        ),
+      }
+    })
+  },
+  removeProfileFromServer: (id) => {
     set((state) => ({ profiles: state.profiles.filter((p) => p.id !== id) }))
   },
 

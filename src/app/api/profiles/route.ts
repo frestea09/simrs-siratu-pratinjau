@@ -6,6 +6,7 @@ import {
   mapTargetUnitToDb,
   resolveAuthorIdFromCookie,
 } from './utils'
+import { eventBus } from '@/lib/realtime-event-bus'
 
 export async function GET() {
   try {
@@ -69,7 +70,9 @@ export async function POST(req: NextRequest) {
         authorId,
       },
     })
-    return NextResponse.json(mapProfileToFrontend(created), { status: 201 })
+    const mapped = mapProfileToFrontend(created)
+    eventBus.emit('profile:created', mapped)
+    return NextResponse.json(mapped, { status: 201 })
   } catch (e: any) {
     return NextResponse.json({ error: e.message || 'Failed to create profile' }, { status: 500 })
   }

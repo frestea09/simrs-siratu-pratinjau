@@ -97,7 +97,7 @@ export function ProfileForm({ setOpen, profileToEdit }: ProfileFormProps) {
 
 
   async function handleSave(values: z.infer<typeof profileSchema>, status: IndicatorProfile['status']) {
-    const dataToSave: Omit<IndicatorProfile, "id" | "createdAt"> = {
+    const dataToSave: Omit<IndicatorProfile, "id" | "createdAt" | "updatedAt"> = {
         ...values,
         status,
         createdBy: currentUser?.id || '',

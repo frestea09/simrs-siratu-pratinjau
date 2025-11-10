@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { eventBus } from '@/lib/realtime-event-bus'
 import { mapProfileToFrontend, mapTargetUnitToDb } from '../utils'
@@ -71,7 +70,12 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    const linked = await prisma.submittedIndicator.findMany({
+    type LinkedSubmission = {
+      status: string
+      achievements: { id: string }[]
+    }
+
+    const linked: LinkedSubmission[] = await prisma.submittedIndicator.findMany({
       where: { profileId: id },
       select: {
         status: true,
@@ -93,8 +97,13 @@ export async function DELETE(
     await prisma.indicatorProfile.delete({ where: { id } })
     eventBus.emit('profile:deleted', { id })
     return NextResponse.json({ ok: true })
-  } catch (e: any) {
-    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2003') {
+  } catch (e: unknown) {
+    if (
+      e &&
+      typeof e === 'object' &&
+      'code' in e &&
+      (e as { code?: string }).code === 'P2003'
+    ) {
       return NextResponse.json(
         {
           error:
@@ -103,8 +112,9 @@ export async function DELETE(
         { status: 400 }
       )
     }
+    const message = e instanceof Error ? e.message : 'Failed to delete profile'
     return NextResponse.json(
-      { error: e.message || 'Failed to delete profile' },
+      { error: message },
       { status: 500 },
     )
   }

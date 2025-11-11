@@ -158,23 +158,71 @@ async function elementToPng(element: HTMLElement, pixelRatio = 2) {
   })
 }
 
+const fallbackCopyImageToClipboard = async (dataUrl: string) => {
+  const container = document.createElement("div")
+  container.contentEditable = "true"
+  container.style.position = "fixed"
+  container.style.pointerEvents = "none"
+  container.style.opacity = "0"
+  container.style.userSelect = "none"
+  container.style.left = "-9999px"
+  container.style.top = "0"
+
+  const image = document.createElement("img")
+  image.src = dataUrl
+
+  container.appendChild(image)
+  document.body.appendChild(container)
+
+  const selection = document.getSelection()
+  const originalRange =
+    selection && selection.rangeCount > 0 ? selection.getRangeAt(0) : null
+
+  const range = document.createRange()
+  range.selectNodeContents(container)
+
+  selection?.removeAllRanges()
+  selection?.addRange(range)
+
+  let successful = false
+
+  try {
+    successful = document.execCommand("copy")
+  } finally {
+    selection?.removeAllRanges()
+    if (originalRange && selection) {
+      selection.addRange(originalRange)
+    }
+    document.body.removeChild(container)
+  }
+
+  if (!successful) {
+    throw new Error("Fallback image copy failed")
+  }
+}
+
 export async function copyElementAsImage(element: HTMLElement) {
   const dataUrl = await elementToPng(element)
   const response = await fetch(dataUrl)
   const blob = await response.blob()
 
-  if (
+  const canUseAdvancedClipboard =
     navigator.clipboard &&
     "write" in navigator.clipboard &&
     typeof ClipboardItem !== "undefined"
-  ) {
-    const clipboardItemInput: Record<string, Blob> = {
-      [blob.type]: blob,
-    }
 
-    await navigator.clipboard.write([new ClipboardItem(clipboardItemInput)])
-    return
+  if (canUseAdvancedClipboard) {
+    try {
+      const clipboardItemInput: Record<string, Blob> = {
+        [blob.type]: blob,
+      }
+
+      await navigator.clipboard.write([new ClipboardItem(clipboardItemInput)])
+      return
+    } catch (error) {
+      console.warn("Unable to write image to clipboard", error)
+    }
   }
 
-  throw new Error("Clipboard API tidak tersedia")
+  await fallbackCopyImageToClipboard(dataUrl)
 }

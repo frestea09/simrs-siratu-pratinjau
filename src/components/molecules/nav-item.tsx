@@ -11,7 +11,8 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
-} from '@/components/ui/sidebar';
+  useSidebar,
+} from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils';
 import type { NavItemProps } from './nav-item.type'
 import { useActivePath } from './nav-item.utils'
@@ -81,6 +82,13 @@ const NavSubMenu = ({ item, openMenus, setOpenMenus, isSubItem }: NavItemProps) 
 const NavLink = ({ item, isSubItem }: Pick<NavItemProps, "item" | "isSubItem">) => {
   const pathname = usePathname()
   const isActive = item.href ? pathname.startsWith(item.href) : false
+  const { isMobile, setOpenMobile } = useSidebar()
+  const handleItemClick = React.useCallback(() => {
+    item.onClick?.()
+    if (isMobile) {
+      setOpenMobile(false)
+    }
+  }, [item, isMobile, setOpenMobile])
   const children = (
     <div className="flex flex-row gap-4">
       {item.icon && <item.icon className={cn(isSubItem ? "size-5" : "size-6")} />}
@@ -91,13 +99,13 @@ const NavLink = ({ item, isSubItem }: Pick<NavItemProps, "item" | "isSubItem">) 
   if (isSubItem) {
     if (item.href) {
       return (
-        <SidebarMenuSubButton isActive={isActive} onClick={item.onClick} asChild>
+        <SidebarMenuSubButton isActive={isActive} onClick={handleItemClick} asChild>
           <Link href={item.href}>{children}</Link>
         </SidebarMenuSubButton>
       )
     }
     return (
-      <SidebarMenuSubButton isActive={isActive} onClick={item.onClick} type="button">
+      <SidebarMenuSubButton isActive={isActive} onClick={handleItemClick} type="button">
         {children}
       </SidebarMenuSubButton>
     )
@@ -108,7 +116,7 @@ const NavLink = ({ item, isSubItem }: Pick<NavItemProps, "item" | "isSubItem">) 
       isActive={isActive}
       tooltip={item.label}
       size="lg"
-      onClick={item.onClick}
+      onClick={handleItemClick}
       asChild={!!item.href}
     >
       {item.href ? (

@@ -11,6 +11,7 @@ const mapRoleUiToDb = (r: string): any => {
     case 'Sub. Komite Peningkatan Mutu': return 'SubKomitePeningkatanMutu'
     case 'Sub. Komite Keselamatan Pasien': return 'SubKomiteKeselamatanPasien'
     case 'Sub. Komite Manajemen Risiko': return 'SubKomiteManajemenRisiko'
+    case 'Petugas Pelaporan': return 'PetugasPelaporan'
     default: return 'PICMutu'
   }
 }
@@ -35,13 +36,14 @@ export async function PATCH(
         case 'PICMutu': return 'PIC Mutu'
         case 'PJRuangan': return 'PJ Ruangan'
         case 'KepalaUnitInstalasi': return 'Kepala Unit/Instalasi'
-        case 'Direktur': return 'Direktur'
-        case 'SubKomitePeningkatanMutu': return 'Sub. Komite Peningkatan Mutu'
-        case 'SubKomiteKeselamatanPasien': return 'Sub. Komite Keselamatan Pasien'
-        case 'SubKomiteManajemenRisiko': return 'Sub. Komite Manajemen Risiko'
-        default: return r
-      }
-    }
+    case 'Direktur': return 'Direktur'
+    case 'SubKomitePeningkatanMutu': return 'Sub. Komite Peningkatan Mutu'
+    case 'SubKomiteKeselamatanPasien': return 'Sub. Komite Keselamatan Pasien'
+    case 'SubKomiteManajemenRisiko': return 'Sub. Komite Manajemen Risiko'
+    case 'PetugasPelaporan': return 'Petugas Pelaporan'
+    default: return r
+  }
+}
     return NextResponse.json({
       id: updated.id,
       name: updated.name,

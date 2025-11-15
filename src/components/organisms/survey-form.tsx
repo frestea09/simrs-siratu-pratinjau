@@ -14,7 +14,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group"
 import { Label } from "../ui/label"
 import { Combobox } from "../ui/combobox"
-import { HOSPITAL_UNITS } from "@/lib/constants"
+import { useUnitOptions } from "@/hooks/use-unit-options"
 import { Alert, AlertDescription } from "../ui/alert"
 import { Info } from "lucide-react"
 
@@ -63,8 +63,6 @@ dimensions.forEach(dim => {
 });
 
 
-const unitOptions = HOSPITAL_UNITS.map((unit) => ({ value: unit, label: unit }))
-
 // --- Komponen Formulir Utama ---
 
 type SurveyFormProps = {
@@ -83,6 +81,7 @@ export function SurveyForm({ survey, onCancel, onSuccess }: SurveyFormProps) {
   const { toast } = useToast()
   const { currentUser } = useUserStore()
   const isEdit = !!survey
+  const { options: unitOptions, isLoading: unitsLoading } = useUnitOptions()
 
   const next = () =>
     setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev))
@@ -232,7 +231,14 @@ export function SurveyForm({ survey, onCancel, onSuccess }: SurveyFormProps) {
 
   const stepContent = React.useMemo(() => {
     if (currentStep === 0) {
-      return <UnitStep unit={unit} setUnit={setUnit} />
+      return (
+        <UnitStep
+          unit={unit}
+          setUnit={setUnit}
+          options={unitOptions}
+          disabled={unitsLoading}
+        />
+      )
     }
     const dimension = dimensions[currentStep - 1]
     if (!dimension) return null
@@ -244,7 +250,7 @@ export function SurveyForm({ survey, onCancel, onSuccess }: SurveyFormProps) {
         startNumber={stepStartQuestionNumber[currentStep]}
       />
     )
-  }, [answers, currentStep, handleAnswerChange, unit])
+  }, [answers, currentStep, handleAnswerChange, unit, unitOptions, unitsLoading])
 
   return (
     <div className="flex flex-col gap-8 p-1 md:flex-row">
@@ -352,7 +358,17 @@ const QuestionItem = React.memo(
 QuestionItem.displayName = "QuestionItem"
 
 const UnitStep = React.memo(
-  ({ unit, setUnit }: { unit: string; setUnit: (val: string) => void }) => (
+  ({
+    unit,
+    setUnit,
+    options,
+    disabled,
+  }: {
+    unit: string
+    setUnit: (val: string) => void
+    options: { value: string; label: string }[]
+    disabled?: boolean
+  }) => (
     <div className="space-y-4">
       <h3 className="text-xl font-semibold text-primary">
         Area / Unit Kerja Anda
@@ -362,11 +378,12 @@ const UnitStep = React.memo(
         kami dalam menganalisis data secara lebih spesifik.
       </p>
       <Combobox
-        options={unitOptions}
+        options={options}
         placeholder="Pilih unit Anda..."
         searchPlaceholder="Cari unit..."
         value={unit}
         onSelect={setUnit}
+        disabled={disabled}
       />
     </div>
   )

@@ -8,14 +8,13 @@ import { FormInputRadio } from "@/components/molecules/form-input-radio"
 import { FormInputSelect } from "@/components/molecules/form-input-select"
 import { FormInputDate } from "@/components/molecules/form-input-date"
 import { FormInputTime } from "@/components/molecules/form-input-time"
-import { HOSPITAL_UNITS } from "@/lib/constants"
+import { useUnitOptions } from "@/hooks/use-unit-options"
 import type { Step1PatientDataProps } from "./step1-patient-data.interface"
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
   <h3 className="text-lg font-semibold text-primary">{children}</h3>
 )
 
-const unitOptions = HOSPITAL_UNITS.map((unit) => ({ value: unit, label: unit }))
 const genderOptions = [
   { value: "Perempuan", label: "Perempuan" },
   { value: "Laki-laki", label: "Laki-laki" },
@@ -38,6 +37,7 @@ const payerOptions = [
 ]
 
 export function Step1PatientData({ data, onUpdate }: Step1PatientDataProps) {
+  const { options: unitOptions, isLoading: unitsLoading } = useUnitOptions()
   return (
     <div className="space-y-6">
       <SectionTitle>Data Pasien</SectionTitle>
@@ -102,6 +102,7 @@ export function Step1PatientData({ data, onUpdate }: Step1PatientDataProps) {
           items={unitOptions}
           value={data.careRoom ?? ""}
           onValueChange={(val) => onUpdate({ careRoom: val })}
+          disabled={unitsLoading}
         />
       </div>
     </div>

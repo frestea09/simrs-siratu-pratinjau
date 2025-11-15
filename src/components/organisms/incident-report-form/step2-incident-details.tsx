@@ -8,7 +8,7 @@ import { FormInputTime } from "@/components/molecules/form-input-time"
 import { FormInputTextarea } from "@/components/molecules/form-input-textarea"
 import { FormInputSelect } from "@/components/molecules/form-input-select"
 import { FormInputText } from "@/components/molecules/form-input-text"
-import { HOSPITAL_UNITS } from "@/lib/constants"
+import { useUnitOptions } from "@/hooks/use-unit-options"
 import { Combobox } from "@/components/ui/combobox"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
@@ -17,7 +17,6 @@ const SectionTitle = ({ children }: { children: React.ReactNode }) => (
     <h3 className="font-semibold text-lg text-primary">{children}</h3>
 )
 
-const unitOptions = HOSPITAL_UNITS.map(unit => ({ value: unit, label: unit }));
 const incidentTypeOptions = [
     { value: 'KPC', label: 'Kondisi Potensial Cedera (KPC)' }, { value: 'KNC', label: 'Kejadian Nyaris Cedera (KNC)' },
     { value: 'KTC', label: 'Kejadian Tidak Cedera (KTC)' }, { value: 'KTD', label: 'Kejadian Tidak Diharapkan (KTD)' },
@@ -30,6 +29,7 @@ const incidentLocationOptions = [
 ];
 
 export function Step2IncidentDetails({ data, onUpdate }: Step2IncidentDetailsProps) {
+    const { options: unitOptions, isLoading: unitsLoading } = useUnitOptions()
      return (
         <div className="space-y-6">
             <SectionTitle>Rincian Kejadian</SectionTitle>
@@ -64,7 +64,7 @@ export function Step2IncidentDetails({ data, onUpdate }: Step2IncidentDetailsPro
                     )}
                 </div>
             </div>
-            <FormInputSelect id="relatedUnit" label="Unit Terkait Insiden" placeholder="Pilih unit" items={unitOptions} value={data.relatedUnit ?? ""} onValueChange={val => onUpdate({ relatedUnit: val })} />
+            <FormInputSelect id="relatedUnit" label="Unit Terkait Insiden" placeholder="Pilih unit" items={unitOptions} value={data.relatedUnit ?? ""} onValueChange={val => onUpdate({ relatedUnit: val })} disabled={unitsLoading} />
         </div>
     )
 }

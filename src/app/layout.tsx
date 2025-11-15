@@ -11,6 +11,7 @@ import { IndicatorStoreProvider } from "@/store/indicator-store"
 import { IncidentStoreProvider } from "@/store/incident-store"
 import { RiskStoreProvider } from "@/store/risk-store"
 import { SurveyStoreProvider } from "@/store/survey-store"
+import { UnitStoreProvider } from "@/store/unit-store"
 
 export const metadata: Metadata = {
   title: "SIRATU",
@@ -26,22 +27,24 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className="font-body antialiased">
         <UserStoreProvider>
-          <LogStoreProvider>
-            <NotificationStoreProvider>
+          <UnitStoreProvider>
+            <LogStoreProvider>
+              <NotificationStoreProvider>
                 <IndicatorStoreProvider>
-                    <IncidentStoreProvider>
-                        <RiskStoreProvider>
-                            <SurveyStoreProvider>
-                                <TooltipProvider>
-                                    {children}
-                                    <Toaster />
-                                </TooltipProvider>
-                            </SurveyStoreProvider>
-                        </RiskStoreProvider>
-                    </IncidentStoreProvider>
+                  <IncidentStoreProvider>
+                    <RiskStoreProvider>
+                      <SurveyStoreProvider>
+                        <TooltipProvider>
+                          {children}
+                          <Toaster />
+                        </TooltipProvider>
+                      </SurveyStoreProvider>
+                    </RiskStoreProvider>
+                  </IncidentStoreProvider>
                 </IndicatorStoreProvider>
-            </NotificationStoreProvider>
-          </LogStoreProvider>
+              </NotificationStoreProvider>
+            </LogStoreProvider>
+          </UnitStoreProvider>
         </UserStoreProvider>
       </body>
     </html>

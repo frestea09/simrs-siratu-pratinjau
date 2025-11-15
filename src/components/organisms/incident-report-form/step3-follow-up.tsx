@@ -7,14 +7,12 @@ import { Incident } from "@/store/incident-store"
 import { Step3FollowUpProps } from "./step3-follow-up.interface"
 import { FormInputTextarea } from "@/components/molecules/form-input-textarea"
 import { FormInputRadio } from "@/components/molecules/form-input-radio"
-import { HOSPITAL_UNITS } from "@/lib/constants"
 import { useUserStore } from "@/store/user-store.tsx"
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
     <h3 className="font-semibold text-lg text-primary">{children}</h3>
 )
 
-const unitOptions = HOSPITAL_UNITS.map(unit => ({ value: unit, label: unit }));
 const firstActionByOptions = [
     { value: 'Tim', label: 'Tim' }, { value: 'Dokter', label: 'Dokter' },
     { value: 'Perawat', label: 'Perawat' }, { value: 'Petugas Lainnya', label: 'Petugas Lainnya' },

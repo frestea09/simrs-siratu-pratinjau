@@ -25,8 +25,8 @@ import { IndicatorProfile, useIndicatorStore } from "@/store/indicator-store"
 import { useToast } from "@/hooks/use-toast"
 import { useUserStore, UserRole } from "@/store/user-store.tsx"
 import { useLogStore } from "@/store/log-store.tsx"
-import { HOSPITAL_UNITS } from "@/lib/constants"
 import { Combobox } from "../ui/combobox"
+import { useUnitOptions } from "@/hooks/use-unit-options"
 import type { ProfileFormProps } from "./profile-form.type"
 
 const profileSchema = z.object({
@@ -49,7 +49,6 @@ const profileSchema = z.object({
   unit: z.string().min(1, "Unit harus dipilih."),
 })
 
-const unitOptions = HOSPITAL_UNITS.map(unit => ({ value: unit, label: unit }));
 const roleOptions: {value: UserRole, label: string}[] = [
     { value: "PIC Mutu", label: "PIC Mutu" },
     { value: "PJ Ruangan", label: "PJ Ruangan" },
@@ -60,6 +59,7 @@ export function ProfileForm({ setOpen, profileToEdit }: ProfileFormProps) {
   const { addProfile, updateProfile } = useIndicatorStore()
   const { currentUser } = useUserStore()
   const { addLog } = useLogStore()
+  const { options: unitOptions, isLoading: unitsLoading } = useUnitOptions()
   const isEditMode = !!profileToEdit
 
   const form = useForm<z.infer<typeof profileSchema>>({
@@ -216,7 +216,7 @@ export function ProfileForm({ setOpen, profileToEdit }: ProfileFormProps) {
                     <FormItem><FormLabel>PIC</FormLabel><FormControl><Input placeholder="Contoh: Kepala Ruangan" {...field} /></FormControl><FormMessage /></FormItem>
                 )}/>
                  <FormField control={form.control} name="unit" render={({ field }) => (
-                    <FormItem><FormLabel>Unit</FormLabel><Combobox options={unitOptions} placeholder="Pilih unit" searchPlaceholder="Cari unit..." value={field.value} onSelect={field.onChange} disabled={!currentUser || !['Admin Sistem', 'Direktur'].includes(currentUser.role)} /><FormMessage /></FormItem>
+                    <FormItem><FormLabel>Unit</FormLabel><Combobox options={unitOptions} placeholder="Pilih unit" searchPlaceholder="Cari unit..." value={field.value} onSelect={field.onChange} disabled={unitsLoading || !currentUser || !['Admin Sistem', 'Direktur'].includes(currentUser.role)} /><FormMessage /></FormItem>
                 )}/>
             </div>
             

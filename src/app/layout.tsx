@@ -11,6 +11,8 @@ import { IndicatorStoreProvider } from "@/store/indicator-store"
 import { IncidentStoreProvider } from "@/store/incident-store"
 import { RiskStoreProvider } from "@/store/risk-store"
 import { SurveyStoreProvider } from "@/store/survey-store"
+import { UnitStoreProvider } from "@/store/unit-store"
+import { SiteFooter } from "@/components/site-footer"
 
 export const metadata: Metadata = {
   title: "SIRATU",
@@ -26,22 +28,27 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className="font-body antialiased">
         <UserStoreProvider>
-          <LogStoreProvider>
-            <NotificationStoreProvider>
+          <UnitStoreProvider>
+            <LogStoreProvider>
+              <NotificationStoreProvider>
                 <IndicatorStoreProvider>
-                    <IncidentStoreProvider>
-                        <RiskStoreProvider>
-                            <SurveyStoreProvider>
-                                <TooltipProvider>
-                                    {children}
-                                    <Toaster />
-                                </TooltipProvider>
-                            </SurveyStoreProvider>
-                        </RiskStoreProvider>
-                    </IncidentStoreProvider>
+                  <IncidentStoreProvider>
+                    <RiskStoreProvider>
+                      <SurveyStoreProvider>
+                        <TooltipProvider>
+                          <div className="flex min-h-screen flex-col">
+                            <main className="flex-1">{children}</main>
+                            <SiteFooter />
+                          </div>
+                          <Toaster />
+                        </TooltipProvider>
+                      </SurveyStoreProvider>
+                    </RiskStoreProvider>
+                  </IncidentStoreProvider>
                 </IndicatorStoreProvider>
-            </NotificationStoreProvider>
-          </LogStoreProvider>
+              </NotificationStoreProvider>
+            </LogStoreProvider>
+          </UnitStoreProvider>
         </UserStoreProvider>
       </body>
     </html>

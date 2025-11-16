@@ -11,6 +11,7 @@ const mapRoleUiToDb = (r: string): any => {
     case 'Sub. Komite Peningkatan Mutu': return 'SubKomitePeningkatanMutu'
     case 'Sub. Komite Keselamatan Pasien': return 'SubKomiteKeselamatanPasien'
     case 'Sub. Komite Manajemen Risiko': return 'SubKomiteManajemenRisiko'
+    case 'Petugas Pelaporan': return 'PetugasPelaporan'
     default: return 'PICMutu'
   }
 }
@@ -24,6 +25,7 @@ const mapRoleDbToUi = (r: string): any => {
     case 'SubKomitePeningkatanMutu': return 'Sub. Komite Peningkatan Mutu'
     case 'SubKomiteKeselamatanPasien': return 'Sub. Komite Keselamatan Pasien'
     case 'SubKomiteManajemenRisiko': return 'Sub. Komite Manajemen Risiko'
+    case 'PetugasPelaporan': return 'Petugas Pelaporan'
     default: return r
   }
 }

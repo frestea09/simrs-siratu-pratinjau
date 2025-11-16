@@ -3,6 +3,53 @@ import { PrismaClient, Prisma } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
+  const hospitalUnits = [
+    'Rawat Inap - Bougenville',
+    'Rawat Inap - Anggrek',
+    'Rawat Inap - Flamboyan',
+    'Rawat Inap - Mawar',
+    'Rawat Inap - Anyelir',
+    'Rawat Inap - Melati',
+    'Rawat Inap - Dahlia/VK',
+    'Rawat Inap - Camelia',
+    'Rawat Inap - Kenanga',
+    'Rawat Inap - WK',
+    'ICU',
+    'PICU',
+    'NICU',
+    'IGD',
+    'PONEK',
+    'IBS',
+    'Gizi',
+    'Farmasi',
+    'Kesling & K3RS',
+    'Rawat Jalan',
+    'Laboratorium',
+    'Radiologi',
+    'IPSRS',
+    'SIMRS',
+    'CSSD',
+    'Laundry',
+    'Keuangan',
+    'Kepegawaian',
+    'Bagian Umum',
+    'Program Humas & Program',
+    'PKRS',
+  ]
+
+  const unitModel = (prisma as PrismaClient & { unit?: Prisma.UnitDelegate }).unit
+
+  if (!unitModel?.createMany) {
+    throw new Error(
+      'Prisma client belum mengenal model Unit. Jalankan `npx prisma generate` lalu ulangi perintah seed.'
+    )
+  }
+
+  await unitModel.createMany({
+    data: hospitalUnits.map((name) => ({ name })),
+    skipDuplicates: true,
+  })
+
   const users: Prisma.UserCreateInput[] = [
     { name: 'Admin Sistem', email: 'admin@sim.rs', password: '123456', role: 'AdminSistem' },
     { name: 'Delina (PIC Mutu)', email: 'delina@sim.rs', password: '123456', role: 'PICMutu', unit: 'PPI' },

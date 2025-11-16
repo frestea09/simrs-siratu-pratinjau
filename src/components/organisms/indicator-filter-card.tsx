@@ -25,15 +25,12 @@ import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
 import { cn } from "@/lib/utils"
-import { HOSPITAL_UNITS, INDICATOR_TEXTS } from "@/lib/constants"
+import { INDICATOR_TEXTS } from "@/lib/constants"
+import { useUnitOptions } from "@/hooks/use-unit-options"
 import type { FilterType } from "@/lib/indicator-utils"
 import type { IndicatorFilterCardProps } from "./indicator-filter-card.type"
 
 const allUnitsLabel = INDICATOR_TEXTS.defaults.allUnits
-const unitOptions = [
-  { value: allUnitsLabel, label: allUnitsLabel },
-  ...HOSPITAL_UNITS.map(u => ({ value: u, label: u })),
-]
 
 export function IndicatorFilterCard({
   userIsCentral,
@@ -49,6 +46,14 @@ export function IndicatorFilterCard({
   chartType,
   setChartType,
 }: IndicatorFilterCardProps) {
+  const { options: dynamicUnitOptions, isLoading: unitsLoading } = useUnitOptions()
+  const unitOptions = React.useMemo(
+    () => [
+      { value: allUnitsLabel, label: allUnitsLabel },
+      ...dynamicUnitOptions,
+    ],
+    [dynamicUnitOptions]
+  )
 
   const renderFilterInput = () => {
     // Component logic from the original page
@@ -128,6 +133,7 @@ export function IndicatorFilterCard({
                   onSelect={setSelectedUnit}
                   placeholder={INDICATOR_TEXTS.filterCard.placeholders.unit}
                   searchPlaceholder={INDICATOR_TEXTS.filterCard.placeholders.unitSearch}
+                  disabled={unitsLoading}
                 />
               )}
               {uniqueIndicatorNames.length > 1 && (

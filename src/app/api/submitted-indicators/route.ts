@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
                 case 'Sub. Komite Peningkatan Mutu': return 'SubKomitePeningkatanMutu'
                 case 'Sub. Komite Keselamatan Pasien': return 'SubKomiteKeselamatanPasien'
                 case 'Sub. Komite Manajemen Risiko': return 'SubKomiteManajemenRisiko'
+                case 'Petugas Pelaporan': return 'PetugasPelaporan'
                 default: return 'AdminSistem'
               }
             }

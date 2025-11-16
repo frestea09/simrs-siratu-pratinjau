@@ -29,39 +29,27 @@ const mapRoleDbToUi = (role: string): UserRole => {
       return "Sub. Komite Keselamatan Pasien"
     case "SubKomiteManajemenRisiko":
       return "Sub. Komite Manajemen Risiko"
+    case "PetugasPelaporan":
+      return "Petugas Pelaporan"
     default:
       return role as UserRole
   }
 }
 
-// Fallback demo users to keep seeded access when database is empty.
-const demoUsers: User[] = [
-  { id: "user-1", name: "Admin Sistem", email: "admin@sim.rs", password: "123456", role: "Admin Sistem" },
-  { id: "user-2", name: "Delina (PIC Mutu)", email: "delina@sim.rs", password: "123456", role: "PIC Mutu", unit: "PPI" },
-  { id: "user-3", name: "Deti (PJ Ruangan)", email: "deti@sim.rs", password: "123456", role: "PJ Ruangan", unit: "RANAP" },
-  { id: "user-4", name: "Devin (Keselamatan Pasien)", email: "devin@sim.rs", password: "123456", role: "Sub. Komite Keselamatan Pasien" },
-  { id: "user-5", name: "Deka (Kepala Unit)", email: "deka@sim.rs", password: "123456", role: "Kepala Unit/Instalasi", unit: "IGD" },
-  { id: "user-6", name: "Dr. Direktur", email: "dir@sim.rs", password: "123456", role: "Direktur" },
-  { id: "user-7", name: "Dion (Peningkatan Mutu)", email: "dion@sim.rs", password: "123456", role: "Sub. Komite Peningkatan Mutu" },
-  { id: "user-8", name: "Dara (Manajemen Risiko)", email: "dara@sim.rs", password: "123456", role: "Sub. Komite Manajemen Risiko" },
-]
-
-
 export async function login(formData: FormData) {
   const { email, password } = loginSchema.parse(Object.fromEntries(formData))
 
   const dbUser = await prisma.user.findUnique({ where: { email } })
-  const user =
-    dbUser
-      ? {
-          id: dbUser.id,
-          name: dbUser.name,
-          email: dbUser.email,
-          password: dbUser.password,
-          role: mapRoleDbToUi(dbUser.role),
-          unit: dbUser.unit ?? undefined,
-        }
-      : demoUsers.find((u) => u.email === email)
+  const user = dbUser
+    ? {
+        id: dbUser.id,
+        name: dbUser.name,
+        email: dbUser.email,
+        password: dbUser.password,
+        role: mapRoleDbToUi(dbUser.role),
+        unit: dbUser.unit ?? undefined,
+      }
+    : null
 
   if (!user || user.password !== password) {
     throw new Error("Invalid credentials")

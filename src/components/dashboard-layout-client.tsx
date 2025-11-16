@@ -40,7 +40,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { UserNav } from "@/components/user-nav"
 import React from "react"
 import { Breadcrumb } from "@/components/molecules/breadcrumb"
-import { useUserStore } from "@/store/user-store.tsx"
+import { useUserStore, type UserRole } from "@/store/user-store.tsx"
 import { useLogStore } from "@/store/log-store.tsx"
 import { NavItem as NavItemType } from "@/types/nav"
 import { NavItem } from "./molecules/nav-item"
@@ -51,7 +51,7 @@ import Image from "next/image"
 import { logout } from "@/lib/actions/auth"
 import { useRealtimeEvents } from "@/hooks/use-realtime-events"
 
-const navItems: NavItemType[] = [
+const baseNavItems: NavItemType[] = [
   {
     href: "/dashboard/overview",
     icon: LayoutDashboard,
@@ -107,7 +107,7 @@ const navItems: NavItemType[] = [
   },
 ]
 
-const adminNavItems: NavItemType[] = [
+const adminSystemNavItems: NavItemType[] = [
   {
     label: "Pengaturan Sistem",
     icon: Cog,
@@ -120,7 +120,37 @@ const adminNavItems: NavItemType[] = [
   },
 ]
 
-const allNavItems: NavItemType[] = [...navItems, ...adminNavItems]
+const reporterNavItems: NavItemType[] = [
+  { href: "/dashboard/incidents", icon: ShieldAlert, label: "Insiden Keselamatan" },
+  { href: "/dashboard/surveys", icon: ClipboardCheck, label: "Survei Budaya" },
+]
+
+const limitedSettingsNavItems: NavItemType[] = [
+  {
+    label: "Pengaturan Sistem",
+    icon: Cog,
+    subItems: [
+      { href: "/dashboard/settings", icon: Settings, label: "Pengaturan Akun" },
+    ],
+  },
+]
+
+const getPrimaryNavItems = (role?: UserRole | null): NavItemType[] => {
+  if (role === "Petugas Pelaporan") {
+    return reporterNavItems
+  }
+  return baseNavItems
+}
+
+const getSystemNavItems = (role?: UserRole | null): NavItemType[] => {
+  if (role === "Admin Sistem") {
+    return adminSystemNavItems
+  }
+  if (role) {
+    return limitedSettingsNavItems
+  }
+  return []
+}
 
 const findPath = (items: NavItemType[], currentPath: string): NavItemType[] => {
   const findPathRecursive = (
@@ -153,6 +183,18 @@ export default function DashboardClientLayout({
   const { currentUser, clearCurrentUser } = useUserStore()
   const { addLog } = useLogStore()
   useRealtimeEvents(currentUser)
+  const primaryNavItems = React.useMemo(
+    () => getPrimaryNavItems(currentUser?.role),
+    [currentUser?.role]
+  )
+  const systemNavItems = React.useMemo(
+    () => getSystemNavItems(currentUser?.role),
+    [currentUser?.role]
+  )
+  const combinedNavItems = React.useMemo(
+    () => [...primaryNavItems, ...systemNavItems],
+    [primaryNavItems, systemNavItems]
+  )
   const handleLogout = React.useCallback(async () => {
     if (currentUser?.name) {
       addLog({
@@ -167,10 +209,11 @@ export default function DashboardClientLayout({
   }, [addLog, clearCurrentUser, currentUser, router])
 
   const breadcrumbPath = React.useMemo(
-    () => findPath(allNavItems, pathname),
-    [pathname]
+    () => findPath(combinedNavItems, pathname),
+    [combinedNavItems, pathname]
   )
   const currentPage = breadcrumbPath[breadcrumbPath.length - 1]
+  const defaultTitle = primaryNavItems[0]?.label ?? "Ringkasan Dasbor"
 
   const [openMenus, setOpenMenus] = React.useState<{ [key: string]: boolean }>(
     () => {
@@ -233,7 +276,7 @@ export default function DashboardClientLayout({
 
           <SidebarContent className="p-2">
             <SidebarMenu>
-              {navItems.map((item, index) => (
+              {primaryNavItems.map((item, index) => (
                 <NavItem
                   key={index}
                   item={item}
@@ -243,9 +286,9 @@ export default function DashboardClientLayout({
               ))}
             </SidebarMenu>
 
-            {currentUser?.role === "Admin Sistem" && (
+            {systemNavItems.length > 0 && (
               <SidebarMenu className="mt-4 border-t border-sidebar-border/50 pt-2">
-                {adminNavItems.map((item, index) => (
+                {systemNavItems.map((item, index) => (
                   <NavItem
                     key={index}
                     item={item}
@@ -272,7 +315,7 @@ export default function DashboardClientLayout({
             <div className="flex w-full items-center py-3">
               <SidebarTrigger className="md:hidden" />
               <h1 className="flex-1 text-3xl font-bold">
-                {currentPage?.label || "Ringkasan Dasbor"}
+                {currentPage?.label || defaultTitle}
               </h1>
               <div className="ml-auto flex items-center gap-2">
                 <NotificationPopover />
@@ -280,7 +323,7 @@ export default function DashboardClientLayout({
               </div>
             </div>
             <div className="pb-3">
-              <Breadcrumb navItems={allNavItems} />
+              <Breadcrumb navItems={combinedNavItems} />
             </div>
           </header>
           <main className="flex-1 overflow-auto">{children}</main>

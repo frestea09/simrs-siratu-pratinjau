@@ -93,6 +93,7 @@ const roleMap: Record<string, any> = {
   'Sub. Komite Peningkatan Mutu': 'SubKomitePeningkatanMutu',
   'Sub. Komite Keselamatan Pasien': 'SubKomiteKeselamatanPasien',
   'Sub. Komite Manajemen Risiko': 'SubKomiteManajemenRisiko',
+  'Petugas Pelaporan': 'PetugasPelaporan',
 }
 export async function resolveUserFromSession() {
   try {

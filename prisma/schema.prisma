@@ -21,6 +21,7 @@ enum UserRole {
   SubKomitePeningkatanMutu
   SubKomiteKeselamatanPasien
   SubKomiteManajemenRisiko
+  PetugasPelaporan
 }
 
 enum IndicatorCategory {
@@ -147,6 +148,13 @@ model User {
   submittedSurveys          SurveyResult[]      @relation("SubmittedBy")
   notifications             Notification[]      @relation("Recipient")
   createdNotifications      Notification[]      @relation("Creator")
+}
+
+model Unit {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model IndicatorProfile {

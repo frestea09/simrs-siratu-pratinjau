@@ -109,6 +109,8 @@ export async function resolveAuthorIdFromCookie() {
             return "SubKomiteKeselamatanPasien"
           case "Sub. Komite Manajemen Risiko":
             return "SubKomiteManajemenRisiko"
+          case "Petugas Pelaporan":
+            return "PetugasPelaporan"
           default:
             return "AdminSistem"
         }

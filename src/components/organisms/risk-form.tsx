@@ -17,7 +17,7 @@ import { Risk, RiskCategory, RiskSource, useRiskStore, RiskEvaluation, RiskStatu
 import { useToast } from "@/hooks/use-toast"
 import { useUserStore } from "@/store/user-store.tsx"
 import { useLogStore } from "@/store/log-store.tsx"
-import { HOSPITAL_UNITS } from "@/lib/constants"
+import { useUnitOptions } from "@/hooks/use-unit-options"
 import { Combobox } from "../ui/combobox"
 import { Slider } from "../ui/slider"
 import { Separator } from "../ui/separator"
@@ -48,7 +48,6 @@ const categoryOptions: { value: RiskCategory, label: string }[] = [
     { value: "Bahaya Ergonomi", label: "Bahaya Ergonomi" },
     { value: "Bahaya Psikososial", label: "Bahaya Psikososial" },
 ];
-const unitOptions = HOSPITAL_UNITS.map(u => ({ value: u, label: u }));
 const evaluationOptions: { value: RiskEvaluation, label: string }[] = [
     { value: "Mitigasi", label: "Mitigasi" },
     { value: "Transfer", label: "Transfer" },
@@ -111,6 +110,7 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
     const { addRisk, updateRisk } = useRiskStore()
     const { currentUser, users } = useUserStore()
     const isEditMode = !!riskToEdit;
+    const { options: unitOptions, isLoading: unitsLoading } = useUnitOptions()
 
     const userOptions = React.useMemo(() => users.map(u => ({ value: u.name, label: `${u.name} (${u.role})`})), [users]);
 
@@ -183,6 +183,7 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
                                     searchPlaceholder="Cari unit..."
                                     onSelect={(value) => form.setValue('unit', value)}
                                     value={field.value}
+                                    disabled={unitsLoading}
                                 />
                                 <FormMessage />
                             </FormItem>

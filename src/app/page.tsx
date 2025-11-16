@@ -15,8 +15,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
-import { Users, Eye, EyeOff, Loader2 } from "lucide-react"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Eye, EyeOff, Loader2 } from "lucide-react"
 import Image from "next/image"
 import favicon from "@/app/favicon.ico"
 import { login } from "@/lib/actions/auth"
@@ -33,7 +32,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const { addLog } = useLogStore()
-  const { setCurrentUser, users } = useUserStore()
+  const { setCurrentUser } = useUserStore()
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -56,7 +55,10 @@ export default function LoginPage() {
         action: "LOGIN_SUCCESS",
         details: `Pengguna ${user.name} berhasil login.`,
       })
-      router.push("/dashboard/overview")
+      const redirectPath = (user.role as UserRole) === "Petugas Pelaporan"
+        ? "/dashboard/incidents"
+        : "/dashboard/overview"
+      router.push(redirectPath)
 
     } catch (error: any) {
       const email = formData.get("email") as string;
@@ -100,10 +102,10 @@ export default function LoginPage() {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="email@sim.rs"
+                placeholder="contoh: nama@sim.rs"
                 required
                 disabled={isLoading}
-                defaultValue="admin@sim.rs"
+                autoComplete="username"
               />
             </div>
             <div className="grid gap-2">
@@ -118,7 +120,8 @@ export default function LoginPage() {
                   required
                   className="pr-10"
                   disabled={isLoading}
-                  defaultValue="123456"
+                  placeholder="Masukkan password akun"
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"
@@ -144,24 +147,6 @@ export default function LoginPage() {
               {isLoading ? "Memproses..." : "Login"}
             </Button>
           </form>
-          {users.length > 0 && (
-            <Alert className="mt-4">
-                <Users className="h-4 w-4" />
-                <AlertTitle>Akun Demo (untuk coba-coba)</AlertTitle>
-                <AlertDescription>
-                <ul className="mt-2 list-disc space-y-1 pl-5 text-xs">
-                    {users.map((user: any) => (
-                    <li key={user.email}>
-                        <b>{user.email}</b> ({user.name})
-                    </li>
-                    ))}
-                </ul>
-                <p className="mt-2 text-xs">
-                    Password untuk semua akun: <b>123456</b>
-                </p>
-                </AlertDescription>
-            </Alert>
-          )}
         </CardContent>
       </Card>
     </div>

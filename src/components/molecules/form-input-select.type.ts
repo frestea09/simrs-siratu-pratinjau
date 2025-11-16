@@ -6,5 +6,7 @@ export type FormInputSelectProps = {
   containerClassName?: string
   value?: string
   onValueChange?: (value: string) => void
+  disabled?: boolean
+  emptyMessage?: string
 }
 

@@ -14,6 +14,9 @@ import { useToast } from '@/hooks/use-toast'
 import { useLogStore } from '@/store/log-store'
 import { useUserStore } from '@/store/user-store'
 
+const ITEMS_PER_PAGE = 5
+const AUTHORIZED_ROLES = new Set(['Admin Sistem', 'Direktur'])
+
 export function UnitManagementCard() {
   const { units, isLoading, hasLoaded, error, fetchUnits, removeUnit } = useUnitStore()
   const { toast } = useToast()
@@ -24,6 +27,7 @@ export function UnitManagementCard() {
   const [unitToEdit, setUnitToEdit] = React.useState<Unit | null>(null)
   const [unitPendingDelete, setUnitPendingDelete] = React.useState<Unit | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false)
+  const [page, setPage] = React.useState(1)
 
   React.useEffect(() => {
     if (!hasLoaded && !isLoading) {
@@ -36,6 +40,29 @@ export function UnitManagementCard() {
     if (!keyword) return units
     return units.filter((unit) => unit.name.toLowerCase().includes(keyword))
   }, [search, units])
+
+  const totalPages = React.useMemo(() => {
+    if (filteredUnits.length === 0) return 1
+    return Math.ceil(filteredUnits.length / ITEMS_PER_PAGE)
+  }, [filteredUnits.length])
+
+  const paginatedUnits = React.useMemo(() => {
+    const start = (page - 1) * ITEMS_PER_PAGE
+    return filteredUnits.slice(start, start + ITEMS_PER_PAGE)
+  }, [filteredUnits, page])
+
+  const canManageUnits = React.useMemo(() => {
+    if (!currentUser?.role) return false
+    return AUTHORIZED_ROLES.has(currentUser.role)
+  }, [currentUser?.role])
+
+  React.useEffect(() => {
+    setPage(1)
+  }, [search])
+
+  React.useEffect(() => {
+    setPage((prev) => Math.min(prev, totalPages))
+  }, [totalPages])
 
   const handleDialogChange = (open: boolean) => {
     if (!open) {
@@ -106,10 +133,16 @@ export function UnitManagementCard() {
             className="md:max-w-sm"
             aria-label="Cari unit"
           />
-          <Button onClick={handleAddClick} className="md:ml-auto" size="lg">
-            <PlusCircle className="mr-2 h-5 w-5" />
-            Tambah Unit
-          </Button>
+          {canManageUnits ? (
+            <Button onClick={handleAddClick} className="md:ml-auto" size="lg">
+              <PlusCircle className="mr-2 h-5 w-5" />
+              Tambah Unit
+            </Button>
+          ) : (
+            <p className="text-sm text-muted-foreground md:ml-auto">
+              Hanya Admin Sistem dan Direktur yang dapat mengubah daftar unit.
+            </p>
+          )}
         </div>
         <p className="text-sm text-muted-foreground">
           Tips: gunakan nama yang sudah akrab, misalnya “RANAP” atau “Rawat Inap”. Hal ini membantu petugas senior memilih opsi dengan cepat.
@@ -120,7 +153,7 @@ export function UnitManagementCard() {
               <TableRow>
                 <TableHead className="w-[60px]">No.</TableHead>
                 <TableHead>Nama Unit</TableHead>
-                <TableHead className="w-[160px] text-right">Aksi</TableHead>
+                {canManageUnits && <TableHead className="w-[160px] text-right">Aksi</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -145,31 +178,57 @@ export function UnitManagementCard() {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredUnits.map((unit, index) => (
+                paginatedUnits.map((unit, index) => (
                   <TableRow key={unit.id}>
-                    <TableCell className="font-medium">{index + 1}</TableCell>
+                    <TableCell className="font-medium">{(page - 1) * ITEMS_PER_PAGE + index + 1}</TableCell>
                     <TableCell>{unit.name}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="sm" onClick={() => handleEdit(unit)}>
-                          <Pencil className="mr-1 h-4 w-4" /> Edit
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => promptDelete(unit)}
-                        >
-                          <Trash2 className="mr-1 h-4 w-4" /> Hapus
-                        </Button>
-                      </div>
-                    </TableCell>
+                    {canManageUnits && (
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="outline" size="sm" onClick={() => handleEdit(unit)}>
+                            <Pencil className="mr-1 h-4 w-4" /> Edit
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => promptDelete(unit)}
+                          >
+                            <Trash2 className="mr-1 h-4 w-4" /> Hapus
+                          </Button>
+                        </div>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))
               )}
             </TableBody>
           </Table>
         </div>
+        {filteredUnits.length > 0 && (
+          <div className="flex flex-col gap-2 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
+            <p>
+              Menampilkan {Math.min((page - 1) * ITEMS_PER_PAGE + 1, filteredUnits.length)}-
+              {Math.min(page * ITEMS_PER_PAGE, filteredUnits.length)} dari {filteredUnits.length} unit
+            </p>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
+                Sebelumnya
+              </Button>
+              <span>
+                Halaman {page} dari {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages || filteredUnits.length === 0}
+              >
+                Selanjutnya
+              </Button>
+            </div>
+          </div>
+        )}
       </CardContent>
       <UnitDialog open={isDialogOpen} onOpenChange={handleDialogChange} unit={unitToEdit} />
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

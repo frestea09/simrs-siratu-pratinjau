@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import React from "react"
@@ -9,6 +10,7 @@ import {
   TrendingUp,
   FileClock,
   ThumbsUp,
+  Info,
 } from "lucide-react"
 import { Bar, BarChart as BarChartRecharts, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 
@@ -32,21 +34,46 @@ import { Badge } from "@/components/ui/badge"
 import { useIndicatorStore } from "@/store/indicator-store"
 import { useIncidentStore } from "@/store/incident-store"
 import { useUserStore } from "@/store/user-store"
-import { useLogStore } from "@/store/log-store"
-import { format } from "date-fns"
+import { useLogStore } from "@/store/log-store.tsx"
+import { format, subMonths, startOfMonth, endOfMonth, getDate, getMonth, getYear } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
+import {centralRoles} from "@/store/central-roles.ts";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
-const centralRoles = [
-  'Admin Sistem',
-  'Direktur',
-  'Sub. Komite Peningkatan Mutu',
-  'Sub. Komite Keselamatan Pasien',
-  'Sub. Komite Manajemen Risiko'
-];
+
+
+const DeadlineCard = () => {
+  const today = new Date();
+  const currentDay = getDate(today);
+
+  // Show the alert from the 1st to the 5th of the month.
+  if (currentDay > 5) {
+    return null;
+  }
+
+  const lastMonth = subMonths(today, 1);
+  const previousMonthName = format(lastMonth, "MMMM", { locale: IndonesianLocale });
+  const currentMonthName = format(today, "MMMM", { locale: IndonesianLocale });
+  
+  return (
+    <Alert className="bg-primary/5 border-primary/20">
+      <Info className="h-4 w-4 text-primary" />
+      <AlertTitle className="text-primary font-bold">Waktu Pelaporan Segera Berakhir!</AlertTitle>
+      <AlertDescription>
+        Periode pelaporan untuk bulan <strong>{previousMonthName}</strong> akan berakhir pada tanggal <strong>5 {currentMonthName}</strong>.
+        Mohon segera lengkapi dan finalisasi data capaian indikator Anda sebelum tenggat waktu.
+      </AlertDescription>
+    </Alert>
+  );
+};
+
 
 export default function OverviewPage() {
   const { indicators, submittedIndicators } = useIndicatorStore()
-  const { incidents } = useIncidentStore()
+  const { incidents, fetchIncidents } = useIncidentStore()
+  React.useEffect(() => {
+    fetchIncidents().catch(() => {})
+  }, [fetchIncidents])
   const { users, currentUser } = useUserStore()
   const { logs } = useLogStore()
 
@@ -73,6 +100,17 @@ export default function OverviewPage() {
   const pendingSubmissions = relevantSubmissions.filter(s => s.status === 'Menunggu Persetujuan').length
   const totalIncidents = incidents.length
   const totalUsers = users.length
+
+  const incidentTypeCounts = React.useMemo(() => {
+    const counts = { KPC: 0, KNC: 0, KTC: 0, KTD: 0, Sentinel: 0 }
+    if (canViewIncidentData) {
+      incidents.forEach((inc) => {
+        counts[inc.type as keyof typeof counts] += 1
+      });
+    }
+    return counts
+  }, [incidents, canViewIncidentData])
+
 
   // -- Chart Data --
   const chartData = React.useMemo(() => {
@@ -116,11 +154,12 @@ export default function OverviewPage() {
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Ringkasan Dasbor</h2>
          {currentUser && !userIsCentral && (
           <Badge variant="outline" className="text-base">Unit: {currentUser.unit}</Badge>
         )}
       </div>
+      <DeadlineCard />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -183,6 +222,33 @@ export default function OverviewPage() {
             </CardContent>
           </Card>
         )}
+      </div>
+      <div className="grid grid-cols-1 gap-4">
+        <Card>
+            <CardHeader>
+              <CardTitle>Ringkasan Jumlah Insiden</CardTitle>
+              <CardDescription>
+                Total keseluruhan insiden yang telah dilaporkan.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+            {canViewIncidentData ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                {Object.entries(incidentTypeCounts).map(([type, count]) => (
+                  <div
+                    key={type}
+                    className="bg-muted/50 rounded-lg p-4 text-center"
+                  >
+                    <p className="text-sm font-medium">{type}</p>
+                    <p className="text-2xl font-bold">{count}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+                <p className="text-sm text-muted-foreground">Data insiden hanya dapat dilihat oleh Sub. Komite Keselamatan Pasien dan Admin Sistem.</p>
+            )}
+            </CardContent>
+          </Card>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4">
@@ -260,3 +326,5 @@ export default function OverviewPage() {
     </div>
   )
 }
+
+    

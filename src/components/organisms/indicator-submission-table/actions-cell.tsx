@@ -1,9 +1,10 @@
 
+
 "use client"
 
 import * as React from "react"
 import { Row } from "@tanstack/react-table"
-import { MoreHorizontal, Eye, Pencil } from "lucide-react"
+import { MoreHorizontal, Eye, Pencil, Trash2, Lock } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -22,10 +23,12 @@ import { useUserStore } from "@/store/user-store.tsx"
 import { useLogStore } from "@/store/log-store.tsx"
 import { useNotificationStore } from "@/store/notification-store.tsx"
 import { useIndicatorStore } from "@/store/indicator-store"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../../ui/alert-dialog"
+import { useToast } from "@/hooks/use-toast"
 import { IndicatorSubmissionDialog } from "../indicator-submission-dialog"
 import { IndicatorSubmissionDetailDialog } from "../indicator-submission-detail-dialog"
 import { RejectionReasonDialog } from "../rejection-reason-dialog"
-import { statusOptions } from "../indicator-submission-table"
+import { centralRoles } from "@/store/central-roles"
 
 
 type ActionsCellProps = {
@@ -38,13 +41,14 @@ export function ActionsCell({ row }: ActionsCellProps) {
     const [isEditOpen, setIsEditOpen] = React.useState(false)
     const [rejectionDialog, setRejectionDialog] = React.useState({ isOpen: false, indicator: null as SubmittedIndicator | null })
     
-    const { updateSubmittedIndicatorStatus } = useIndicatorStore.getState()
+    const { updateSubmittedIndicatorStatus, removeSubmittedIndicator } = useIndicatorStore()
     const { currentUser } = useUserStore()
     const { addLog } = useLogStore()
     const { addNotification } = useNotificationStore()
+    const { toast } = useToast()
 
-    const handleStatusChange = (indicator: SubmittedIndicator, status: SubmittedIndicator['status'], reason?: string) => {
-        updateSubmittedIndicatorStatus(indicator.id, status, reason)
+    const handleStatusChange = async (indicator: SubmittedIndicator, status: SubmittedIndicator['status'], reason?: string) => {
+        await updateSubmittedIndicatorStatus(indicator.id, status, reason)
         addLog({
             user: currentUser?.name || 'System',
             action: 'UPDATE_INDICATOR_STATUS',
@@ -62,9 +66,52 @@ export function ActionsCell({ row }: ActionsCellProps) {
         setRejectionDialog({ isOpen: true, indicator });
     };
 
-    const canVerify = currentUser?.role === 'Admin Sistem' || 
-                      currentUser?.role === 'Direktur' ||
-                      currentUser?.role === 'Sub. Komite Peningkatan Mutu';
+    const isCentralUser = currentUser ? centralRoles.includes(currentUser.role) : false
+    const canManageSubmission = currentUser ? (isCentralUser || indicator.submittedById === currentUser.id) : false
+    const canEdit = canManageSubmission
+    const canVerify = isCentralUser && indicator.status === 'Menunggu Persetujuan'
+    const canDelete = canManageSubmission
+    const isLocked = Boolean(indicator.locked)
+    const lockedReason = indicator.lockedReason ?? 'Pengajuan indikator ini tidak dapat dihapus karena sudah diproses. Silakan nonaktifkan atau perbarui data tanpa menghapusnya.'
+
+    const handleDelete = async () => {
+        try {
+            await removeSubmittedIndicator(indicator.id)
+            addLog({
+                user: currentUser?.name || 'System',
+                action: 'DELETE_SUBMITTED_INDICATOR',
+                details: `Pengajuan indikator "${indicator.name}" (${indicator.id}) dihapus.`,
+            })
+            addNotification({
+                title: 'Pengajuan Indikator Dihapus',
+                description: `Pengajuan indikator "${indicator.name}" telah dihapus.`,
+                link: '/dashboard/indicators',
+                recipientUnit: indicator.unit,
+            })
+            toast({
+                title: 'Indikator Dihapus',
+                description: `Pengajuan indikator "${indicator.name}" telah dihapus.`,
+            })
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : 'Pengajuan indikator tidak dapat dihapus karena sudah diproses dalam manajemen indikator. Pertimbangkan untuk menonaktifkan atau memperbarui data tanpa menghapusnya.'
+            toast({
+                title: 'Tidak dapat menghapus pengajuan',
+                description: message,
+                variant: 'destructive',
+            })
+        }
+    }
+
+    const notifyLocked = () => {
+        toast({
+            title: 'Pengajuan terkunci',
+            description: lockedReason,
+            variant: 'destructive',
+        })
+    }
 
     return (
         <>
@@ -81,10 +128,12 @@ export function ActionsCell({ row }: ActionsCellProps) {
                         <Eye className="mr-2 h-4 w-4" />
                         Lihat Detail
                     </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => setIsEditOpen(true)}>
-                        <Pencil className="mr-2 h-4 w-4" />
-                        Edit
-                    </DropdownMenuItem>
+                    {canEdit && (
+                        <DropdownMenuItem onSelect={() => setIsEditOpen(true)}>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Edit
+                        </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem onClick={() => navigator.clipboard.writeText(indicator.id)}>
                         Salin ID Indikator
                     </DropdownMenuItem>
@@ -94,22 +143,54 @@ export function ActionsCell({ row }: ActionsCellProps) {
                             <DropdownMenuSub>
                                 <DropdownMenuSubTrigger>Ubah Status</DropdownMenuSubTrigger>
                                 <DropdownMenuSubContent>
-                                    {statusOptions.map((status) => (
-                                    <DropdownMenuItem 
-                                        key={status} 
-                                        onSelect={() => {
-                                        if (status === 'Ditolak') {
-                                            openRejectionDialog(indicator);
-                                        } else {
-                                            handleStatusChange(indicator, status);
-                                        }
-                                        }}
-                                    >
-                                        {status}
+                                    <DropdownMenuItem onSelect={() => handleStatusChange(indicator, 'Diverifikasi')}>
+                                        Verifikasi
                                     </DropdownMenuItem>
-                                    ))}
+                                    <DropdownMenuItem onSelect={() => openRejectionDialog(indicator)}>
+                                        Tolak
+                                    </DropdownMenuItem>
                                 </DropdownMenuSubContent>
                             </DropdownMenuSub>
+                        </>
+                    )}
+                    {canDelete && (
+                        <>
+                            <DropdownMenuSeparator />
+                            {isLocked ? (
+                                <DropdownMenuItem
+                                    onSelect={(event) => {
+                                        event.preventDefault()
+                                        notifyLocked()
+                                    }}
+                                    className="text-muted-foreground focus:bg-muted focus:text-muted-foreground"
+                                >
+                                    <Lock className="mr-2 h-4 w-4" />
+                                    Tidak dapat dihapus
+                                </DropdownMenuItem>
+                            ) : (
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full text-destructive">
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Hapus
+                                        </button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Anda yakin?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Aksi ini tidak dapat dibatalkan. Ini akan menghapus pengajuan indikator secara permanen.
+                                                <br />
+                                                Jika pengajuan ini sudah digunakan dalam pelaporan capaian, pertimbangkan untuk menonaktifkan atau memperbarui data tanpa menghapusnya.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Batal</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Hapus</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            )}
                         </>
                     )}
                 </DropdownMenuContent>

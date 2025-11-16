@@ -1,13 +1,9 @@
-
 "use client"
 
 // Inspired by react-hot-toast library
 import * as React from "react"
 
-import type {
-  ToastActionElement,
-  ToastProps,
-} from "@/components/ui/toast"
+import type { ToastActionElement, ToastProps } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 3
 const TOAST_REMOVE_DELAY = 5000
@@ -130,15 +126,18 @@ export const reducer = (state: State, action: Action): State => {
   }
 }
 
-const listeners: Array<(state: State) => void> = []
+const listeners = new Set<(state: State) => void>()
 
 let memoryState: State = { toasts: [] }
 
 function dispatch(action: Action) {
   memoryState = reducer(memoryState, action)
-  listeners.forEach((listener) => {
-    listener(memoryState)
-  })
+  listeners.forEach((listener) => listener(memoryState))
+}
+
+function subscribe(listener: (state: State) => void) {
+  listeners.add(listener)
+  return () => listeners.delete(listener)
 }
 
 type Toast = Omit<ToasterToast, "id">
@@ -172,19 +171,12 @@ function toast({ ...props }: Toast) {
   }
 }
 
+function getSnapshot() {
+  return memoryState
+}
+
 function useToast() {
-  const [state, setState] = React.useState<State>(memoryState)
-
-  React.useEffect(() => {
-    listeners.push(setState)
-    return () => {
-      const index = listeners.indexOf(setState)
-      if (index > -1) {
-        listeners.splice(index, 1)
-      }
-    }
-  }, [state])
-
+  const state = React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
   return {
     ...state,
     toast,

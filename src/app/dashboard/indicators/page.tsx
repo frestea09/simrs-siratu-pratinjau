@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -14,21 +15,20 @@ import { useUserStore } from "@/store/user-store.tsx";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
+import {centralRoles} from "@/store/central-roles.ts";
 
-const centralRoles = [
-  "Admin Sistem",
-  "Direktur",
-  "Sub. Komite Peningkatan Mutu",
-  "Sub. Komite Keselamatan Pasien",
-  "Sub. Komite Manajemen Risiko",
-];
+
 
 export default function IndicatorsPage() {
-  const { submittedIndicators } = useIndicatorStore();
+  const { submittedIndicators, fetchSubmittedIndicators } = useIndicatorStore();
   const { currentUser } = useUserStore();
   const [isNewDialogOpen, setIsNewDialogOpen] = React.useState(false);
 
   const userCanSeeAll = currentUser && centralRoles.includes(currentUser.role);
+
+  React.useEffect(() => {
+    fetchSubmittedIndicators();
+  }, [fetchSubmittedIndicators]);
 
   const filteredSubmittedIndicators = React.useMemo(() => {
     if (userCanSeeAll || !currentUser?.unit) {
@@ -50,10 +50,9 @@ export default function IndicatorsPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Pengajuan Indikator (INM, IMP-RS, IMPU, SPM)</CardTitle>
+              <CardTitle>Pengajuan Indikator Mutu</CardTitle>
               <CardDescription>
-                Daftar semua indikator yang telah diajukan beserta status
-                verifikasinya.
+                Ajukan, kelola, dan lihat status verifikasi semua indikator (INM, IMP-RS, IMPU, SPM) di sini.
                 {currentUser?.unit &&
                   !userCanSeeAll &&
                   ` (Hanya menampilkan untuk Unit: ${currentUser.unit})`}

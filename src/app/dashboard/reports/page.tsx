@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import * as React from "react"
@@ -9,6 +10,7 @@ import { useIndicatorStore, IndicatorCategory, SubmittedIndicator, Indicator } f
 import { ReportPreviewDialog } from "@/components/organisms/report-preview-dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { INDICATOR_TEXTS } from "@/lib/constants"
 
 type YearlyReportData = {
   no: number
@@ -17,12 +19,7 @@ type YearlyReportData = {
   months: (string | null)[]
 }
 
-const categoryLabels: Record<IndicatorCategory, string> = {
-  INM: "Indikator Nasional Mutu",
-  'IMP-RS': "Indikator Mutu Prioritas RS",
-  IMPU: "Indikator Mutu Prioritas Unit",
-  SPM: "Standar Pelayanan Minimal"
-}
+const categoryLabels: Record<IndicatorCategory, string> = INDICATOR_TEXTS.dashboard.categoryLabels
 
 const ReportTable = ({ title, data }: { title: string, data: YearlyReportData[] }) => {
   const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
@@ -60,10 +57,19 @@ const ReportTable = ({ title, data }: { title: string, data: YearlyReportData[] 
 
 
 export default function ReportsPage() {
-  const { indicators, submittedIndicators } = useIndicatorStore()
+  const { indicators, submittedIndicators, fetchIndicators, fetchSubmittedIndicators } = useIndicatorStore()
   const [selectedYear, setSelectedYear] = React.useState<string>(new Date().getFullYear().toString())
   const [reportData, setReportData] = React.useState<Record<IndicatorCategory, YearlyReportData[]> | null>(null)
   const [isPreviewOpen, setPreviewOpen] = React.useState(false)
+
+  React.useEffect(() => {
+    if (!indicators.length) {
+      fetchIndicators().catch(() => {})
+    }
+    if (!submittedIndicators.length) {
+      fetchSubmittedIndicators().catch(() => {})
+    }
+  }, [indicators.length, submittedIndicators.length, fetchIndicators, fetchSubmittedIndicators])
 
   const availableYears = React.useMemo(() => {
     const years = new Set(indicators.map(i => new Date(i.period).getFullYear().toString()))
@@ -127,7 +133,7 @@ export default function ReportsPage() {
             <CardTitle>Buat Laporan Rekapitulasi Tahunan</CardTitle>
             <CardDescription>
                 Pilih tahun untuk membuat laporan rekapitulasi capaian indikator bulanan.
-                Hanya indikator dengan status 'Diverifikasi' yang akan disertakan.
+                Hanya indikator dengan status &apos;Diverifikasi&apos; yang akan disertakan.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -153,8 +159,6 @@ export default function ReportsPage() {
         <ReportPreviewDialog
           open={isPreviewOpen}
           onOpenChange={setPreviewOpen}
-          data={[]}
-          columns={[]}
           title={`Laporan Rekapitulasi Capaian Mutu Tahun ${selectedYear}`}
         >
             <div className="space-y-8">

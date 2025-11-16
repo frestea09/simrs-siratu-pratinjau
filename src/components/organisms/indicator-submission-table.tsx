@@ -28,6 +28,9 @@ import { SubmittedIndicator, IndicatorCategory } from "@/store/indicator-store"
 import { useTableState } from "@/hooks/use-table-state"
 import { ActionsCell } from "./indicator-submission-table/actions-cell"
 import { TableFilters, dateRangeFilter, categoryFilter, statusFilter, getStatusVariant } from "./indicator-submission-table/table-filters"
+import type { IndicatorSubmissionTableProps } from "./indicator-submission-table.type"
+import { useUserStore } from "@/store/user-store.tsx"
+import { centralRoles } from "@/store/central-roles"
 
 export const statusOptions: SubmittedIndicator['status'][] = ['Menunggu Persetujuan', 'Diverifikasi', 'Ditolak'];
 export const categoryOptions: {value: IndicatorCategory, label: string}[] = [
@@ -37,14 +40,13 @@ export const categoryOptions: {value: IndicatorCategory, label: string}[] = [
     { value: 'SPM', label: 'SPM'},
 ]
 
-type IndicatorSubmissionTableProps = {
-  indicators: SubmittedIndicator[]
-}
-
 export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTableProps) {
   const { tableState, setTableState } = useTableState({
     columnVisibility: { id: false },
   });
+  const { currentUser } = useUserStore()
+  const currentUserId = currentUser?.id
+  const currentUserIsCentral = currentUser ? centralRoles.includes(currentUser.role) : false
 
   const columns: ColumnDef<SubmittedIndicator>[] = React.useMemo(() => [
     {
@@ -54,7 +56,26 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
           Nama Indikator <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => <div className="font-medium">{row.getValue("name")}</div>,
+      cell: ({ row }) => {
+        const indicator = row.original
+        const hasFullActions = currentUserIsCentral || (!!currentUserId && indicator.submittedById === currentUserId)
+        const isLocked = Boolean(indicator.locked)
+        return (
+          <div className="flex items-center gap-2">
+            <span className="font-medium">{row.getValue("name")}</span>
+            {hasFullActions && <Badge variant="secondary">Aksi Lengkap</Badge>}
+            {isLocked && (
+              <Badge
+                variant="outline"
+                className="border-destructive text-destructive"
+                title={indicator.lockedReason ?? "Pengajuan indikator ini terkunci karena sudah diproses."}
+              >
+                Terkunci
+              </Badge>
+            )}
+          </div>
+        )
+      },
     },
     {
       accessorKey: "category",
@@ -86,7 +107,7 @@ export function IndicatorSubmissionTable({ indicators }: IndicatorSubmissionTabl
       enableHiding: false,
       cell: ({row}) => <ActionsCell row={row} />,
     },
-  ], []);
+  ], [currentUserId, currentUserIsCentral]);
 
   const table = useReactTable({
     data: indicators,

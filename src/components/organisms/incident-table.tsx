@@ -3,7 +3,6 @@
 
 import * as React from "react"
 import {
-  ColumnDef,
   ColumnFiltersState,
   SortingState,
   flexRender,
@@ -13,8 +12,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDown, Download } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -25,88 +22,50 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Incident, IncidentStatus } from "@/store/incident-store"
+import { Incident } from "@/store/incident-store"
 import { IncidentDetailDialog } from "./incident-detail-dialog"
-import { ActionsCell } from "./incident-table/actions-cell"
-import { cn } from "@/lib/utils"
 import { ReportPreviewDialog } from "./report-preview-dialog"
 import { IncidentAnalysisTable } from "./incident-analysis-table"
+import { SkpReportDialog } from "./skp-report-dialog"
+import type { IncidentTableProps } from "./incident-table.interface"
+import {
+  filterFns,
+  getColumns,
+  getExportColumns,
+} from "./incident-table.utils"
 
-type IncidentTableProps = {
-  incidents: Incident[];
-  onExport: (data: Incident[], columns: ColumnDef<Incident>[]) => void;
+export type IncidentTableHandle = {
+  openExport: () => void
+  openSkpReport: () => void
 }
 
-export function IncidentTable({ incidents, onExport }: IncidentTableProps) {
+export const IncidentTable = React.forwardRef<
+  IncidentTableHandle,
+  IncidentTableProps
+>(function IncidentTable(
+  { incidents, lineChart, barChart, chartDescription },
+  ref
+) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [selectedIncident, setSelectedIncident] = React.useState<Incident | null>(null);
   const [isDetailOpen, setIsDetailOpen] = React.useState(false);
 
-  const [reportData, setReportData] = React.useState<any[] | null>(null)
-  const [reportColumns, setReportColumns] = React.useState<ColumnDef<any>[] | null>(null)
   const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
+  const [isSkpReportOpen, setIsSkpReportOpen] = React.useState(false);
 
 
-  const handleViewDetails = (incident: Incident) => {
-    setSelectedIncident(incident);
-    setIsDetailOpen(true);
-  }
+  const handleViewDetails = React.useCallback((incident: Incident) => {
+    setSelectedIncident(incident)
+    setIsDetailOpen(true)
+  }, [])
 
-  const columns: ColumnDef<Incident>[] = React.useMemo(() => [
-    {
-      accessorKey: "id",
-      header: "ID Insiden",
-      cell: ({ row }) => <div className="font-medium">{row.getValue("id")}</div>,
-    },
-    {
-      accessorKey: "date",
-      header: ({ column }) => (
-        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-          Tanggal Lapor <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
-      cell: ({ row }) => <div>{new Date(row.getValue("date")).toLocaleDateString('id-ID')}</div>,
-    },
-    {
-      accessorKey: "type",
-      header: "Jenis Insiden",
-    },
-    {
-      accessorKey: "severity",
-      header: "Tingkat Risiko",
-       cell: ({ row }) => {
-        const severity = row.getValue("severity") as Incident['severity']
-        const severityMap: Record<Incident['severity'], string> = {
-            biru: "BIRU (Rendah)",
-            hijau: "HIJAU (Sedang)",
-            kuning: "KUNING (Tinggi)",
-            merah: "MERAH (Sangat Tinggi)",
-        }
-        const variantMap: Record<Incident['severity'], "default" | "secondary" | "destructive" | "outline"> = {
-            biru: "secondary",
-            hijau: "default",
-            kuning: "outline",
-            merah: "destructive"
-        }
-        return <Badge variant={variantMap[severity]}>{severityMap[severity]}</Badge>
-      },
-    },
-    {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ row }) => {
-        const status = row.getValue("status") as IncidentStatus;
-        const statusClass = status === 'Investigasi' ? 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30 hover:bg-yellow-500/30' : ''
-        return <Badge variant={status === 'Selesai' ? 'default' : 'secondary'} className={cn("capitalize", statusClass)}>{status}</Badge>
-      },
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => <ActionsCell row={row} onViewDetails={handleViewDetails} />,
-    },
-  ], []);
+  const columns = React.useMemo(() => getColumns(handleViewDetails), [handleViewDetails])
+
+  const exportColumns = React.useMemo(
+    () => getExportColumns(columns),
+    [columns]
+  )
 
   const table = useReactTable({
     data: incidents,
@@ -117,22 +76,22 @@ export function IncidentTable({ incidents, onExport }: IncidentTableProps) {
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    filterFns,
     state: {
       sorting,
-      columnFilters
-    }
+      columnFilters,
+    },
   })
   
-  const handleExport = (data: Incident[], columns: ColumnDef<Incident>[]) => {
-    setReportData(data);
-    setReportColumns(columns);
-    setIsPreviewOpen(true);
-  };
+  React.useImperativeHandle(ref, () => ({
+    openExport: () => setIsPreviewOpen(true),
+    openSkpReport: () => setIsSkpReportOpen(true),
+  }))
 
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
+      <div className="flex items-center py-4 gap-2 flex-wrap">
         <Input
           placeholder="Cari berdasarkan jenis insiden..."
           value={(table.getColumn("type")?.getFilterValue() as string) ?? ""}
@@ -141,10 +100,6 @@ export function IncidentTable({ incidents, onExport }: IncidentTableProps) {
           }
           className="max-w-sm"
         />
-        <Button variant="outline" className="ml-auto" onClick={() => handleExport(table.getFilteredRowModel().rows.map(row => row.original), columns.filter(c => c.id !== 'actions'))}>
-            <Download className="mr-2 h-4 w-4" />
-            Unduh Laporan
-        </Button>
       </div>
       <div className="rounded-md border">
         <Table>
@@ -196,11 +151,16 @@ export function IncidentTable({ incidents, onExport }: IncidentTableProps) {
        <ReportPreviewDialog
           open={isPreviewOpen}
           onOpenChange={setIsPreviewOpen}
-          data={reportData || []}
-          columns={reportColumns || []}
           title="Laporan Insiden Keselamatan"
-          analysisTable={<IncidentAnalysisTable data={reportData || []} />}
+          description="Laporan ini berisi ringkasan visual dan data tabular dari insiden yang telah difilter."
+          lineChart={lineChart}
+          barChart={barChart}
+          chartDescription={chartDescription}
+          data={table.getFilteredRowModel().rows.map((row) => row.original)}
+          columns={exportColumns}
+          analysisTable={<IncidentAnalysisTable data={table.getFilteredRowModel().rows.map((row) => row.original)} />}
       />
+      <SkpReportDialog open={isSkpReportOpen} onOpenChange={setIsSkpReportOpen} />
     </div>
   )
-}
+})

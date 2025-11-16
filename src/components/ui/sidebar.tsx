@@ -715,12 +715,10 @@ const SidebarMenuSubButton = React.forwardRef<
     asChild?: boolean
   }
 >(({ as = "button", size = "md", isActive, className, asChild = false, ...props }, ref) => {
-  const Comp = asChild ? Slot : as
+  const Comp: any = asChild ? Slot : as
   return (
-    // @ts-expect-error - This is a valid use case for polymorphism.
     <Comp
-      ref={ref}
-      data-sidebar="menu-sub-button"
+      ref={ref as any}
       data-size={size}
       data-active={isActive}
       className={cn(
@@ -731,7 +729,7 @@ const SidebarMenuSubButton = React.forwardRef<
         "group-data-[collapsible=icon]:hidden",
         className
       )}
-      {...props}
+      {...(props as any)}
     />
   )
 })

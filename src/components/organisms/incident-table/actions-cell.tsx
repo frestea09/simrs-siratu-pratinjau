@@ -3,7 +3,7 @@
 
 import * as React from "react"
 import { Row } from "@tanstack/react-table"
-import { MoreHorizontal, Eye, Pencil, CheckCircle, ShieldQuestion } from "lucide-react"
+import { MoreHorizontal, Eye, Pencil, CheckCircle, ShieldQuestion, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -21,6 +21,8 @@ import { Incident, IncidentStatus, useIncidentStore } from "@/store/incident-sto
 import { IncidentReportDialog } from "../incident-report-dialog"
 import { useUserStore } from "@/store/user-store.tsx"
 import { useLogStore } from "@/store/log-store.tsx"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { useToast } from "@/hooks/use-toast"
 
 type ActionsCellProps = {
   row: Row<Incident>;
@@ -31,17 +33,31 @@ export function ActionsCell({ row, onViewDetails }: ActionsCellProps) {
   const incident = row.original
   const { currentUser } = useUserStore();
   const { addLog } = useLogStore();
-  const { updateIncidentStatus } = useIncidentStore()
+  const { updateIncidentStatus, removeIncident } = useIncidentStore()
+  const { toast } = useToast();
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false)
 
   const canChangeStatus = currentUser?.role === 'Admin Sistem' || currentUser?.role === 'Sub. Komite Keselamatan Pasien';
 
-  const handleStatusChange = (status: IncidentStatus) => {
-    updateIncidentStatus(incident.id, status)
+  const handleStatusChange = async (status: IncidentStatus) => {
+    await updateIncidentStatus(incident.id, status)
     addLog({
       user: currentUser?.name || 'System',
       action: 'UPDATE_INCIDENT',
       details: `Status insiden ${incident.id} diubah menjadi ${status}.`
+    })
+  }
+
+  const handleDelete = async () => {
+    await removeIncident(incident.id)
+    addLog({
+      user: currentUser?.name || 'System',
+      action: 'DELETE_INCIDENT',
+      details: `Laporan insiden ${incident.id} dihapus.`,
+    })
+    toast({
+      title: "Laporan Dihapus",
+      description: `Laporan insiden ${incident.id} telah berhasil dihapus.`,
     })
   }
 
@@ -72,11 +88,11 @@ export function ActionsCell({ row, onViewDetails }: ActionsCellProps) {
                   Ubah Status
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
-                  <DropdownMenuItem onClick={() => handleStatusChange('Investigasi')}>
+                  <DropdownMenuItem onClick={async () => await handleStatusChange('Investigasi')}>
                     <ShieldQuestion className="mr-2 h-4 w-4" />
                     <span>Investigasi</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleStatusChange('Selesai')}>
+                  <DropdownMenuItem onClick={async () => await handleStatusChange('Selesai')}>
                     <CheckCircle className="mr-2 h-4 w-4" />
                     <span>Selesai</span>
                   </DropdownMenuItem>
@@ -84,6 +100,27 @@ export function ActionsCell({ row, onViewDetails }: ActionsCellProps) {
               </DropdownMenuSub>
             </>
           )}
+          <DropdownMenuSeparator />
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full text-destructive hover:bg-destructive/10">
+                <Trash2 className="mr-2 h-4 w-4" />
+                <span>Hapus</span>
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Anda yakin?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Aksi ini tidak dapat dibatalkan. Ini akan menghapus laporan insiden secara permanen.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Batal</AlertDialogCancel>
+                <AlertDialogAction onClick={async () => handleDelete()} className="bg-destructive hover:bg-destructive/90">Hapus</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </DropdownMenuContent>
       </DropdownMenu>
 

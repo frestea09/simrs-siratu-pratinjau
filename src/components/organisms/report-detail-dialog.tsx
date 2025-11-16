@@ -22,10 +22,10 @@ const DetailSection = ({ title, children }: { title: string, children: React.Rea
     </div>
 )
 
-const DetailItem = ({ label, value }: { label: string, value: React.ReactNode }) => (
+const DetailItem = ({ label, value }: { label: string, value?: React.ReactNode }) => (
     <div className="flex flex-col">
         <p className="text-muted-foreground">{label}</p>
-        <p className="font-medium">{value || "-"}</p>
+        <div className="font-medium">{value ?? "-"}</div>
     </div>
 )
 
@@ -46,7 +46,7 @@ export function ReportDetailDialog({ indicator, open, onOpenChange }: ReportDeta
                     <DetailSection title="Ringkasan Capaian">
                         <DetailItem label="Kategori" value={<Badge variant="outline" className="w-fit">{indicator.category}</Badge>} />
                         <DetailItem label="Status" value={<Badge variant={indicator.status === 'Memenuhi Standar' ? 'default' : 'destructive'} className="w-fit">{indicator.status}</Badge>} />
-                         <DetailItem label="Capaian" value={<span className="font-semibold text-lg">{indicator.ratio}</span>} />
+                         <DetailItem label="Capaian" value={<span className="font-semibold text-lg">{indicator.ratio}{indicator.standardUnit}</span>} />
                         <DetailItem label="Standar" value={`${indicator.standard}${indicator.standardUnit}`} />
                         <DetailItem label="Numerator" value={indicator.numerator} />
                         <DetailItem label="Denominator" value={indicator.denominator} />

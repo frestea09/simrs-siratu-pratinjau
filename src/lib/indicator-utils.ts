@@ -9,7 +9,7 @@ import {
   subMonths,
 } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
-import type { Indicator } from "@/store/indicator-store"
+import type { Indicator, IndicatorProfile } from "@/store/indicator-store"
 
 export type FilterType =
   | "daily"
@@ -21,40 +21,58 @@ export type FilterType =
   | "3m"
   | "6m"
   | "1y"
+  | "3y"
 
 export const calculateRatio = (
   indicator: Omit<Indicator, "id" | "ratio" | "status">
 ): string => {
-  if (indicator.standardUnit === "menit") {
-    if (indicator.denominator === 0) return "0"
-    const average = indicator.numerator / indicator.denominator
-    return `${average.toFixed(1)}`
+  const { numerator, denominator, calculationMethod } = indicator;
+
+  if (denominator === 0) {
+      return "0.0";
   }
-  if (indicator.denominator === 0) return "0.0"
-  const ratio = (indicator.numerator / indicator.denominator) * 100
-  return `${ratio.toFixed(1)}`
+
+  try {
+    let ratio: number;
+    if (calculationMethod === 'percentage') {
+        ratio = (numerator / denominator) * 100;
+    } else { // 'average'
+        ratio = numerator / denominator;
+    }
+    
+    if (isNaN(ratio)) {
+        return "N/A";
+    }
+
+    return ratio.toFixed(1);
+
+  } catch (error) {
+    console.error("Error evaluating formula:", calculationMethod, error);
+    return "N/A";
+  }
 }
+
 
 export const calculateStatus = (
   indicator: Omit<Indicator, "id" | "ratio" | "status">
 ): Indicator["status"] => {
-  let achievementValue: number
-
-  if (indicator.standardUnit === "menit") {
-    if (indicator.denominator === 0) return "N/A"
-    achievementValue = indicator.numerator / indicator.denominator
-    // Lower is better for wait times
+  if (indicator.denominator === 0) return "N/A"
+  const achievementValue = parseFloat(calculateRatio(indicator));
+  
+  if (isNaN(achievementValue)) {
+      return "N/A";
+  }
+  
+  if (indicator.calculationMethod === "average") { // Lower is better
     return achievementValue <= indicator.standard
       ? "Memenuhi Standar"
       : "Tidak Memenuhi Standar"
-  } else {
-    if (indicator.denominator === 0) return "N/A"
-    achievementValue = (indicator.numerator / indicator.denominator) * 100
-    // Higher is better for percentages
-    return achievementValue >= indicator.standard
-      ? "Memenuhi Standar"
-      : "Tidak Memenuhi Standar"
-  }
+  } 
+  
+  // Higher is better for percentages
+  return achievementValue >= indicator.standard
+    ? "Memenuhi Standar"
+    : "Tidak Memenuhi Standar"
 }
 
 export const getFilterRange = (
@@ -81,6 +99,8 @@ export const getFilterRange = (
       return { start: subMonths(now, 6), end: now }
     case "1y":
       return { start: subMonths(now, 12), end: now }
+    case "3y":
+      return { start: subMonths(now, 36), end: now }
     default:
       return { start: startOfMonth(now), end: endOfMonth(now) }
   }
@@ -115,7 +135,11 @@ export const getFilterDescription = (
       return `Menampilkan data untuk 6 Bulan Terakhir (${formatDateRange(start, end)}).`
     case "1y":
       return `Menampilkan data untuk 1 Tahun Terakhir (${formatDateRange(start, end)}).`
+    case "3y":
+      return `Menampilkan data untuk 3 Tahun Terakhir (${formatDateRange(start, end)}).`
     default:
       return "Menampilkan data."
   }
 }
+
+    

@@ -25,12 +25,18 @@ import {
 } from "@/components/ui/card"
 import { format } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
+import { INDICATOR_TEXTS } from "@/lib/constants"
+import { Button } from "@/components/ui/button"
+import { Copy } from "lucide-react"
+import { copyElementAsImage } from "@/lib/copy-element-as-image"
+import { useToast } from "@/hooks/use-toast"
 
 type IndicatorChartCardProps = {
   chartData: any[]
   description: string
   filterType: string
   selectedIndicator: string
+  chartType: 'line' | 'bar'
 }
 
 export function IndicatorChartCard({
@@ -38,8 +44,30 @@ export function IndicatorChartCard({
   description,
   filterType,
   selectedIndicator,
+  chartType,
 }: IndicatorChartCardProps) {
-  const [chartType, setChartType] = React.useState<"line" | "bar">("line")
+  const { toast } = useToast()
+  const cardRef = React.useRef<HTMLDivElement>(null)
+
+  const handleCopySection = React.useCallback(async () => {
+    if (!cardRef.current) {
+      return
+    }
+
+    try {
+      await copyElementAsImage(cardRef.current)
+      toast({
+        title: "Bagian Disalin",
+        description: "Capaian indikator terkini siap ditempel ke dokumen.",
+      })
+    } catch (error) {
+      toast({
+        title: "Gagal Menyalin",
+        description: "Tidak dapat menyalin gambar. Silakan coba lagi.",
+        variant: "destructive",
+      })
+    }
+  }, [toast])
 
   const ChartTooltipContent = (props: any) => {
     const { active, payload } = props
@@ -53,9 +81,9 @@ export function IndicatorChartCard({
       return (
         <div className="p-2 bg-background border rounded-md shadow-lg">
           <p className="font-bold text-foreground">{formattedDate}</p>
-          <p className="text-sm text-primary">{`Capaian: ${data.Capaian}`}</p>
+          <p className="text-sm text-primary">{`${INDICATOR_TEXTS.chartCard.tooltip.capaian}: ${data.Capaian}${data.unit}`}</p>
           {data.Standar && (
-            <p className="text-sm text-destructive">{`Standar: ${data.Standar}`}</p>
+            <p className="text-sm text-destructive">{`${INDICATOR_TEXTS.chartCard.tooltip.standar}: ${data.Standar}${data.unit}`}</p>
           )}
         </div>
       )
@@ -65,7 +93,8 @@ export function IndicatorChartCard({
 
   const renderChart = () => {
     const ChartComponent = chartType === "line" ? LineChart : BarChart
-    const MainChartElement = chartType === "line" ? Line : Bar
+    const MainChartElement =
+      (chartType === "line" ? Line : Bar) as React.ElementType
 
     return (
       <ChartComponent data={chartData}>
@@ -82,6 +111,7 @@ export function IndicatorChartCard({
           fontSize={12}
           tickLine={false}
           axisLine={false}
+          tickFormatter={(value) => `${value}${chartData[0]?.unit || ''}`}
         />
         <Tooltip content={<ChartTooltipContent />} />
         <Legend />
@@ -93,11 +123,11 @@ export function IndicatorChartCard({
           strokeWidth={2}
           activeDot={{ r: 8 }}
           dot={<Dot r={4} />}
-          radius={[4, 4, 0, 0]}
+          {...(chartType === "bar" ? { radius: [4, 4, 0, 0] } : {})}
         >
-          <LabelList dataKey="Capaian" position="top" />
+          <LabelList dataKey="label" position="top" />
         </MainChartElement>
-        {chartType === "line" && selectedIndicator !== "Semua Indikator" && chartData.some(d => d.Standar) && (
+        {chartType === "line" && selectedIndicator !== INDICATOR_TEXTS.defaults.allIndicators && chartData.some(d => d.Standar) && (
           <Line
             type="monotone"
             dataKey="Standar"
@@ -112,10 +142,24 @@ export function IndicatorChartCard({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Capaian Indikator Terkini</CardTitle>
-        <CardDescription>{description}</CardDescription>
+    <Card ref={cardRef}>
+      <CardHeader className="space-y-2">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-2">
+            <CardTitle>{INDICATOR_TEXTS.chartCard.title}</CardTitle>
+            <CardDescription>{description}</CardDescription>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleCopySection}
+            data-copy-exclude="true"
+          >
+            <Copy className="mr-2 h-4 w-4" />
+            Salin Bagian
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="pl-2">
         <ResponsiveContainer width="100%" height={350}>
@@ -123,7 +167,7 @@ export function IndicatorChartCard({
             renderChart()
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">
-              Tidak cukup data untuk menampilkan grafik.
+              {INDICATOR_TEXTS.chartCard.emptyState}
             </div>
           )}
         </ResponsiveContainer>

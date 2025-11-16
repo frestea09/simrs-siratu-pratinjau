@@ -4,28 +4,21 @@
 
 import React from "react"
 import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { cn } from "@/lib/utils"
-import { CalendarIcon } from "lucide-react"
-import { format } from "date-fns"
+// no icon needed for native inputs
+import { format, endOfToday } from "date-fns"
+import { id as IndonesianLocale } from "date-fns/locale"
 import { useIndicatorStore, Indicator, SubmittedIndicator, IndicatorCategory } from "@/store/indicator-store"
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "../ui/textarea"
 import { DialogFooter } from "../ui/dialog"
 import { useUserStore } from "@/store/user-store.tsx"
 import { useLogStore } from "@/store/log-store.tsx"
+import {centralRoles} from "@/store/central-roles.ts";
 
-const centralRoles = [
-  'Admin Sistem',
-  'Direktur',
-  'Sub. Komite Peningkatan Mutu',
-  'Sub. Komite Keselamatan Pasien',
-  'Sub. Komite Manajemen Risiko'
-];
+
 
 type IndicatorInputFormProps = {
     setOpen: (open: boolean) => void;
@@ -35,24 +28,46 @@ type IndicatorInputFormProps = {
 
 export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: IndicatorInputFormProps) {
   const { toast } = useToast()
-  const { addIndicator, updateIndicator, submittedIndicators, indicators } = useIndicatorStore()
+  const { addIndicator, updateIndicator, submittedIndicators, indicators, profiles, fetchProfiles, fetchSubmittedIndicators } = useIndicatorStore()
   const { currentUser } = useUserStore()
   const { addLog } = useLogStore()
 
 
   const isEditMode = !!indicatorToEdit?.id;
   
-  const [selectedIndicatorId, setSelectedIndicatorId] = React.useState<string | undefined>(isEditMode ? submittedIndicators.find(si => si.name === indicatorToEdit.indicator)?.id : undefined);
-  const [date, setDate] = React.useState<Date | undefined>((isEditMode && indicatorToEdit?.period) ? new Date(indicatorToEdit.period) : new Date())
-  const [numerator, setNumerator] = React.useState(indicatorToEdit?.numerator?.toString() || "")
-  const [denominator, setDenominator] = React.useState(indicatorToEdit?.denominator?.toString() || "")
-  const [analysisNotes, setAnalysisNotes] = React.useState(indicatorToEdit?.analysisNotes || "")
-  const [followUpPlan, setFollowUpPlan] = React.useState(indicatorToEdit?.followUpPlan || "")
+  const [selectedIndicatorId, setSelectedIndicatorId] = React.useState<string | undefined>(
+    indicatorToEdit ? submittedIndicators.find(si => si.name === indicatorToEdit.indicator)?.id : undefined
+  );
+  const [date, setDate] = React.useState<Date | undefined>(
+      indicatorToEdit ? new Date(indicatorToEdit.period) : new Date()
+  );
+  const [numerator, setNumerator] = React.useState(
+      indicatorToEdit ? indicatorToEdit.numerator.toString() : ""
+  );
+  const [denominator, setDenominator] = React.useState(
+      indicatorToEdit ? indicatorToEdit.denominator.toString() : ""
+  );
+  const [analysisNotes, setAnalysisNotes] = React.useState(
+      indicatorToEdit ? indicatorToEdit.analysisNotes || "" : ""
+  );
+  const [followUpPlan, setFollowUpPlan] = React.useState(
+      indicatorToEdit ? indicatorToEdit.followUpPlan || "" : ""
+  );
+
 
   const selectedSubmittedIndicator = React.useMemo(() => {
     return submittedIndicators.find(si => si.id === selectedIndicatorId);
   }, [selectedIndicatorId, submittedIndicators])
 
+
+  React.useEffect(() => {
+    if (!profiles.length) {
+      fetchProfiles().catch(() => {})
+    }
+    if (!submittedIndicators.length) {
+      fetchSubmittedIndicators().catch(() => {})
+    }
+  }, [profiles.length, submittedIndicators.length, fetchProfiles, fetchSubmittedIndicators])
 
   React.useEffect(() => {
     if (indicatorToEdit?.id) {
@@ -63,14 +78,6 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
         setDenominator(indicatorToEdit.denominator.toString());
         setAnalysisNotes(indicatorToEdit.analysisNotes || "");
         setFollowUpPlan(indicatorToEdit.followUpPlan || "");
-    } else {
-        // Reset form for new entry
-        setSelectedIndicatorId(undefined);
-        setDate(new Date());
-        setNumerator("");
-        setDenominator("");
-        setAnalysisNotes("");
-        setFollowUpPlan("");
     }
   }, [indicatorToEdit, submittedIndicators])
 
@@ -87,18 +94,25 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
   }, [submittedIndicators, currentUser, userCanSeeAll, category]);
   
   const filledDates = React.useMemo(() => {
-    if (!selectedSubmittedIndicator) return [];
+    if (!selectedSubmittedIndicator || isEditMode) return [];
     return indicators
         .filter(i => i.indicator === selectedSubmittedIndicator.name)
         .map(i => new Date(i.period));
-  }, [indicators, selectedSubmittedIndicator]);
+  }, [indicators, selectedSubmittedIndicator, isEditMode]);
 
-  const handleSubmit = () => {
-    if (!selectedSubmittedIndicator || !date || !numerator || !denominator) {
+  const handleSubmit = async () => {
+    const profile = profiles.find(p => p.id === selectedSubmittedIndicator?.profileId);
+    const numeratorMissing = numerator === "" || numerator === null || numerator === undefined
+    const denominatorMissing = denominator === "" || denominator === null || denominator === undefined
+    if (!selectedSubmittedIndicator || !date || numeratorMissing || denominatorMissing || !profile) {
         toast({
             variant: "destructive",
             title: "Data Tidak Lengkap",
-            description: "Harap isi semua kolom wajib untuk menyimpan data.",
+            description: !selectedSubmittedIndicator
+              ? "Pilih indikator yang sudah diverifikasi terlebih dahulu."
+              : !profile
+                ? "Profil indikator terkait tidak ditemukan. Coba muat ulang daftar profil."
+                : "Harap isi semua kolom wajib (tanggal/periode, numerator, denominator).",
         })
         return
     }
@@ -111,47 +125,80 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
         frequency: selectedSubmittedIndicator.frequency,
         numerator: Number(numerator),
         denominator: Number(denominator),
+        calculationMethod: profile.calculationMethod,
         standard: selectedSubmittedIndicator.standard,
         standardUnit: selectedSubmittedIndicator.standardUnit,
         analysisNotes: analysisNotes,
         followUpPlan: followUpPlan,
     };
 
-    if (isEditMode && indicatorToEdit) {
-        updateIndicator(indicatorToEdit.id, dataToSave);
-        addLog({
-            user: currentUser?.name || 'System',
-            action: 'UPDATE_INDICATOR',
-            details: `Data capaian untuk "${dataToSave.indicator}" diperbarui.`,
-        });
-        toast({
-            title: "Data Berhasil Diperbarui",
-            description: `Capaian untuk ${dataToSave.indicator} periode ${format(date, "d MMMM yyyy")} telah diperbarui.`,
-        })
-    } else {
-         const newId = addIndicator(dataToSave)
-         addLog({
-            user: currentUser?.name || 'System',
-            action: 'ADD_INDICATOR',
-            details: `Data capaian baru (${newId}) untuk "${dataToSave.indicator}" ditambahkan.`,
-        });
-        toast({
+    try {
+      if (isEditMode && indicatorToEdit) {
+          await updateIndicator(indicatorToEdit.id, dataToSave);
+          addLog({
+              user: currentUser?.name || 'System',
+              action: 'UPDATE_INDICATOR',
+              details: `Data capaian untuk "${dataToSave.indicator}" diperbarui.`,
+          });
+          toast({
+              title: "Data Berhasil Diperbarui",
+              description: `Capaian untuk ${dataToSave.indicator} periode ${format(date, "d MMMM yyyy")} telah diperbarui.`,
+          })
+      } else {
+          const newId = await addIndicator({
+            ...dataToSave,
+            submissionId: selectedSubmittedIndicator.id,
+          })
+          addLog({
+              user: currentUser?.name || 'System',
+              action: 'ADD_INDICATOR',
+              details: `Data capaian baru (${newId}) untuk "${dataToSave.indicator}" ditambahkan.`,
+          });
+          toast({
             title: "Data Berhasil Disimpan",
             description: `Capaian untuk ${dataToSave.indicator} periode ${format(date, "d MMMM yyyy")} telah ditambahkan.`,
-        })
+          })
+      }
+      setOpen(false);
+    } catch (e: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Gagal menyimpan data capaian',
+        description: e?.message || 'Terjadi kesalahan saat menyimpan.'
+      })
     }
-
-    // Reset form and close dialog
-    setSelectedIndicatorId(undefined)
-    setDate(new Date())
-    setNumerator("")
-    setDenominator("")
-    setAnalysisNotes("")
-    setFollowUpPlan("")
-    setOpen(false);
   }
+  
+  // For native inputs we'll use max attribute and runtime checks
 
   const isTimeBased = selectedSubmittedIndicator?.standardUnit === "menit";
+  const frequency = selectedSubmittedIndicator?.frequency;
+
+  // Helpers for a friendlier monthly selector (Month + Year)
+  const currentYear = new Date().getFullYear();
+  const years = React.useMemo(() => Array.from({ length: 6 }, (_, i) => (currentYear - i).toString()), [currentYear]);
+  const months = React.useMemo(() => (
+    Array.from({ length: 12 }, (_, i) => ({
+      value: i.toString(),
+      label: format(new Date(currentYear, i, 1), "MMMM", { locale: IndonesianLocale })
+    }))
+  ), [currentYear]);
+
+  // Helper for native month input value
+  const monthValue = React.useMemo(() => {
+    if (!date) return "";
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    return `${y}-${m}`;
+  }, [date]);
+
+  // Compute disabled months (already filled or in the future) for monthly mode
+  const filledMonthKeys = React.useMemo(() => new Set(
+    filledDates.map(d => `${d.getFullYear()}-${d.getMonth()}`)
+  ), [filledDates]);
+  const today = new Date();
+  const maxDateStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  const maxMonthStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
 
   return (
     <div className="space-y-6 pt-4">
@@ -173,44 +220,53 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
         </div>
         <div className="space-y-2">
           <Label htmlFor="period" className="text-base">Periode Laporan</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={"outline"}
-                className={cn("w-full justify-start text-left font-normal text-base h-11", !date && "text-muted-foreground")}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : <span>Pilih tanggal</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar 
-                mode="single" 
-                selected={date} 
-                onSelect={setDate} 
-                disabled={{ after: new Date() }}
-                initialFocus 
-                modifiers={{ filled: filledDates }}
-                modifiersStyles={{
-                    filled: { 
-                        position: 'relative',
-                        '::after': {
-                            content: '""',
-                            display: 'block',
-                            position: 'absolute',
-                            bottom: '4px',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            width: '4px',
-                            height: '4px',
-                            borderRadius: '50%',
-                            backgroundColor: 'hsl(var(--primary))'
-                        }
-                    }
+          {frequency === "Bulanan" ? (
+            <div className="space-y-1">
+              <Input
+                id="period-month"
+                type="month"
+                className="text-base h-11"
+                value={monthValue}
+                max={isEditMode ? undefined : maxMonthStr}
+                onChange={(e) => {
+                  const v = e.target.value; // YYYY-MM
+                  if (!v) { setDate(undefined); return; }
+                  const [yStr, mStr] = v.split('-');
+                  const y = parseInt(yStr, 10);
+                  const m = parseInt(mStr, 10) - 1;
+                  if (!isEditMode && filledMonthKeys.has(`${y}-${m}`)) {
+                    toast({ variant: "destructive", title: "Bulan sudah terisi", description: "Silakan pilih bulan lain yang belum memiliki capaian." });
+                    return;
+                  }
+                  setDate(new Date(y, m, 1));
                 }}
               />
-            </PopoverContent>
-          </Popover>
+              <p className="text-xs text-muted-foreground">Gunakan pemilih bulan/tahun bawaan perangkat.</p>
+            </div>
+          ) : (
+            <Input
+              id="period-date"
+              type="date"
+              className="text-base h-11"
+              value={date ? `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}` : ''}
+              max={isEditMode ? undefined : maxDateStr}
+              onChange={(e) => {
+                const v = e.target.value; // YYYY-MM-DD
+                if (!v) { setDate(undefined); return; }
+                const [y, m, d] = v.split('-').map(Number);
+                const picked = new Date(y, (m||1)-1, d||1);
+                if (!isEditMode) {
+                  const pickedKey = `${picked.getFullYear()}-${String(picked.getMonth()+1).padStart(2,'0')}-${String(picked.getDate()).padStart(2,'0')}`;
+                  const existingKeys = new Set(filledDates.map(fd => `${fd.getFullYear()}-${String(fd.getMonth()+1).padStart(2,'0')}-${String(fd.getDate()).padStart(2,'0')}`));
+                  if (existingKeys.has(pickedKey)) {
+                    toast({ variant: "destructive", title: "Tanggal sudah terisi", description: "Silakan pilih tanggal lain yang belum memiliki capaian." });
+                    return;
+                  }
+                }
+                setDate(picked);
+              }}
+            />
+          )}
         </div>
       </div>
       

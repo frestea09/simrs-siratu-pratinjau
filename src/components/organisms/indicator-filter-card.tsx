@@ -25,23 +25,12 @@ import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
 import { cn } from "@/lib/utils"
-import { HOSPITAL_UNITS } from "@/lib/constants"
-import { FilterType } from "@/lib/indicator-utils"
+import { INDICATOR_TEXTS } from "@/lib/constants"
+import { useUnitOptions } from "@/hooks/use-unit-options"
+import type { FilterType } from "@/lib/indicator-utils"
+import type { IndicatorFilterCardProps } from "./indicator-filter-card.type"
 
-const unitOptions = [{ value: "Semua Unit", label: "Semua Unit" }, ...HOSPITAL_UNITS.map(u => ({ value: u, label: u }))];
-
-type IndicatorFilterCardProps = {
-  userIsCentral: boolean;
-  selectedUnit: string;
-  setSelectedUnit: (unit: string) => void;
-  uniqueIndicatorNames: { value: string; label: string }[];
-  selectedIndicator: string;
-  setSelectedIndicator: (indicator: string) => void;
-  filterType: FilterType;
-  setFilterType: (type: FilterType) => void;
-  selectedDate: Date;
-  setSelectedDate: (date: Date) => void;
-}
+const allUnitsLabel = INDICATOR_TEXTS.defaults.allUnits
 
 export function IndicatorFilterCard({
   userIsCentral,
@@ -54,9 +43,17 @@ export function IndicatorFilterCard({
   setFilterType,
   selectedDate,
   setSelectedDate,
+  chartType,
+  setChartType,
 }: IndicatorFilterCardProps) {
-  
-  const [chartType, setChartType] = React.useState<'line' | 'bar'>('line');
+  const { options: dynamicUnitOptions, isLoading: unitsLoading } = useUnitOptions()
+  const unitOptions = React.useMemo(
+    () => [
+      { value: allUnitsLabel, label: allUnitsLabel },
+      ...dynamicUnitOptions,
+    ],
+    [dynamicUnitOptions]
+  )
 
   const renderFilterInput = () => {
     // Component logic from the original page
@@ -71,12 +68,20 @@ export function IndicatorFilterCard({
       return (
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant={"outline"} className={cn("w-[200px] justify-start text-left font-normal", !selectedDate && "text-muted-foreground")}>
+            <Button
+              variant={"outline"}
+              className={cn(
+                "w-[200px] justify-start text-left font-normal",
+                !selectedDate && "text-muted-foreground"
+              )}
+            >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {selectedDate ? format(selectedDate, "PPP", { locale: IndonesianLocale }) : <span>Pilih tanggal</span>}
+              {selectedDate
+                ? format(selectedDate, "PPP", { locale: IndonesianLocale })
+                : <span>{INDICATOR_TEXTS.filterCard.placeholders.date}</span>}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={selectedDate} onSelect={(date) => date && setSelectedDate(date)} initialFocus disabled={{ after: new Date() }} /></PopoverContent>
+          <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={selectedDate} onSelect={(date) => date && setSelectedDate(date)} initialFocus disabled={{ after: new Date() }} month={selectedDate} /></PopoverContent>
         </Popover>
       )
     }
@@ -112,39 +117,50 @@ export function IndicatorFilterCard({
       <CardHeader>
         <CardTitle>
           <Filter className="mr-2 h-5 w-5 inline-block" />
-          Filter & Tampilan Data
+          {INDICATOR_TEXTS.filterCard.title}
         </CardTitle>
-        <CardDescription>Gunakan filter di bawah untuk menampilkan data yang lebih spesifik.</CardDescription>
+        <CardDescription>{INDICATOR_TEXTS.filterCard.description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="space-y-2">
-            <Label>Filter Data</Label>
+            <Label>{INDICATOR_TEXTS.filterCard.labels.filter}</Label>
             <div className="space-y-2">
               {userIsCentral && (
-                <Combobox options={unitOptions} value={selectedUnit} onSelect={setSelectedUnit} placeholder="Pilih unit..." searchPlaceholder="Cari unit..." />
+                <Combobox
+                  options={unitOptions}
+                  value={selectedUnit}
+                  onSelect={setSelectedUnit}
+                  placeholder={INDICATOR_TEXTS.filterCard.placeholders.unit}
+                  searchPlaceholder={INDICATOR_TEXTS.filterCard.placeholders.unitSearch}
+                  disabled={unitsLoading}
+                />
               )}
               {uniqueIndicatorNames.length > 1 && (
-                <Combobox options={uniqueIndicatorNames} value={selectedIndicator} onSelect={setSelectedIndicator} placeholder="Pilih indikator..." searchPlaceholder="Cari indikator..." />
+                <Combobox
+                  options={uniqueIndicatorNames}
+                  value={selectedIndicator}
+                  onSelect={setSelectedIndicator}
+                  placeholder={INDICATOR_TEXTS.filterCard.placeholders.indicator}
+                  searchPlaceholder={INDICATOR_TEXTS.filterCard.placeholders.indicatorSearch}
+                />
               )}
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Tampilan & Rentang Waktu</Label>
+            <Label>{INDICATOR_TEXTS.filterCard.labels.displayRange}</Label>
             <div className="flex flex-col sm:flex-row gap-2">
               <div className="flex-grow">
                 <Select value={filterType} onValueChange={v => setFilterType(v as FilterType)}>
-                  <SelectTrigger><SelectValue placeholder="Pilih rentang..." /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder={INDICATOR_TEXTS.filterCard.placeholders.range} />
+                  </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="this_month">Bulan Ini</SelectItem>
-                    <SelectItem value="7d">7 Hari Terakhir</SelectItem>
-                    <SelectItem value="30d">30 Hari Terakhir</SelectItem>
-                    <SelectItem value="3m">3 Bulan Terakhir</SelectItem>
-                    <SelectItem value="6m">6 Bulan Terakhir</SelectItem>
-                    <SelectItem value="1y">1 Tahun Terakhir</SelectItem>
-                    <SelectItem value="daily">Harian (Custom)</SelectItem>
-                    <SelectItem value="monthly">Bulanan (Custom)</SelectItem>
-                    <SelectItem value="yearly">Tahunan (Custom)</SelectItem>
+                    {INDICATOR_TEXTS.filterCard.filterTypeOptions.map(option => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -161,7 +177,7 @@ export function IndicatorFilterCard({
           <div className="space-y-2">
             {showCustomFilterInput && (
               <>
-                <Label>Filter Kustom</Label>
+                <Label>{INDICATOR_TEXTS.filterCard.labels.custom}</Label>
                 <div>{renderFilterInput()}</div>
               </>
             )}

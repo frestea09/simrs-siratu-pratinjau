@@ -1,101 +1,130 @@
 
 "use client"
 
-import { create } from 'zustand';
-import React, { createContext, useContext, useEffect, useRef } from 'react';
-import { useNotificationStore } from './notification-store.tsx';
+import { create } from "zustand"
+import React, { createContext, useContext, useEffect, useRef } from "react"
 
-export type UserRole = 
-  | 'Admin Sistem' 
-  | 'PIC Mutu' 
-  | 'PJ Ruangan' 
-  | 'Kepala Unit/Instalasi' 
-  | 'Direktur'
-  | 'Sub. Komite Peningkatan Mutu'
-  | 'Sub. Komite Keselamatan Pasien'
-  | 'Sub. Komite Manajemen Risiko';
+export type UserRole =
+  | "Admin Sistem"
+  | "PIC Mutu"
+  | "PJ Ruangan"
+  | "Kepala Unit/Instalasi"
+  | "Direktur"
+  | "Sub. Komite Peningkatan Mutu"
+  | "Sub. Komite Keselamatan Pasien"
+  | "Sub. Komite Manajemen Risiko"
+  | "Petugas Pelaporan"
 
 export type User = {
-  id: string;
-  name: string;
-  email: string;
-  password?: string;
-  role: UserRole;
-  unit?: string;
+  id: string
+  name: string
+  email: string
+  password?: string
+  role: UserRole
+  unit?: string
 }
+
+const initialUsers: Omit<User, 'id'>[] = [
+    { name: "Admin Sistem", email: "admin@sim.rs", password: "123456", role: "Admin Sistem" },
+    { name: "Delina (PIC Mutu)", email: "delina@sim.rs", password: "123456", role: "PIC Mutu", unit: "PPI" },
+    { name: "Deti (PJ Ruangan)", email: "deti@sim.rs", password: "123456", role: "PJ Ruangan", unit: "RANAP" },
+    { name: "Devin (Keselamatan Pasien)", email: "devin@sim.rs", password: "123456", role: "Sub. Komite Keselamatan Pasien" },
+    { name: "Deka (Kepala Unit)", email: "deka@sim.rs", password: "123456", role: "Kepala Unit/Instalasi", unit: "IGD" },
+    { name: "Dr. Direktur", email: "dir@sim.rs", password: "123456", role: "Direktur" },
+    { name: "Dion (Peningkatan Mutu)", email: "dion@sim.rs", password: "123456", role: "Sub. Komite Peningkatan Mutu" },
+    { name: "Dara (Manajemen Risiko)", email: "dara@sim.rs", password: "123456", role: "Sub. Komite Manajemen Risiko" },
+];
+
 
 type UserState = {
-  users: User[];
-  currentUser: User | null;
-  addUser: (user: Omit<User, 'id'>) => string;
-  updateUser: (id: string, data: Partial<Omit<User, 'id'>>) => void;
-  removeUser: (id: string) => void;
-  setCurrentUser: (user: User) => void;
-  clearCurrentUser: () => void;
+  users: User[]
+  currentUser: User | null
+  fetchUsers: () => Promise<void>
+  fetchCurrentUser: () => Promise<void>
+  addUser: (user: Omit<User, "id">) => Promise<string>
+  updateUser: (id: string, data: Partial<Omit<User, "id">>) => Promise<void>
+  removeUser: (id: string) => Promise<void>
+  setCurrentUser: (user: User | null) => void
+  clearCurrentUser: () => void
 }
 
-const initialUsers: User[] = [
-    { id: 'user-1', name: 'Admin Sistem', email: 'admin@sim.rs', password: '123456', role: 'Admin Sistem' },
-    { id: 'user-2', name: 'Delina (PIC Mutu)', email: 'delina@sim.rs', password: '123456', role: 'PIC Mutu', unit: 'PPI' },
-    { id: 'user-3', name: 'Deti (PJ Ruangan)', email: 'deti@sim.rs', password: '123456', role: 'PJ Ruangan', unit: 'RANAP' },
-    { id: 'user-4', name: 'Devin (Keselamatan Pasien)', email: 'devin@sim.rs', password: '123456', role: 'Sub. Komite Keselamatan Pasien' },
-    { id: 'user-5', name: 'Deka (Kepala Unit)', email: 'deka@sim.rs', password: '123456', role: 'Kepala Unit/Instalasi', unit: 'IGD' },
-    { id: 'user-6', name: 'Dr. Direktur', email: 'dir@sim.rs', password: '123456', role: 'Direktur' },
-    { id: 'user-7', name: 'Dion (Peningkatan Mutu)', email: 'dion@sim.rs', password: '123456', role: 'Sub. Komite Peningkatan Mutu' },
-    { id: 'user-8', name: 'Dara (Manajemen Risiko)', email: 'dara@sim.rs', password: '123456', role: 'Sub. Komite Manajemen Risiko' },
-]
-
-const createUserStore = () => create<UserState>()(
-  (set, get) => ({
-    users: initialUsers,
+const createUserStore = () =>
+  create<UserState>()((set, get) => ({
+    users: [],
     currentUser: null,
-    addUser: (user) => {
-      const newId = `user-${Date.now()}-${Math.random()}`;
-      const newUser = { ...user, id: newId };
-      set((state) => ({
-        users: [...state.users, newUser],
-      }));
-      return newId;
+    fetchUsers: async () => {
+      const res = await fetch('/api/users', { cache: 'no-store' })
+      if (!res.ok) throw new Error('Failed to fetch users')
+      const data: User[] = await res.json()
+      set({ users: data })
     },
-    updateUser: (id, data) => set((state) => ({
-      users: state.users.map(u => (u.id === id ? { ...u, ...data } : u)),
-    })),
-    removeUser: (id) => set((state) => ({
-      users: state.users.filter(u => u.id !== id),
-    })),
+    fetchCurrentUser: async () => {
+       try {
+         const res = await fetch('/api/session', { cache: 'no-store' })
+         if (!res.ok) { set({ currentUser: null }); return }
+         const data = await res.json()
+         set({ currentUser: data?.user ?? null })
+       } catch {
+         set({ currentUser: null })
+       }
+    },
+    addUser: async (user) => {
+      const res = await fetch('/api/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(user) })
+      if (!res.ok) {
+        try { const err = await res.json(); throw new Error(err?.error || 'Failed to create user') } catch { throw new Error('Failed to create user') }
+      }
+      const created: User = await res.json()
+      set((state) => ({ users: [created, ...state.users] }))
+      return created.id
+    },
+    updateUser: async (id, data) => {
+      const res = await fetch(`/api/users/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+      if (!res.ok) {
+        try { const err = await res.json(); throw new Error(err?.error || 'Failed to update user') } catch { throw new Error('Failed to update user') }
+      }
+      const updated: User = await res.json()
+      set((state) => ({ users: state.users.map(u => (u.id === id ? updated : u)) }))
+    },
+    removeUser: async (id) => {
+      const res = await fetch(`/api/users/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Failed to delete user')
+      set((state) => ({ users: state.users.filter(u => u.id !== id) }))
+    },
     setCurrentUser: (user) => set({ currentUser: user }),
     clearCurrentUser: () => set({ currentUser: null }),
-  })
-);
+  }))
 
-const UserStoreContext = createContext<ReturnType<typeof createUserStore> | null>(null);
+const UserStoreContext = createContext<ReturnType<
+  typeof createUserStore
+> | null>(null)
 
-export const UserStoreProvider = ({ children }: { children: React.ReactNode }) => {
-  const storeRef = useRef<ReturnType<typeof createUserStore>>();
+export const UserStoreProvider = ({
+  children,
+}: {
+  children: React.ReactNode
+}) => {
+  const storeRef = useRef<ReturnType<typeof createUserStore>>()
   if (!storeRef.current) {
-    storeRef.current = createUserStore();
+    storeRef.current = createUserStore()
   }
+
+  useEffect(() => {
+    // Hydrate currentUser from httpOnly session cookie via API
+    storeRef.current?.getState().fetchCurrentUser()
+  }, [])
+
   return (
     <UserStoreContext.Provider value={storeRef.current}>
       {children}
     </UserStoreContext.Provider>
-  );
-};
+  )
+}
 
 export const useUserStore = (): UserState => {
-  const store = useContext(UserStoreContext);
+  const store = useContext(UserStoreContext)
   if (!store) {
-    throw new Error('useUserStore must be used within a UserStoreProvider');
+    throw new Error("useUserStore must be used within a UserStoreProvider")
   }
 
-  const userState = store(state => state);
-  const { setNotificationsForUser } = useNotificationStore();
-
-  useEffect(() => {
-    // When the current user changes, re-filter the notifications
-    setNotificationsForUser(userState.currentUser, userState.users);
-  }, [userState.currentUser, userState.users, setNotificationsForUser]);
-
-
-  return userState;
-};
+  return store((state) => state)
+}

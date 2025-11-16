@@ -1,0 +1,197 @@
+
+"use client"
+
+import { create } from "zustand"
+import React, { createContext, useContext, useRef } from "react"
+
+export type RiskSource =
+  | "Laporan Insiden"
+  | "Komplain"
+  | "Survey/Ronde"
+  | "Rapat/Brainstorming"
+  | "Investigasi"
+  | "Litigasi"
+  | "External Requirement"
+export type RiskCategory =
+  | "Strategis"
+  | "Operasional"
+  | "Finansial"
+  | "Compliance"
+  | "Reputasi"
+  | "Pelayanan Pasien"
+  | "Bahaya Fisik"
+  | "Bahaya Kimia"
+  | "Bahaya Biologi"
+  | "Bahaya Ergonomi"
+  | "Bahaya Psikososial"
+export type RiskLevel = "Rendah" | "Moderat" | "Tinggi" | "Ekstrem"
+export type RiskEvaluation = "Mitigasi" | "Transfer" | "Diterima" | "Dihindari"
+export type RiskStatus = "Open" | "In Progress" | "Closed"
+
+export type Risk = {
+  id: string
+  createdAt: string
+  unit: string
+  source: RiskSource
+  description: string
+  cause: string
+  category: RiskCategory
+  consequence: number
+  likelihood: number
+  cxl: number
+  riskLevel: RiskLevel
+  controllability: number
+  riskScore: number
+  evaluation: RiskEvaluation
+  actionPlan: string
+  dueDate?: string
+  pic?: string
+  status: RiskStatus
+  residualConsequence?: number
+  residualLikelihood?: number
+  residualRiskScore?: number
+  residualRiskLevel?: RiskLevel
+  reportNotes?: string
+}
+
+type RiskState = {
+  risks: Risk[]
+  fetchRisks: () => Promise<void>
+  addRisk: (
+    risk: Omit<
+      Risk,
+      | "id"
+      | "createdAt"
+      | "cxl"
+      | "riskLevel"
+      | "riskScore"
+      | "residualRiskScore"
+      | "residualRiskLevel"
+    >
+  ) => Promise<string>
+  updateRisk: (
+    id: string,
+    risk: Partial<
+      Omit<
+        Risk,
+        | "id"
+        | "createdAt"
+        | "cxl"
+        | "riskLevel"
+        | "riskScore"
+        | "residualRiskScore"
+        | "residualRiskLevel"
+      >
+    >
+  ) => Promise<void>
+  removeRisk: (id: string) => Promise<void>
+}
+
+const getRiskLevel = (cxl: number): RiskLevel => {
+  if (cxl <= 3) return "Rendah"
+  if (cxl <= 6) return "Moderat"
+  if (cxl <= 12) return "Tinggi"
+  return "Ekstrem"
+}
+
+const calculateRiskProperties = (risk: Partial<Risk>) => {
+  const consequence = risk.consequence || 0
+  const likelihood = risk.likelihood || 0
+  const controllability = risk.controllability || 1
+
+  const cxl = consequence * likelihood
+  const riskLevel = getRiskLevel(cxl)
+  const riskScore = cxl * controllability
+
+  let residualRiskScore: number | undefined
+  let residualRiskLevel: RiskLevel | undefined
+
+  if (risk.residualConsequence && risk.residualLikelihood) {
+    const residualCxL = risk.residualConsequence * risk.residualLikelihood
+    residualRiskScore = residualCxL * controllability
+    residualRiskLevel = getRiskLevel(residualCxL)
+  }
+
+  return { cxl, riskLevel, riskScore, residualRiskScore, residualRiskLevel }
+}
+
+const normalizeRisk = (r: any): Risk => ({
+  ...r,
+  pic:
+    typeof r.pic === "object" && r.pic !== null
+      ? r.pic.name
+      : r.pic ?? undefined,
+  status: r.status === "InProgress" ? "In Progress" : r.status,
+  reportNotes: r.reportNotes ?? "",
+  actionPlan: r.actionPlan ?? "",
+})
+
+const createRiskStore = () => create<RiskState>((set) => ({
+  risks: [],
+
+  fetchRisks: async () => {
+    const res = await fetch('/api/risks', { cache: 'no-store' })
+    if (!res.ok) throw new Error('Failed to fetch risks')
+    const data: any[] = await res.json()
+    set({ risks: data.map(normalizeRisk) })
+  },
+
+  addRisk: async (risk) => {
+    const res = await fetch('/api/risks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(risk),
+    })
+    if (!res.ok) {
+      try { const err = await res.json(); throw new Error(err?.error || 'Failed to create risk') } catch { throw new Error('Failed to create risk') }
+    }
+    const created: any = await res.json()
+    const normalized = normalizeRisk(created)
+    set((state) => ({ risks: [normalized, ...state.risks].sort((a,b) => b.riskScore - a.riskScore) }))
+    return normalized.id
+  },
+
+  updateRisk: async (id, riskData) => {
+    const res = await fetch(`/api/risks/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(riskData),
+    })
+    if (!res.ok) {
+      try { const err = await res.json(); throw new Error(err?.error || 'Failed to update risk') } catch { throw new Error('Failed to update risk') }
+    }
+    const updated: any = await res.json()
+    const normalized = normalizeRisk(updated)
+    set((state) => ({
+      risks: state.risks.map(r => r.id === id ? normalized : r).sort((a,b) => b.riskScore - a.riskScore)
+    }))
+  },
+
+  removeRisk: async (id) => {
+    const res = await fetch(`/api/risks/${id}`, { method: 'DELETE' })
+    if (!res.ok) throw new Error('Failed to delete risk')
+    set((state) => ({ risks: state.risks.filter((r) => r.id !== id) }))
+  },
+}))
+
+const RiskStoreContext = createContext<ReturnType<typeof createRiskStore> | null>(null);
+
+export const RiskStoreProvider = ({ children }: { children: React.ReactNode }) => {
+    const storeRef = useRef<ReturnType<typeof createRiskStore>>();
+    if (!storeRef.current) {
+        storeRef.current = createRiskStore();
+    }
+    return (
+        <RiskStoreContext.Provider value={storeRef.current}>
+            {children}
+        </RiskStoreContext.Provider>
+    );
+};
+
+export const useRiskStore = (): RiskState => {
+    const store = useContext(RiskStoreContext);
+    if (!store) {
+        throw new Error('useRiskStore must be used within a RiskStoreProvider');
+    }
+    return store(state => state);
+};

@@ -6,6 +6,7 @@ import { format, parseISO } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
 import { Indicator } from "@/store/indicator-store"
 import { FilterType, getFilterRange } from "@/lib/indicator-utils"
+import { INDICATOR_TEXTS } from "@/lib/constants"
 
 type UseIndicatorDataProps = {
   allIndicators: Indicator[];
@@ -18,25 +19,36 @@ type UseIndicatorDataProps = {
 export function useIndicatorData({ allIndicators, selectedUnit, selectedIndicator, filterType, selectedDate }: UseIndicatorDataProps) {
   
   const indicatorsForUnit = React.useMemo(() => {
-    if (selectedUnit === "Semua Unit") return allIndicators
+    if (selectedUnit === INDICATOR_TEXTS.defaults.allUnits) return allIndicators
     return allIndicators.filter(i => i.unit === selectedUnit)
   }, [allIndicators, selectedUnit])
 
   const uniqueIndicatorNames = React.useMemo(() => {
     const names = new Set(indicatorsForUnit.map(i => i.indicator))
     return [
-      { value: "Semua Indikator", label: "Semua Indikator" },
+      {
+        value: INDICATOR_TEXTS.defaults.allIndicators,
+        label: INDICATOR_TEXTS.defaults.allIndicators,
+      },
       ...Array.from(names).map(name => ({ value: name, label: name }))
     ]
   }, [indicatorsForUnit])
 
   const selectedIndicatorData = React.useMemo(() => {
-    return indicatorsForUnit.filter(i => selectedIndicator === "Semua Indikator" || i.indicator === selectedIndicator)
+    return indicatorsForUnit.filter(
+      i => selectedIndicator === INDICATOR_TEXTS.defaults.allIndicators || i.indicator === selectedIndicator
+    )
   }, [indicatorsForUnit, selectedIndicator])
 
   const { totalIndicators, meetingStandard, notMeetingStandard } = React.useMemo(() => {
-    const total = indicatorsForUnit.length
-    const meeting = indicatorsForUnit.filter(i => i.status === "Memenuhi Standar").length
+    const { start, end } = getFilterRange("this_month", new Date()) // Always use 'this_month' for overview cards
+    const currentMonthIndicators = indicatorsForUnit.filter(d => {
+      const periodDate = parseISO(d.period);
+      return periodDate >= start && periodDate <= end;
+    });
+
+    const total = currentMonthIndicators.length
+    const meeting = currentMonthIndicators.filter(i => i.status === "Memenuhi Standar").length
     return {
       totalIndicators: total,
       meetingStandard: meeting,
@@ -56,7 +68,7 @@ export function useIndicatorData({ allIndicators, selectedUnit, selectedIndicato
     const getGroupKey = (date: Date) => {
       if (filterType === "daily") return format(date, "HH:00")
       if (["monthly", "7d", "30d", "this_month"].includes(filterType)) return format(date, "yyyy-MM-dd")
-      if (["yearly", "3m", "6m", "1y"].includes(filterType)) return format(date, "yyyy-MM")
+      if (["yearly", "3m", "6m", "1y", "3y"].includes(filterType)) return format(date, "yyyy-MM")
       return format(date, "yyyy-MM-dd")
     }
 
@@ -67,25 +79,36 @@ export function useIndicatorData({ allIndicators, selectedUnit, selectedIndicato
           acc[key] = {
             date: parseISO(curr.period),
             Capaian: 0,
-            Standar: selectedIndicator !== "Semua Indikator" ? curr.standard : undefined,
+            Standar:
+              selectedIndicator !== INDICATOR_TEXTS.defaults.allIndicators
+                ? curr.standard
+                : undefined,
             count: 0,
+            unit: curr.standardUnit,
           }
         }
         acc[key].Capaian += parseFloat(curr.ratio)
         acc[key].count += 1
         return acc
       },
-      {} as Record<string, { date: Date; Capaian: number; Standar?: number; count: number }>
+      {} as Record<string, { date: Date; Capaian: number; Standar?: number; count: number, unit: string }>
     )
 
     return Object.values(groupedData)
-      .map(d => ({
-        ...d,
-        Capaian: parseFloat((d.Capaian / d.count).toFixed(1)),
-        name: ["daily"].includes(filterType) ? format(d.date, "HH:mm")
-            : ["yearly", "3m", "6m", "1y"].includes(filterType) ? format(d.date, "MMM", { locale: IndonesianLocale })
-            : format(d.date, "dd MMM"),
-      }))
+      .map(d => {
+        const capaian = parseFloat((d.Capaian / d.count).toFixed(1));
+        return {
+          ...d,
+          Capaian: capaian,
+          Standar: d.Standar,
+          name: ["daily"].includes(filterType)
+            ? format(d.date, "HH:mm")
+            : ["yearly", "3m", "6m", "1y", "3y"].includes(filterType)
+              ? format(d.date, "MMM", { locale: IndonesianLocale })
+              : format(d.date, "dd MMM"),
+          label: `${capaian}${d.unit}`,
+        }
+      })
       .sort((a, b) => a.date.getTime() - b.date.getTime())
   }, [filteredIndicatorsForTable, filterType, selectedIndicator])
 

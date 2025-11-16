@@ -17,7 +17,7 @@ import { Risk, RiskCategory, RiskSource, useRiskStore, RiskEvaluation, RiskStatu
 import { useToast } from "@/hooks/use-toast"
 import { useUserStore } from "@/store/user-store.tsx"
 import { useLogStore } from "@/store/log-store.tsx"
-import { HOSPITAL_UNITS } from "@/lib/constants"
+import { useUnitOptions } from "@/hooks/use-unit-options"
 import { Combobox } from "../ui/combobox"
 import { Slider } from "../ui/slider"
 import { Separator } from "../ui/separator"
@@ -48,7 +48,6 @@ const categoryOptions: { value: RiskCategory, label: string }[] = [
     { value: "Bahaya Ergonomi", label: "Bahaya Ergonomi" },
     { value: "Bahaya Psikososial", label: "Bahaya Psikososial" },
 ];
-const unitOptions = HOSPITAL_UNITS.map(u => ({ value: u, label: u }));
 const evaluationOptions: { value: RiskEvaluation, label: string }[] = [
     { value: "Mitigasi", label: "Mitigasi" },
     { value: "Transfer", label: "Transfer" },
@@ -111,6 +110,7 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
     const { addRisk, updateRisk } = useRiskStore()
     const { currentUser, users } = useUserStore()
     const isEditMode = !!riskToEdit;
+    const { options: unitOptions, isLoading: unitsLoading } = useUnitOptions()
 
     const userOptions = React.useMemo(() => users.map(u => ({ value: u.name, label: `${u.name} (${u.role})`})), [users]);
 
@@ -121,6 +121,11 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
             dueDate: riskToEdit.dueDate ? new Date(riskToEdit.dueDate) : undefined,
             residualConsequence: riskToEdit.residualConsequence || 0,
             residualLikelihood: riskToEdit.residualLikelihood || 0,
+            actionPlan: riskToEdit.actionPlan ?? "",
+            reportNotes: riskToEdit.reportNotes ?? "",
+            description: riskToEdit.description ?? "",
+            cause: riskToEdit.cause ?? "",
+            pic: riskToEdit.pic ?? "",
         } : {
             unit: currentUser?.unit,
             description: "",
@@ -142,7 +147,7 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
     const residualConsequenceValue = form.watch("residualConsequence");
     const residualLikelihoodValue = form.watch("residualLikelihood");
 
-    function onSubmit(values: z.infer<typeof formSchema>) {
+    async function onSubmit(values: z.infer<typeof formSchema>) {
         const dataToSave = {
             ...values,
             dueDate: values.dueDate ? values.dueDate.toISOString() : undefined,
@@ -151,10 +156,10 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
         }
 
         if (isEditMode && riskToEdit) {
-            updateRisk(riskToEdit.id, dataToSave);
+            await updateRisk(riskToEdit.id, dataToSave);
             toast({ title: "Risiko Diperbarui", description: "Data risiko telah berhasil diperbarui." });
         } else {
-            addRisk(dataToSave as any);
+            await addRisk(dataToSave as any);
             toast({ title: "Risiko Baru Ditambahkan", description: "Risiko baru telah berhasil diidentifikasi dan ditambahkan ke register." });
         }
         setOpen(false)
@@ -178,6 +183,7 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
                                     searchPlaceholder="Cari unit..."
                                     onSelect={(value) => form.setValue('unit', value)}
                                     value={field.value}
+                                    disabled={unitsLoading}
                                 />
                                 <FormMessage />
                             </FormItem>
@@ -212,7 +218,7 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
                             <FormItem>
                             <FormLabel>Deskripsi Risiko/Kejadian</FormLabel>
                             <FormControl>
-                                <Textarea placeholder="Jelaskan risiko potensial atau aktual yang terjadi" {...field} />
+                                <Textarea placeholder="Jelaskan risiko potensial atau aktual yang terjadi" {...field} value={field.value ?? ''} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -226,7 +232,7 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
                             <FormItem>
                             <FormLabel>Penyebab (Akar Masalah)</FormLabel>
                             <FormControl>
-                                <Textarea placeholder="Jelaskan penyebab utama dari risiko/kejadian ini" {...field} />
+                                <Textarea placeholder="Jelaskan penyebab utama dari risiko/kejadian ini" {...field} value={field.value ?? ''} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -364,7 +370,7 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
                             <FormItem>
                             <FormLabel>Rencana Aksi & Tindak Lanjut</FormLabel>
                             <FormControl>
-                                <Textarea placeholder="Jelaskan langkah-langkah yang akan diambil untuk menangani risiko ini..." {...field} />
+                                <Textarea placeholder="Jelaskan langkah-langkah yang akan diambil untuk menangani risiko ini..." {...field} value={field.value ?? ''} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -392,40 +398,34 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
                         <FormField
                             control={form.control}
                             name="dueDate"
-                            render={({ field }) => (
-                                <FormItem className="flex flex-col">
-                                    <FormLabel>Batas Waktu (Due Date)</FormLabel>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
+                            render={({ field }) => {
+                                const toValue = (d?: Date) => {
+                                    if (!d) return "";
+                                    const y = d.getFullYear();
+                                    const m = String(d.getMonth() + 1).padStart(2, "0");
+                                    const day = String(d.getDate()).padStart(2, "0");
+                                    return `${y}-${m}-${day}`;
+                                };
+                                const parseValue = (v: string): Date | undefined => {
+                                    if (!v) return undefined;
+                                    const [y, m, d] = v.split("-").map(Number);
+                                    if (!y || !m || !d) return undefined;
+                                    return new Date(y, m - 1, d);
+                                };
+                                return (
+                                    <FormItem className="flex flex-col">
+                                        <FormLabel>Batas Waktu (Due Date)</FormLabel>
                                         <FormControl>
-                                            <Button
-                                            variant={"outline"}
-                                            className={cn(
-                                                "w-full pl-3 text-left font-normal",
-                                                !field.value && "text-muted-foreground"
-                                            )}
-                                            >
-                                            {field.value ? (
-                                                format(field.value, "PPP")
-                                            ) : (
-                                                <span>Pilih tanggal</span>
-                                            )}
-                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
+                                            <Input
+                                                type="date"
+                                                value={toValue(field.value)}
+                                                onChange={(e) => field.onChange(parseValue(e.target.value))}
+                                            />
                                         </FormControl>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={field.value}
-                                            onSelect={field.onChange}
-                                            initialFocus
-                                        />
-                                        </PopoverContent>
-                                    </Popover>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
+                                        <FormMessage />
+                                    </FormItem>
+                                )
+                            }}
                         />
                     </div>
 
@@ -512,7 +512,7 @@ export function RiskForm({ setOpen, riskToEdit }: RiskFormProps) {
                             <FormItem>
                                 <FormLabel>Laporan Singkat / Monev</FormLabel>
                                 <FormControl>
-                                    <Textarea placeholder="Isi laporan singkat atau hasil monitoring dan evaluasi di sini" {...field} />
+                                    <Textarea placeholder="Isi laporan singkat atau hasil monitoring dan evaluasi di sini" {...field} value={field.value ?? ''} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

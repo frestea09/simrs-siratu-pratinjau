@@ -5,11 +5,8 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
-import { NavItem } from '@/types/nav';
-
-type BreadcrumbProps = {
-  navItems: NavItem[];
-};
+import type { BreadcrumbProps } from './breadcrumb.type';
+import type { NavItem } from '@/types/nav';
 
 export function Breadcrumb({ navItems }: BreadcrumbProps) {
   const pathname = usePathname();

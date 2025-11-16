@@ -38,10 +38,12 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { User, useUserStore, UserRole } from "@/store/user-store.tsx"
+import { defaultFilterFns } from "@/lib/default-filter-fns"
 import { UserDialog } from "./user-dialog"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog"
 import { useLogStore } from "@/store/log-store.tsx"
 import { useToast } from "@/hooks/use-toast"
+import type { UserTableProps } from "./user-table.type"
 
 
 const ActionsCell = ({ row }: { row: Row<User> }) => {
@@ -51,7 +53,7 @@ const ActionsCell = ({ row }: { row: Row<User> }) => {
     const { toast } = useToast();
     const [isEditOpen, setIsEditOpen] = React.useState(false);
 
-    const handleDelete = () => {
+    const handleDelete = React.useCallback(async () => {
         if (currentUser?.id === user.id) {
             toast({
                 variant: "destructive",
@@ -60,17 +62,30 @@ const ActionsCell = ({ row }: { row: Row<User> }) => {
             })
             return;
         }
-        removeUser(user.id);
-        addLog({
-            user: currentUser?.name || 'System',
-            action: 'DELETE_USER',
-            details: `Pengguna ${user.name} (${user.email}) dihapus.`,
-        });
-        toast({
-            title: "Pengguna Dihapus",
-            description: `Pengguna ${user.name} telah berhasil dihapus.`,
-        });
-    }
+
+        try {
+            await removeUser(user.id);
+            addLog({
+                user: currentUser?.name || "System",
+                action: "DELETE_USER",
+                details: `Pengguna ${user.name} (${user.email}) dihapus.`,
+            });
+            toast({
+                title: "Pengguna Dihapus",
+                description: `Pengguna ${user.name} telah berhasil dihapus.`,
+            });
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : "Terjadi kesalahan saat menghapus pengguna.";
+            toast({
+                variant: "destructive",
+                title: "Gagal Menghapus Pengguna",
+                description: message,
+            });
+        }
+    }, [addLog, currentUser, removeUser, toast, user.email, user.id, user.name]);
 
     return (
         <>
@@ -157,10 +172,6 @@ export const columns: ColumnDef<User>[] = [
 
 const roleOptions: UserRole[] = ['Admin Sistem', 'PIC Mutu', 'PJ Ruangan', 'Kepala Unit/Instalasi', 'Direktur', 'Sub. Komite Peningkatan Mutu', 'Sub. Komite Keselamatan Pasien', 'Sub. Komite Manajemen Risiko'];
 
-type UserTableProps = {
-  users: User[] 
-}
-
 export function UserTable({ users }: UserTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -168,6 +179,7 @@ export function UserTable({ users }: UserTableProps) {
   const table = useReactTable({
     data: users,
     columns,
+    filterFns: defaultFilterFns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),

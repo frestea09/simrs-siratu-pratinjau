@@ -43,6 +43,8 @@ import { RiskDialog } from "./risk-dialog"
 import { Input } from "../ui/input"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
+import { defaultFilterFns } from "@/lib/default-filter-fns"
+import type { RiskTableProps } from "./risk-table.type"
 
 
 const ActionsCell = ({ row }: { row: Row<Risk> }) => {
@@ -52,8 +54,8 @@ const ActionsCell = ({ row }: { row: Row<Risk> }) => {
     const { removeRisk } = useRiskStore();
     const { toast } = useToast();
 
-    const handleDelete = () => {
-        removeRisk(risk.id);
+    const handleDelete = async () => {
+        await removeRisk(risk.id);
         toast({
             title: "Risiko Dihapus",
             description: `Risiko "${risk.description.substring(0, 30)}..." telah dihapus.`,
@@ -101,7 +103,7 @@ const ActionsCell = ({ row }: { row: Row<Risk> }) => {
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                                 <AlertDialogCancel>Batal</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Hapus</AlertDialogAction>
+                                <AlertDialogAction onClick={async () => handleDelete()} className="bg-destructive hover:bg-destructive/90">Hapus</AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
@@ -247,9 +249,10 @@ const columns: ColumnDef<Risk>[] = [
     header: () => <div className="text-center">Status & Batas Waktu</div>,
     cell: ({ row }) => {
         const risk = row.original;
-        const status = risk.status;
+        const rawStatus = risk.status as string;
+        const status = (rawStatus === 'InProgress' ? 'In Progress' : rawStatus) as RiskStatus;
         const dueDate = risk.dueDate;
-        
+
         return (
             <div className="text-center flex flex-col items-center justify-center gap-2">
                 <Badge className={cn("text-sm capitalize", getStatusClass(status))}>{status}</Badge>
@@ -258,7 +261,9 @@ const columns: ColumnDef<Risk>[] = [
         )
     },
     filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id))
+      const cellValue = row.getValue(id)
+      const normalized = cellValue === 'InProgress' ? 'In Progress' : cellValue
+      return value.includes(normalized)
     },
     size: 150,
   },
@@ -268,10 +273,6 @@ const columns: ColumnDef<Risk>[] = [
     size: 50,
   },
 ]
-
-type RiskTableProps = {
-  risks: Risk[]
-}
 
 const riskLevelOptions: RiskLevel[] = ["Rendah", "Moderat", "Tinggi", "Ekstrem"];
 const statusOptions: RiskStatus[] = ["Open", "In Progress", "Closed"];
@@ -285,6 +286,7 @@ export function RiskTable({ risks }: RiskTableProps) {
   const table = useReactTable({
     data: risks,
     columns,
+    filterFns: defaultFilterFns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),

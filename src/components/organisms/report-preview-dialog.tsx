@@ -1,249 +1,148 @@
 
 "use client"
 
-import React from "react"
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
-import { Button } from "../ui/button"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { ScrollArea } from "../ui/scroll-area"
-import { Printer } from "lucide-react"
-import { format } from "date-fns"
+import * as React from "react"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
+import { Download, Copy } from "lucide-react"
 
-type ReportPreviewDialogProps<TData> = {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  data: TData[]
-  columns?: ColumnDef<TData, any>[]
-  title: string
-  description?: string
-  children?: React.ReactNode // Allow custom content
-  lineChart?: React.ReactNode
-  barChart?: React.ReactNode
-  analysisTable?: React.ReactNode
-  chartDescription?: string
-}
+import { ReportPreviewDialogProps } from "./report-preview-dialog.interface"
+import { printReport } from "./report-preview-dialog.print"
+import { copyReport } from "./report-preview-dialog.copy"
+import { defaultFilterFns } from "@/lib/default-filter-fns"
+import { useToast } from "@/hooks/use-toast"
 
-export function ReportPreviewDialog<TData>({
+export function ReportPreviewDialog({
   open,
   onOpenChange,
   data,
   columns,
   title,
   description,
-  children,
+  chartDescription,
   lineChart,
   barChart,
   analysisTable,
-  chartDescription,
-}: ReportPreviewDialogProps<TData>) {
-  const reportRef = React.useRef<HTMLDivElement>(null)
-
+  children,
+}: ReportPreviewDialogProps) {
   const table = useReactTable({
-    data,
+    data: data || [],
     columns: columns || [],
+    filterFns: defaultFilterFns,
     getCoreRowModel: getCoreRowModel(),
   })
-  
-  const handlePrint = () => {
-    const printWindow = window.open('', '', 'height=800,width=1200');
-    if (printWindow && reportRef.current) {
-        printWindow.document.write('<html><head><title>Cetak Laporan</title>');
-        printWindow.document.write('<style>');
-        printWindow.document.write(`
-          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-          body { 
-            font-family: 'Inter', sans-serif; 
-            -webkit-print-color-adjust: exact !important; 
-            print-color-adjust: exact !important;
-            color: #000;
-          }
-          @page { 
-            size: landscape; 
-            margin: 20px; 
-          }
-          .no-print { display: none; }
-          .print-page-break { 
-            page-break-after: always; 
-            margin-top: 2rem; 
-            margin-bottom: 2rem;
-          }
-          .print-header {
-              text-align: center;
-              margin-bottom: 1rem;
-              padding-top: 1rem;
-          }
-          .print-header h1 {
-              font-size: 1.5rem;
-              font-weight: bold;
-          }
-            .print-header p {
-              font-size: 0.875rem;
-              color: #6B7280;
-          }
-          .print-page {
-              break-inside: avoid;
-              padding-top: 1rem;
-              padding-bottom: 1rem;
-          }
-          table { width: 100%; border-collapse: collapse; }
-          th, td { border: 1px solid #ccc; padding: 8px; text-align: left; vertical-align: top; font-size: 11px; }
-          th { background-color: #f2f2f2 !important; font-weight: bold; text-align: center; vertical-align: middle; }
-          tbody tr:nth-child(even) { background-color: #f9f9f9 !important; }
-          h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; border-bottom: 2px solid #eee; padding-bottom: 0.5rem; }
-          .chart-description { font-size: 0.8rem; color: #6B7280; margin-top: -0.5rem; margin-bottom: 1rem;}
-        `);
-        printWindow.document.write('</style>');
-        printWindow.document.write('</head><body class="bg-white">');
-        
-        const contentToPrint = reportRef.current.cloneNode(true) as HTMLDivElement;
-        
-        // Remove ResponsiveContainer wrappers for printing to allow charts to render statically
-        contentToPrint.querySelectorAll('.recharts-responsive-container').forEach(container => {
-          const wrapper = container.firstChild as HTMLElement;
-          if (wrapper) {
-            wrapper.style.width = '100%';
-            wrapper.style.height = '300px'; // fixed height for printing
-            container.parentNode?.replaceChild(wrapper, container);
-          }
-        });
 
-        printWindow.document.write(contentToPrint.innerHTML);
-        printWindow.document.write('</body></html>');
-        printWindow.document.close();
-        printWindow.focus();
-        setTimeout(() => { 
-            printWindow.print();
-            printWindow.close();
-        }, 500);
-    }
-  }
-  
-  const renderHeader = (isFirstPage: boolean = false) => (
-    <header className="print-header">
-       {isFirstPage && (
-         <>
-          <h1 className="text-2xl font-bold text-center">{title}</h1>
-          <p className="text-center text-sm text-gray-600">RSUD Oto Iskandar Dinata</p>
-          {description && <p className="text-center text-sm text-gray-500 mt-1">{description}</p>}
-         </>
-       )}
-    </header>
-  )
-
-  const renderFooter = () => (
-     <footer className="mt-6 text-xs text-gray-500">
-        <p>Tanggal Cetak: {format(new Date(), "d MMMM yyyy HH:mm")}</p>
-    </footer>
-  )
-
-  const renderDefaultTable = () => (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                return (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                )
-              })}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-                ))}
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns?.length || 1} className="h-24 text-center">
-                Tidak ada data.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </div>
-  )
+  const dialogContentRef = React.useRef<HTMLDivElement>(null)
+  const { toast } = useToast()
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl w-full">
-        <DialogHeader>
-          <DialogTitle>Pratinjau Laporan</DialogTitle>
-          <DialogDescription>
-            Untuk menyalin ke Word/Google Docs, klik di dalam area laporan di bawah, tekan Ctrl+A (atau Cmd+A) untuk memilih semua, lalu Ctrl+C untuk menyalin.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col">
+        <div ref={dialogContentRef} className="flex-1 overflow-hidden space-y-6 flex flex-col">
+          <DialogHeader>
+            {title && (
+              <DialogTitle data-dialog-title className="text-2xl">
+                {title}
+              </DialogTitle>
+            )}
+            {description && (
+              <DialogDescription>{description}</DialogDescription>
+            )}
+          </DialogHeader>
 
-        <ScrollArea className="max-h-[70vh] bg-gray-200/50 p-4 rounded-md">
-            <div ref={reportRef} className="p-4 bg-white text-black space-y-8">
-              {renderHeader(true)}
-              {children ? children : (
-                <>
-                  {lineChart && (
-                     <div className="print-page">
-                        <h3 className="text-lg font-semibold mb-4">Grafik Tren (Garis)</h3>
-                        {chartDescription && <p className="chart-description">{chartDescription}</p>}
-                        {lineChart}
-                    </div>
-                  )}
-                   {barChart && (
-                     <div className="print-page">
-                        <h3 className="text-lg font-semibold mb-4">Grafik Tren (Batang)</h3>
-                        {chartDescription && <p className="chart-description">{chartDescription}</p>}
-                        {barChart}
-                    </div>
-                  )}
-                   {analysisTable && (
-                      <div className="print-page">
-                          <h3 className="text-lg font-semibold mb-4">Analisis & Rencana Tindak Lanjut</h3>
-                          {analysisTable}
-                      </div>
-                  )}
-                  {columns && data && (
-                      <div className="print-page">
-                           <h3 className="text-lg font-semibold mb-4">Data Lengkap</h3>
-                          {renderDefaultTable()}
-                      </div>
-                  )}
-                </>
-              )}
-              {renderFooter()}
-            </div>
-        </ScrollArea>
+          <div
+            data-export-scroll
+            className="flex-1 overflow-y-auto pr-6 -mr-6 space-y-6"
+          >
+            {children}
+            {analysisTable && (
+              <div className="print-page">
+                <h3 className="text-lg font-semibold mb-2">Analisis dan Rencana Tindak Lanjut</h3>
+                {analysisTable}
+              </div>
+            )}
+            {lineChart && (
+              <div className="print-page">
+                <h3 className="text-lg font-semibold mb-2">Grafik Garis</h3>
+                {chartDescription && <p className="text-sm text-muted-foreground mb-4">{chartDescription}</p>}
+                {lineChart}
+              </div>
+            )}
+            {barChart && (
+              <div className="print-page">
+                <h3 className="text-lg font-semibold mb-2">Grafik Batang</h3>
+                {chartDescription && <p className="text-sm text-muted-foreground mb-4">{chartDescription}</p>}
+                {barChart}
+              </div>
+            )}
+            {data && data.length > 0 && columns && columns.length > 0 && (
+              <div className="print-page">
+                <h3 className="text-lg font-semibold mb-2">Data Tabel</h3>
+                <div className="rounded border">
+                  <Table>
+                    <TableHeader>
+                      {table.getHeaderGroups().map((headerGroup) => (
+                        <TableRow key={headerGroup.id}>
+                          {headerGroup.headers.map((header) => (
+                            <TableHead key={header.id}>
+                              {header.isPlaceholder
+                                ? null
+                                : flexRender(header.column.columnDef.header, header.getContext())}
+                            </TableHead>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </TableHeader>
+                    <TableBody>
+                      {table.getRowModel().rows.map((row) => (
+                        <TableRow key={row.id}>
+                          {row.getVisibleCells().map((cell) => (
+                            <TableCell key={cell.id}>
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
 
-        <DialogFooter>
+        <div className="flex justify-end gap-2 pt-4 border-t mt-4 no-print">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Tutup
           </Button>
-          <Button onClick={handlePrint}>
-            <Printer className="mr-2 h-4 w-4" />
-            Cetak Laporan
+          <Button
+            variant="outline"
+            onClick={async () => {
+              try {
+                await copyReport(dialogContentRef.current)
+                toast({
+                  title: "Laporan Disalin",
+                  description: "Konten laporan siap ditempel ke Word.",
+                })
+              } catch {
+                toast({
+                  title: "Gagal Menyalin",
+                  description: "Terjadi kesalahan saat menyalin laporan.",
+                  variant: "destructive",
+                })
+              }
+            }}
+          >
+            <Copy className="mr-2 h-4 w-4" />
+            Salin Teks
           </Button>
-        </DialogFooter>
+          <Button onClick={() => printReport(dialogContentRef.current)}>
+            <Download className="mr-2 h-4 w-4" />
+            Cetak / Unduh PDF
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   )

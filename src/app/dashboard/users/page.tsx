@@ -10,7 +10,10 @@ import { Button } from "@/components/ui/button"
 import { PlusCircle } from "lucide-react"
 
 export default function UsersPage() {
-  const users = useUserStore((state) => state.users)
+  const { users, fetchUsers } = useUserStore()
+  React.useEffect(() => {
+    fetchUsers().catch(() => {})
+  }, [fetchUsers])
   const [isNewUserDialogOpen, setIsNewUserDialogOpen] = React.useState(false);
 
   return (

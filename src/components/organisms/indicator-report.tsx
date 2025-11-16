@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { Button } from "@/components/ui/button"
@@ -15,27 +16,14 @@ import { useUserStore } from "@/store/user-store.tsx"
 import { CartesianGrid, LabelList, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis, LineChart, Line, Legend, Dot, BarChart, Bar } from "recharts"
 import { format, parseISO } from "date-fns"
 import { AnalysisTable } from "./analysis-table"
+import { centralRoles } from "@/store/central-roles.ts"
+import { INDICATOR_TEXTS } from "@/lib/constants"
+import type { IndicatorReportProps } from "./indicator-report.type"
 
-const centralRoles = [
-  'Admin Sistem',
-  'Direktur',
-  'Sub. Komite Peningkatan Mutu',
-  'Sub. Komite Keselamatan Pasien',
-  'Sub. Komite Manajemen Risiko'
-];
 
-type IndicatorReportProps = {
-    indicators: Indicator[];
-    category: IndicatorCategory;
-    title?: string;
-    description?: string;
-    showInputButton?: boolean;
-    chartData?: any[]; // Allow passing chart data
-    reportDescription?: string;
-}
 
 export function IndicatorReport({ indicators, category, title, description, showInputButton = true, chartData, reportDescription }: IndicatorReportProps) {
-    const { submittedIndicators } = useIndicatorStore()
+    const { submittedIndicators, fetchSubmittedIndicators } = useIndicatorStore()
     const { currentUser } = useUserStore();
     const [reportTableData, setReportTableData] = React.useState<any[] | null>(null)
     const [reportColumns, setReportColumns] = React.useState<ColumnDef<any>[] | null>(null)
@@ -44,7 +32,13 @@ export function IndicatorReport({ indicators, category, title, description, show
     const [editingIndicator, setEditingIndicator] = React.useState<Indicator | undefined>(undefined);
 
     const userCanSeeAll = currentUser && centralRoles.includes(currentUser.role);
-    
+
+    React.useEffect(() => {
+        if (!submittedIndicators.length) {
+            fetchSubmittedIndicators().catch(() => {})
+        }
+    }, [submittedIndicators.length, fetchSubmittedIndicators])
+
     const hasVerifiedIndicators = React.useMemo(() => {
         const relevantSubmitted = submittedIndicators.filter(i => i.category === category && i.status === 'Diverifikasi');
         if (userCanSeeAll || !currentUser?.unit) {
@@ -78,21 +72,23 @@ export function IndicatorReport({ indicators, category, title, description, show
 
             const date = data.date;
             const timeRange = chartData && chartData.length > 30 ? '1y' : '30d'; // A simple heuristic
-            const formattedDate = (timeRange === '6m' || timeRange === '1y') ? format(date, 'MMMM yyyy') : format(date, 'd MMMM yyyy');
+            const formattedDate = timeRange === '1y' ? format(date, 'MMMM yyyy') : format(date, 'd MMMM yyyy');
           
             return (
                 <div className="p-2 bg-background border rounded-md shadow-lg">
                     <p className="font-bold text-foreground">{formattedDate}</p>
-                    <p className="text-sm text-primary">{`Capaian: ${data.Capaian}`}</p>
-                    {data.Standar && <p className="text-sm text-destructive">{`Standar: ${data.Standar}`}</p>}
+                    <p className="text-sm text-primary">{`${INDICATOR_TEXTS.chartCard.tooltip.capaian}: ${data.Capaian}`}</p>
+                    {data.Standar && (
+                      <p className="text-sm text-destructive">{`${INDICATOR_TEXTS.chartCard.tooltip.standar}: ${data.Standar}`}</p>
+                    )}
                 </div>
             );
         }
         return null;
     };
     
-    const lineChartComponent = chartData && (
-        <div style={{ width: '100%', height: 350 }}>
+    const lineChartComponent = chartData && chartData.length > 0 ? (
+        <div data-export-chart style={{ width: '100%', height: 350 }}>
             <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -109,10 +105,12 @@ export function IndicatorReport({ indicators, category, title, description, show
                 </LineChart>
             </ResponsiveContainer>
         </div>
+    ) : (
+        <p className="text-center text-sm text-muted-foreground">{INDICATOR_TEXTS.report.emptyChart}</p>
     )
 
-    const barChartComponent = chartData && (
-        <div style={{ width: '100%', height: 350 }}>
+    const barChartComponent = chartData && chartData.length > 0 ? (
+        <div data-export-chart style={{ width: '100%', height: 350 }}>
             <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -126,6 +124,8 @@ export function IndicatorReport({ indicators, category, title, description, show
                 </BarChart>
             </ResponsiveContainer>
         </div>
+    ) : (
+        <p className="text-center text-sm text-muted-foreground">{INDICATOR_TEXTS.report.emptyChart}</p>
     )
 
 
@@ -135,9 +135,9 @@ export function IndicatorReport({ indicators, category, title, description, show
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div>
-                            <CardTitle>{title || `Laporan Indikator ${category}`}</CardTitle>
+                            <CardTitle>{title || INDICATOR_TEXTS.report.defaultTitle(category)}</CardTitle>
                             <CardDescription>
-                                {description || `Riwayat data indikator ${category} yang telah diinput.`}
+                                {description || INDICATOR_TEXTS.report.defaultDescription(category)}
                                 {currentUser?.unit && !userCanSeeAll && ` (Unit: ${currentUser.unit})`}
                             </CardDescription>
                         </div>
@@ -146,7 +146,7 @@ export function IndicatorReport({ indicators, category, title, description, show
                                 {hasVerifiedIndicators ? (
                                     <Button onClick={handleAddNew} size="lg">
                                         <PlusCircle className="mr-2 h-4 w-4" />
-                                        Input Data Capaian
+                                        {INDICATOR_TEXTS.report.inputButton}
                                     </Button>
                                 ) : (
                                     <Tooltip>
@@ -154,12 +154,12 @@ export function IndicatorReport({ indicators, category, title, description, show
                                             <span tabIndex={0}>
                                                 <Button disabled size="lg">
                                                     <PlusCircle className="mr-2 h-4 w-4" />
-                                                    Input Data Capaian
+                                                    {INDICATOR_TEXTS.report.inputButton}
                                                 </Button>
                                             </span>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                            <p>Tidak ada indikator {category} yang diverifikasi untuk unit Anda.</p>
+                                            <p>{INDICATOR_TEXTS.report.tooltip(category)}</p>
                                         </TooltipContent>
                                     </Tooltip>
                                 )}
@@ -176,8 +176,9 @@ export function IndicatorReport({ indicators, category, title, description, show
                 onOpenChange={setIsPreviewOpen}
                 data={reportTableData || []}
                 columns={reportColumns || []}
-                title={`Laporan Capaian ${title || `Indikator ${category}`}`}
+                title={INDICATOR_TEXTS.report.previewTitle(title, category)}
                 description={reportDescription}
+                chartDescription={chartData && chartData.length > 0 ? reportDescription : undefined}
                 lineChart={lineChartComponent}
                 barChart={barChartComponent}
                 analysisTable={<AnalysisTable data={reportTableData || []} />}

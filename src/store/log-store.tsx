@@ -21,6 +21,9 @@ type LogAction =
  | 'ADD_INCIDENT'
  | 'UPDATE_INCIDENT'
  | 'DELETE_INCIDENT'
+ | 'ADD_UNIT'
+ | 'UPDATE_UNIT'
+ | 'DELETE_UNIT'
 
 
 export type SystemLog = {

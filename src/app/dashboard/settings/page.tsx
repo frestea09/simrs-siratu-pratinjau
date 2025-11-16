@@ -28,6 +28,7 @@ import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { useUserStore } from "@/store/user-store.tsx"
 import { useLogStore } from "@/store/log-store.tsx"
+import { UnitManagementCard } from "@/components/organisms/unit-management-card"
 
 // Skema validasi untuk form profil
 const profileFormSchema = z.object({
@@ -211,6 +212,7 @@ export default function SettingsPage() {
           </Form>
         </Card>
       </div>
+      <UnitManagementCard />
     </div>
   )
 }

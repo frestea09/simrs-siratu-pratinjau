@@ -3,7 +3,7 @@
 import { create } from 'zustand'
 import React, { createContext, useContext, useEffect, useRef } from 'react'
 
-type Unit = {
+export type Unit = {
   id: string
   name: string
 }
@@ -14,6 +14,9 @@ type UnitState = {
   hasLoaded: boolean
   error: string | null
   fetchUnits: () => Promise<void>
+  addUnit: (name: string) => Promise<Unit>
+  updateUnit: (id: string, name: string) => Promise<Unit>
+  removeUnit: (id: string) => Promise<void>
 }
 
 const createUnitStore = () =>
@@ -31,7 +34,11 @@ const createUnitStore = () =>
           throw new Error('Gagal memuat data unit')
         }
         const data: Unit[] = await res.json()
-        set({ units: data, isLoading: false, hasLoaded: true })
+        set({
+          units: data.sort((a, b) => a.name.localeCompare(b.name, 'id')),
+          isLoading: false,
+          hasLoaded: true,
+        })
       } catch (error) {
         const message =
           error instanceof Error
@@ -39,6 +46,64 @@ const createUnitStore = () =>
             : 'Gagal memuat data unit'
         set({ error: message, isLoading: false, hasLoaded: true })
       }
+    },
+    addUnit: async (name) => {
+      const res = await fetch('/api/units', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      })
+      if (!res.ok) {
+        try {
+          const err = await res.json()
+          throw new Error(err?.error || 'Gagal menambahkan unit')
+        } catch (error) {
+          if (error instanceof Error) throw error
+          throw new Error('Gagal menambahkan unit')
+        }
+      }
+      const created: Unit = await res.json()
+      set((state) => ({
+        units: [...state.units, created].sort((a, b) => a.name.localeCompare(b.name, 'id')),
+        hasLoaded: true,
+      }))
+      return created
+    },
+    updateUnit: async (id, name) => {
+      const res = await fetch(`/api/units/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      })
+      if (!res.ok) {
+        try {
+          const err = await res.json()
+          throw new Error(err?.error || 'Gagal memperbarui unit')
+        } catch (error) {
+          if (error instanceof Error) throw error
+          throw new Error('Gagal memperbarui unit')
+        }
+      }
+      const updated: Unit = await res.json()
+      set((state) => ({
+        units: state.units
+          .map((unit) => (unit.id === id ? updated : unit))
+          .sort((a, b) => a.name.localeCompare(b.name, 'id')),
+      }))
+      return updated
+    },
+    removeUnit: async (id) => {
+      const res = await fetch(`/api/units/${id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        try {
+          const err = await res.json()
+          throw new Error(err?.error || 'Gagal menghapus unit')
+        } catch (error) {
+          if (error instanceof Error) throw error
+          throw new Error('Gagal menghapus unit')
+        }
+      }
+      set((state) => ({ units: state.units.filter((unit) => unit.id !== id) }))
     },
   }))
 

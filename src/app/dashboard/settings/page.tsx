@@ -29,6 +29,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useUserStore } from "@/store/user-store.tsx"
 import { useLogStore } from "@/store/log-store.tsx"
 import { UnitManagementCard } from "@/components/organisms/unit-management-card"
+import { isUnitManager } from "@/lib/role-guards"
 
 // Skema validasi untuk form profil
 const profileFormSchema = z.object({
@@ -212,7 +213,7 @@ export default function SettingsPage() {
           </Form>
         </Card>
       </div>
-      <UnitManagementCard />
+      {isUnitManager(currentUser?.role) && <UnitManagementCard />}
     </div>
   )
 }

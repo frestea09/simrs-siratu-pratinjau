@@ -13,9 +13,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from '@/hooks/use-toast'
 import { useLogStore } from '@/store/log-store'
 import { useUserStore } from '@/store/user-store'
+import { isUnitManager } from '@/lib/role-guards'
 
 const ITEMS_PER_PAGE = 5
-const AUTHORIZED_ROLES = new Set(['Admin Sistem', 'Direktur'])
 
 export function UnitManagementCard() {
   const { units, isLoading, hasLoaded, error, fetchUnits, removeUnit } = useUnitStore()
@@ -51,10 +51,10 @@ export function UnitManagementCard() {
     return filteredUnits.slice(start, start + ITEMS_PER_PAGE)
   }, [filteredUnits, page])
 
-  const canManageUnits = React.useMemo(() => {
-    if (!currentUser?.role) return false
-    return AUTHORIZED_ROLES.has(currentUser.role)
-  }, [currentUser?.role])
+  const canManageUnits = React.useMemo(
+    () => isUnitManager(currentUser?.role),
+    [currentUser?.role]
+  )
 
   React.useEffect(() => {
     setPage(1)

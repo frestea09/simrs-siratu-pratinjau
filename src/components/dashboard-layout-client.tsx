@@ -143,13 +143,16 @@ const getPrimaryNavItems = (role?: UserRole | null): NavItemType[] => {
 }
 
 const getSystemNavItems = (role?: UserRole | null): NavItemType[] => {
+  if (!role) {
+    return []
+  }
   if (role === "Admin Sistem") {
     return adminSystemNavItems
   }
-  if (role) {
-    return limitedSettingsNavItems
+  if (role === "Petugas Pelaporan") {
+    return []
   }
-  return []
+  return limitedSettingsNavItems
 }
 
 const findPath = (items: NavItemType[], currentPath: string): NavItemType[] => {

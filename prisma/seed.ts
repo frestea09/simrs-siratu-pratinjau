@@ -37,7 +37,7 @@ async function main() {
     'PKRS',
   ]
 
-  const unitModel = (prisma as PrismaClient & { unit?: Prisma.UnitDelegate }).unit
+  const unitModel = (prisma as PrismaClient & { unit?: { createMany?: typeof prisma.user.createMany } }).unit
 
   if (!unitModel?.createMany) {
     throw new Error(

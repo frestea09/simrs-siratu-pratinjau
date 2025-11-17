@@ -1,12 +1,12 @@
-import type { Unit } from '@prisma/client'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
-    const units = await prisma.unit.findMany({ orderBy: { name: 'asc' } })
+    const units: Awaited<ReturnType<typeof prisma.unit.findMany>> =
+      await prisma.unit.findMany({ orderBy: { name: 'asc' } })
     return NextResponse.json(
-      units.map((unit: Unit) => ({
+      units.map((unit) => ({
         id: unit.id,
         name: unit.name,
       }))

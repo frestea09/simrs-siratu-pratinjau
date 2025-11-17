@@ -37,7 +37,7 @@ const profileSchema = z.object({
   calculationMethod: z.enum(['percentage', 'average']),
   numerator: z.string().min(1, "Definisi numerator harus diisi."),
   denominator: z.string().min(1, "Definisi denominator harus diisi."),
-  target: z.coerce.number().positive("Target harus angka positif."),
+  target: z.coerce.number().nonnegative("Target tidak boleh negatif."),
   targetUnit: z.enum(['%', 'menit']),
   inclusionCriteria: z.string().min(1, "Kriteria inklusi harus diisi."),
   exclusionCriteria: z.string().min(1, "Kriteria eksklusi harus diisi."),

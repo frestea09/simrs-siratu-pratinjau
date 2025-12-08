@@ -136,7 +136,123 @@ async function main() {
     })
   }
 
-  console.log('Seed selesai: pengguna + SKP triwulanan')
+  await prisma.incident.createMany({
+    data: [
+      {
+        status: 'Investigasi',
+        patientName: 'Haryati',
+        careRoom: 'IGD',
+        chronology: 'Pasien terjatuh saat menuju toilet, ditolong perawat.',
+        type: 'KTD',
+        incidentSubject: 'Pasien',
+        relatedUnit: 'IGD',
+        severity: 'kuning',
+        patientImpact: 'Luka lecet ringan di lutut kanan',
+        analysisNotes: 'Perlu pemeriksaan ulang SOP pendampingan pasien risiko jatuh.',
+        followUpPlan: 'Tingkatkan edukasi keluarga dan cek ulang alarm bed rail.',
+      },
+      {
+        status: 'Investigasi',
+        patientName: 'Andi',
+        careRoom: 'Rawat Inap - Mawar',
+        chronology: 'Obat kemoterapi terlambat 30 menit karena stok di farmasi terbatas.',
+        type: 'KNC',
+        incidentSubject: 'Obat',
+        relatedUnit: 'Farmasi',
+        severity: 'hijau',
+        patientImpact: 'Tidak ada dampak klinis, jadwal terapi digeser.',
+        analysisNotes: 'Butuh buffer stock dan dashboard early warning.',
+        followUpPlan: 'Tambah minimum stock level dan reminder otomatis.',
+      },
+    ],
+  })
+
+  await prisma.risk.createMany({
+    data: [
+      {
+        unit: 'IGD',
+        source: 'Komplain',
+        description: 'Risiko keterlambatan triase di jam sibuk.',
+        cause: 'Kekurangan petugas saat shift malam.',
+        category: 'PelayananPasien',
+        consequence: 4,
+        likelihood: 3,
+        cxl: 12,
+        riskLevel: 'Tinggi',
+        controllability: 2,
+        riskScore: 24,
+        evaluation: 'Mitigasi',
+        actionPlan: 'Optimasi jadwal petugas dan buka loket triase mandiri.',
+        dueDate: new Date(new Date().getFullYear(), 6, 1),
+        status: 'Open',
+        residualConsequence: 2,
+        residualLikelihood: 2,
+        residualRiskScore: 4,
+        residualRiskLevel: 'Rendah',
+        reportNotes: 'Evaluasi setelah tiga bulan pelaksanaan.',
+        authorId: admin.id,
+        picId: admin.id,
+      },
+      {
+        unit: 'Farmasi',
+        source: 'ExternalRequirement',
+        description: 'Risiko kepatuhan penyimpanan obat high alert.',
+        cause: 'Labelisasi belum seragam di satelit farmasi.',
+        category: 'Compliance',
+        consequence: 5,
+        likelihood: 2,
+        cxl: 10,
+        riskLevel: 'Moderat',
+        controllability: 3,
+        riskScore: 30,
+        evaluation: 'Mitigasi',
+        actionPlan: 'Audit harian lemari obat high alert dan refresh training.',
+        dueDate: new Date(new Date().getFullYear(), 7, 15),
+        status: 'InProgress',
+        residualConsequence: 3,
+        residualLikelihood: 1,
+        residualRiskScore: 3,
+        residualRiskLevel: 'Rendah',
+        reportNotes: 'Membutuhkan dukungan Kepala Instalasi Farmasi.',
+        authorId: admin.id,
+        picId: admin.id,
+      },
+    ],
+  })
+
+  await prisma.notification.createMany({
+    data: [
+      {
+        title: 'Capaian SKP triwulan terbaru',
+        description: 'Data capaian SKP sudah lengkap hingga triwulan berjalan.',
+        link: '/dashboard',
+        recipientId: admin.id,
+      },
+      {
+        title: 'Tindak lanjut risiko IGD',
+        description: 'Review mitigasi risiko keterlambatan triase pada rapat mutu.',
+        link: '/risks',
+        recipientId: admin.id,
+      },
+    ],
+  })
+
+  await prisma.systemLog.createMany({
+    data: [
+      {
+        user: 'Admin Sistem',
+        action: 'Seed',
+        details: 'Seeder menjalankan inisialisasi pengguna dan data contoh.',
+      },
+      {
+        user: 'Admin Sistem',
+        action: 'Profil Indikator',
+        details: 'Membuat profil Kepatuhan Identifikasi Pasien untuk demo dashboard.',
+      },
+    ],
+  })
+
+  console.log('Seed selesai: pengguna, capaian SKP, insiden, risiko, dan notifikasi contoh')
 }
 
 main()

@@ -1,7 +1,6 @@
 "use client"
 
 import { create } from "zustand"
-import { persist, createJSONStorage } from "zustand/middleware"
 import React, { createContext, useContext, useRef } from "react"
 
 import type { UserRole } from "./user-store"
@@ -37,77 +36,78 @@ export type SurveyResult = {
 // State untuk store Zustand
 type SurveyState = {
   surveys: SurveyResult[]
-  addSurvey: (survey: Omit<SurveyResult, "id" | "submissionDate">) => void
-  removeSurvey: (id: string) => void
-  updateSurvey: (id: string, survey: Omit<SurveyResult, "id" | "submissionDate">) => void
+  fetchSurveys: () => Promise<void>
+  addSurvey: (survey: Omit<SurveyResult, "id" | "submissionDate">) => Promise<SurveyResult>
+  removeSurvey: (id: string) => Promise<void>
+  updateSurvey: (id: string, survey: Omit<SurveyResult, "id" | "submissionDate">) => Promise<void>
 }
 
 // --- Store Zustand ---
 
 const createSurveyStore = () =>
-  create<SurveyState>()(
-    persist(
-      (set) => ({
-        surveys: [],
+  create<SurveyState>()((set) => ({
+    surveys: [],
 
-        addSurvey: (surveyData) => {
-          const newSurvey: SurveyResult = {
-            ...surveyData,
-            id: `SURVEY-${Date.now()}`,
-            submissionDate: new Date().toISOString(),
-            locked: surveyData.locked ?? false,
-            lockedReason: surveyData.lockedReason,
-          }
-          set((state) => ({
-            surveys: [newSurvey, ...state.surveys],
-          }))
-        },
+    fetchSurveys: async () => {
+      const res = await fetch("/api/surveys", { cache: "no-store" })
+      if (!res.ok) {
+        throw new Error("Failed to fetch surveys")
+      }
+      const data: SurveyResult[] = await res.json()
+      set({ surveys: data })
+    },
 
-        removeSurvey: (id) => {
-          set((state) => ({
-            surveys: state.surveys.filter((survey) => survey.id !== id),
-          }))
-        },
+    addSurvey: async (surveyData) => {
+      const res = await fetch("/api/surveys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(surveyData),
+      })
+      if (!res.ok) {
+        try {
+          const err = await res.json()
+          throw new Error(err?.error || "Failed to save survey")
+        } catch {
+          throw new Error("Failed to save survey")
+        }
+      }
+      const created: SurveyResult = await res.json()
+      set((state) => ({
+        surveys: [created, ...state.surveys],
+      }))
+      return created
+    },
 
-        updateSurvey: (id, surveyData) => {
-          set((state) => ({
-            surveys: state.surveys.map((survey) => {
-              if (survey.id !== id) return survey
+    removeSurvey: async (id) => {
+      const res = await fetch(`/api/surveys/${id}`, { method: "DELETE" })
+      if (!res.ok) {
+        throw new Error("Failed to delete survey")
+      }
+      set((state) => ({
+        surveys: state.surveys.filter((survey) => survey.id !== id),
+      }))
+    },
 
-              const updated: SurveyResult = {
-                ...survey,
-                ...surveyData,
-                submissionDate: survey.submissionDate,
-                locked: surveyData.locked ?? survey.locked,
-                lockedReason:
-                  surveyData.lockedReason === undefined
-                    ? survey.lockedReason
-                    : surveyData.lockedReason,
-                submittedById:
-                  surveyData.submittedById === undefined
-                    ? survey.submittedById
-                    : surveyData.submittedById,
-                submittedByName:
-                  surveyData.submittedByName === undefined
-                    ? survey.submittedByName
-                    : surveyData.submittedByName,
-                submittedByRole:
-                  surveyData.submittedByRole === undefined
-                    ? survey.submittedByRole
-                    : surveyData.submittedByRole,
-              }
-
-              return updated
-            }),
-          }))
-        },
-      }),
-      {
-        name: "survey-results-storage",
-        storage: createJSONStorage(() => localStorage),
-      },
-    ),
-  )
+    updateSurvey: async (id, surveyData) => {
+      const res = await fetch(`/api/surveys/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(surveyData),
+      })
+      if (!res.ok) {
+        try {
+          const err = await res.json()
+          throw new Error(err?.error || "Failed to update survey")
+        } catch {
+          throw new Error("Failed to update survey")
+        }
+      }
+      const updated: SurveyResult = await res.json()
+      set((state) => ({
+        surveys: state.surveys.map((survey) => (survey.id === id ? updated : survey)),
+      }))
+    },
+  }))
 
 const SurveyStoreContext = createContext<ReturnType<typeof createSurveyStore> | null>(null)
 

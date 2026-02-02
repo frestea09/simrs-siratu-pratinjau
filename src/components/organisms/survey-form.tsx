@@ -178,7 +178,7 @@ export function SurveyForm({ survey, onCancel, onSuccess }: SurveyFormProps) {
     }
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!unit) {
       toast({
         variant: "destructive",
@@ -206,21 +206,29 @@ export function SurveyForm({ survey, onCancel, onSuccess }: SurveyFormProps) {
         }
     const payload = { ...results, ...metadata }
 
-    if (isEdit && survey) {
-      updateSurvey(survey.id, payload)
+    try {
+      if (isEdit && survey) {
+        await updateSurvey(survey.id, payload)
+        toast({
+          title: "Survei Berhasil Diperbarui",
+          description: `Data survei dari unit ${survey.unit} telah diperbarui.`,
+        })
+      } else {
+        await addSurvey(payload)
+        toast({
+          title: "Survei Berhasil Disimpan",
+          description:
+            "Terima kasih atas partisipasi Anda dalam meningkatkan budaya keselamatan pasien.",
+        })
+      }
+      onSuccess?.()
+    } catch (error) {
       toast({
-        title: "Survei Berhasil Diperbarui",
-        description: `Data survei dari unit ${survey.unit} telah diperbarui.`,
-      })
-    } else {
-      addSurvey(payload)
-      toast({
-        title: "Survei Berhasil Disimpan",
-        description:
-          "Terima kasih atas partisipasi Anda dalam meningkatkan budaya keselamatan pasien.",
+        title: "Gagal Menyimpan Survei",
+        description: "Terjadi kesalahan saat menyimpan survei. Silakan coba lagi.",
+        variant: "destructive",
       })
     }
-    onSuccess?.()
   }
 
   React.useEffect(() => {

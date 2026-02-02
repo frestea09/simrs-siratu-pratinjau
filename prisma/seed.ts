@@ -26,6 +26,7 @@ async function main() {
     'Rawat Jalan',
     'Laboratorium',
     'Radiologi',
+    'Rekam Medis',
     'IPSRS',
     'SIMRS',
     'CSSD',

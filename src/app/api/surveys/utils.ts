@@ -1,3 +1,13 @@
+type UserRole =
+  | "AdminSistem"
+  | "PICMutu"
+  | "PJRuangan"
+  | "KepalaUnitInstalasi"
+  | "Direktur"
+  | "SubKomitePeningkatanMutu"
+  | "SubKomiteKeselamatanPasien"
+  | "SubKomiteManajemenRisiko"
+  | "PetugasPelaporan"
 import type { UserRole } from "@prisma/client"
 
 const roleUiToDbMap: Record<string, UserRole> = {

@@ -26,6 +26,7 @@ async function main() {
     'Rawat Jalan',
     'Laboratorium',
     'Radiologi',
+    'Rekam Medis',
     'IPSRS',
     'SIMRS',
     'CSSD',
@@ -37,15 +38,7 @@ async function main() {
     'PKRS',
   ]
 
-  const unitModel = (prisma as PrismaClient & { unit?: Prisma.UnitDelegate }).unit
-
-  if (!unitModel?.createMany) {
-    throw new Error(
-      'Prisma client belum mengenal model Unit. Jalankan `npx prisma generate` lalu ulangi perintah seed.'
-    )
-  }
-
-  await unitModel.createMany({
+  await prisma.unit.createMany({
     data: hospitalUnits.map((name) => ({ name })),
     skipDuplicates: true,
   })

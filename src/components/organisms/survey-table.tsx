@@ -65,13 +65,21 @@ export function SurveyTable({ surveys, onEdit }: SurveyTableProps) {
   const currentUserIsCentral = currentUser ? centralRoles.includes(currentUser.role) : false
 
   const handleDelete = React.useCallback(
-    (survey: SurveyResult) => {
-      removeSurvey(survey.id)
-      toast({
-        title: "Survei Dihapus",
-        description: `Data survei dari unit ${survey.unit} telah dihapus.`,
-        variant: "destructive",
-      })
+    async (survey: SurveyResult) => {
+      try {
+        await removeSurvey(survey.id)
+        toast({
+          title: "Survei Dihapus",
+          description: `Data survei dari unit ${survey.unit} telah dihapus.`,
+          variant: "destructive",
+        })
+      } catch (error) {
+        toast({
+          title: "Gagal Menghapus Survei",
+          description: "Tidak dapat menghapus survei. Silakan coba lagi.",
+          variant: "destructive",
+        })
+      }
     },
     [removeSurvey, toast],
   )

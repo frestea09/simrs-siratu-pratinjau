@@ -34,13 +34,17 @@ import { copyElementAsImage } from "@/lib/copy-element-as-image"
 import { useToast } from "@/hooks/use-toast"
 
 export default function SurveysPage() {
-  const { surveys } = useSurveyStore()
+  const { surveys, fetchSurveys } = useSurveyStore()
   const [isSurveyDialogOpen, setIsSurveyDialogOpen] = React.useState(false)
   const [editingSurvey, setEditingSurvey] = React.useState<SurveyResult | null>(null)
   const [isPreviewOpen, setIsPreviewOpen] = React.useState(false)
   const { toast } = useToast()
   const scoreTrendCardRef = React.useRef<HTMLDivElement>(null)
   const respondentCardRef = React.useRef<HTMLDivElement>(null)
+
+  React.useEffect(() => {
+    fetchSurveys()
+  }, [fetchSurveys])
 
   const handleCopy = React.useCallback(
     async (

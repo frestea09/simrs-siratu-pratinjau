@@ -8,6 +8,7 @@ type UserRole =
   | "SubKomiteKeselamatanPasien"
   | "SubKomiteManajemenRisiko"
   | "PetugasPelaporan"
+import type { UserRole } from "@prisma/client"
 
 const roleUiToDbMap: Record<string, UserRole> = {
   "Admin Sistem": "AdminSistem",

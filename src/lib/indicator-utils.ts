@@ -29,19 +29,19 @@ export const calculateRatio = (
   const { numerator, denominator, calculationMethod } = indicator;
 
   if (denominator === 0) {
-      return "0.0";
+    return "0.0";
   }
 
   try {
     let ratio: number;
     if (calculationMethod === 'percentage') {
-        ratio = (numerator / denominator) * 100;
+      ratio = (numerator / denominator) * 100;
     } else { // 'average'
-        ratio = numerator / denominator;
+      ratio = numerator / denominator;
     }
-    
+
     if (isNaN(ratio)) {
-        return "N/A";
+      return "N/A";
     }
 
     return ratio.toFixed(1);
@@ -52,23 +52,33 @@ export const calculateRatio = (
   }
 }
 
+export const matchUnit = (indicatorUnit?: string, userUnit?: string): boolean => {
+  if (!indicatorUnit || !userUnit) return false;
+  if (indicatorUnit === "Semua unit") return true;
+
+  const indicatorUnits = indicatorUnit.split(", ").map(u => u.trim()).filter(Boolean);
+  const userUnits = userUnit.split(", ").map(u => u.trim()).filter(Boolean);
+
+  return indicatorUnits.some(iu => userUnits.includes(iu));
+}
+
 
 export const calculateStatus = (
   indicator: Omit<Indicator, "id" | "ratio" | "status">
 ): Indicator["status"] => {
   if (indicator.denominator === 0) return "N/A"
   const achievementValue = parseFloat(calculateRatio(indicator));
-  
+
   if (isNaN(achievementValue)) {
-      return "N/A";
+    return "N/A";
   }
-  
+
   if (indicator.calculationMethod === "average") { // Lower is better
     return achievementValue <= indicator.standard
       ? "Memenuhi Standar"
       : "Tidak Memenuhi Standar"
-  } 
-  
+  }
+
   // Higher is better for percentages
   return achievementValue >= indicator.standard
     ? "Memenuhi Standar"
@@ -142,4 +152,3 @@ export const getFilterDescription = (
   }
 }
 
-    

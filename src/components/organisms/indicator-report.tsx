@@ -16,6 +16,7 @@ import { useUserStore } from "@/store/user-store.tsx"
 import { CartesianGrid, LabelList, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis, LineChart, Line, Legend, Dot, BarChart, Bar } from "recharts"
 import { format, parseISO } from "date-fns"
 import { AnalysisTable } from "./analysis-table"
+import { matchUnit } from "@/lib/indicator-utils"
 import { centralRoles } from "@/store/central-roles.ts"
 import { INDICATOR_TEXTS } from "@/lib/constants"
 import type { IndicatorReportProps } from "./indicator-report.type"
@@ -35,7 +36,7 @@ export function IndicatorReport({ indicators, category, title, description, show
 
     React.useEffect(() => {
         if (!submittedIndicators.length) {
-            fetchSubmittedIndicators().catch(() => {})
+            fetchSubmittedIndicators().catch(() => { })
         }
     }, [submittedIndicators.length, fetchSubmittedIndicators])
 
@@ -44,10 +45,10 @@ export function IndicatorReport({ indicators, category, title, description, show
         if (userCanSeeAll || !currentUser?.unit) {
             return relevantSubmitted.length > 0;
         }
-        return relevantSubmitted.filter(i => i.unit === currentUser.unit).length > 0;
-        
+        return relevantSubmitted.filter(i => matchUnit(i.unit, currentUser.unit)).length > 0;
+
     }, [submittedIndicators, currentUser, userCanSeeAll, category]);
-    
+
     const handleExport = (data: any[], columns: ColumnDef<any>[]) => {
         setReportTableData(data);
         setReportColumns(columns);
@@ -73,20 +74,20 @@ export function IndicatorReport({ indicators, category, title, description, show
             const date = data.date;
             const timeRange = chartData && chartData.length > 30 ? '1y' : '30d'; // A simple heuristic
             const formattedDate = timeRange === '1y' ? format(date, 'MMMM yyyy') : format(date, 'd MMMM yyyy');
-          
+
             return (
                 <div className="p-2 bg-background border rounded-md shadow-lg">
                     <p className="font-bold text-foreground">{formattedDate}</p>
                     <p className="text-sm text-primary">{`${INDICATOR_TEXTS.chartCard.tooltip.capaian}: ${data.Capaian}`}</p>
                     {data.Standar && (
-                      <p className="text-sm text-destructive">{`${INDICATOR_TEXTS.chartCard.tooltip.standar}: ${data.Standar}`}</p>
+                        <p className="text-sm text-destructive">{`${INDICATOR_TEXTS.chartCard.tooltip.standar}: ${data.Standar}`}</p>
                     )}
                 </div>
             );
         }
         return null;
     };
-    
+
     const lineChartComponent = chartData && chartData.length > 0 ? (
         <div data-export-chart style={{ width: '100%', height: 350 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -99,9 +100,9 @@ export function IndicatorReport({ indicators, category, title, description, show
                     <Line type="monotone" dataKey="Capaian" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} dot={<Dot r={4} fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth={2} />}>
                         <LabelList dataKey="Capaian" position="top" className="text-xs" fill="hsl(var(--foreground))" />
                     </Line>
-                     {chartData.some(d => d.Standar) && (
+                    {chartData.some(d => d.Standar) && (
                         <Line type="monotone" dataKey="Standar" stroke="hsl(var(--destructive))" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-                     )}
+                    )}
                 </LineChart>
             </ResponsiveContainer>
         </div>
@@ -142,7 +143,7 @@ export function IndicatorReport({ indicators, category, title, description, show
                             </CardDescription>
                         </div>
                         {showInputButton && (
-                             <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2">
                                 {hasVerifiedIndicators ? (
                                     <Button onClick={handleAddNew} size="lg">
                                         <PlusCircle className="mr-2 h-4 w-4" />
@@ -168,7 +169,7 @@ export function IndicatorReport({ indicators, category, title, description, show
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <IndicatorReportTable indicators={indicators} onExport={handleExport} onEdit={handleEdit}/>
+                    <IndicatorReportTable indicators={indicators} onExport={handleExport} onEdit={handleEdit} />
                 </CardContent>
             </Card>
             <ReportPreviewDialog
@@ -183,11 +184,11 @@ export function IndicatorReport({ indicators, category, title, description, show
                 barChart={barChartComponent}
                 analysisTable={<AnalysisTable data={reportTableData || []} />}
             />
-             <IndicatorInputDialog 
-                open={isInputOpen} 
+            <IndicatorInputDialog
+                open={isInputOpen}
                 onOpenChange={setIsInputOpen}
                 category={category}
-                indicatorToEdit={editingIndicator} 
+                indicatorToEdit={editingIndicator}
             />
         </div>
     )

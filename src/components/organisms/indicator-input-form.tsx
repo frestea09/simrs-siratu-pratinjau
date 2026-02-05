@@ -16,14 +16,15 @@ import { Textarea } from "../ui/textarea"
 import { DialogFooter } from "../ui/dialog"
 import { useUserStore } from "@/store/user-store.tsx"
 import { useLogStore } from "@/store/log-store.tsx"
-import {centralRoles} from "@/store/central-roles.ts";
+import { matchUnit } from "@/lib/indicator-utils"
+import { centralRoles } from "@/store/central-roles.ts";
 
 
 
 type IndicatorInputFormProps = {
-    setOpen: (open: boolean) => void;
-    indicatorToEdit?: Indicator;
-    category: IndicatorCategory;
+  setOpen: (open: boolean) => void;
+  indicatorToEdit?: Indicator;
+  category: IndicatorCategory;
 }
 
 export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: IndicatorInputFormProps) {
@@ -34,24 +35,24 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
 
 
   const isEditMode = !!indicatorToEdit?.id;
-  
+
   const [selectedIndicatorId, setSelectedIndicatorId] = React.useState<string | undefined>(
     indicatorToEdit ? submittedIndicators.find(si => si.name === indicatorToEdit.indicator)?.id : undefined
   );
   const [date, setDate] = React.useState<Date | undefined>(
-      indicatorToEdit ? new Date(indicatorToEdit.period) : new Date()
+    indicatorToEdit ? new Date(indicatorToEdit.period) : new Date()
   );
   const [numerator, setNumerator] = React.useState(
-      indicatorToEdit ? indicatorToEdit.numerator.toString() : ""
+    indicatorToEdit ? indicatorToEdit.numerator.toString() : ""
   );
   const [denominator, setDenominator] = React.useState(
-      indicatorToEdit ? indicatorToEdit.denominator.toString() : ""
+    indicatorToEdit ? indicatorToEdit.denominator.toString() : ""
   );
   const [analysisNotes, setAnalysisNotes] = React.useState(
-      indicatorToEdit ? indicatorToEdit.analysisNotes || "" : ""
+    indicatorToEdit ? indicatorToEdit.analysisNotes || "" : ""
   );
   const [followUpPlan, setFollowUpPlan] = React.useState(
-      indicatorToEdit ? indicatorToEdit.followUpPlan || "" : ""
+    indicatorToEdit ? indicatorToEdit.followUpPlan || "" : ""
   );
 
 
@@ -62,42 +63,42 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
 
   React.useEffect(() => {
     if (!profiles.length) {
-      fetchProfiles().catch(() => {})
+      fetchProfiles().catch(() => { })
     }
     if (!submittedIndicators.length) {
-      fetchSubmittedIndicators().catch(() => {})
+      fetchSubmittedIndicators().catch(() => { })
     }
   }, [profiles.length, submittedIndicators.length, fetchProfiles, fetchSubmittedIndicators])
 
   React.useEffect(() => {
     if (indicatorToEdit?.id) {
-        const relatedSubmitted = submittedIndicators.find(si => si.name === indicatorToEdit.indicator);
-        setSelectedIndicatorId(relatedSubmitted?.id);
-        setDate(new Date(indicatorToEdit.period));
-        setNumerator(indicatorToEdit.numerator.toString());
-        setDenominator(indicatorToEdit.denominator.toString());
-        setAnalysisNotes(indicatorToEdit.analysisNotes || "");
-        setFollowUpPlan(indicatorToEdit.followUpPlan || "");
+      const relatedSubmitted = submittedIndicators.find(si => si.name === indicatorToEdit.indicator);
+      setSelectedIndicatorId(relatedSubmitted?.id);
+      setDate(new Date(indicatorToEdit.period));
+      setNumerator(indicatorToEdit.numerator.toString());
+      setDenominator(indicatorToEdit.denominator.toString());
+      setAnalysisNotes(indicatorToEdit.analysisNotes || "");
+      setFollowUpPlan(indicatorToEdit.followUpPlan || "");
     }
   }, [indicatorToEdit, submittedIndicators])
 
   const userCanSeeAll = currentUser && centralRoles.includes(currentUser.role);
 
   const verifiedIndicators = React.useMemo(() => {
-      const allVerified = submittedIndicators.filter(
-          (indicator) => indicator.status === 'Diverifikasi' && indicator.category === category
-      );
-      if (userCanSeeAll || !currentUser?.unit) {
-          return allVerified;
-      }
-      return allVerified.filter(indicator => indicator.unit === currentUser.unit);
+    const allVerified = submittedIndicators.filter(
+      (indicator) => indicator.status === 'Diverifikasi' && indicator.category === category
+    );
+    if (userCanSeeAll || !currentUser?.unit) {
+      return allVerified;
+    }
+    return allVerified.filter(indicator => matchUnit(indicator.unit, currentUser.unit));
   }, [submittedIndicators, currentUser, userCanSeeAll, category]);
-  
+
   const filledDates = React.useMemo(() => {
     if (!selectedSubmittedIndicator || isEditMode) return [];
     return indicators
-        .filter(i => i.indicator === selectedSubmittedIndicator.name)
-        .map(i => new Date(i.period));
+      .filter(i => i.indicator === selectedSubmittedIndicator.name)
+      .map(i => new Date(i.period));
   }, [indicators, selectedSubmittedIndicator, isEditMode]);
 
   const handleSubmit = async () => {
@@ -105,59 +106,59 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
     const numeratorMissing = numerator === "" || numerator === null || numerator === undefined
     const denominatorMissing = denominator === "" || denominator === null || denominator === undefined
     if (!selectedSubmittedIndicator || !date || numeratorMissing || denominatorMissing || !profile) {
-        toast({
-            variant: "destructive",
-            title: "Data Tidak Lengkap",
-            description: !selectedSubmittedIndicator
-              ? "Pilih indikator yang sudah diverifikasi terlebih dahulu."
-              : !profile
-                ? "Profil indikator terkait tidak ditemukan. Coba muat ulang daftar profil."
-                : "Harap isi semua kolom wajib (tanggal/periode, numerator, denominator).",
-        })
-        return
+      toast({
+        variant: "destructive",
+        title: "Data Tidak Lengkap",
+        description: !selectedSubmittedIndicator
+          ? "Pilih indikator yang sudah diverifikasi terlebih dahulu."
+          : !profile
+            ? "Profil indikator terkait tidak ditemukan. Coba muat ulang daftar profil."
+            : "Harap isi semua kolom wajib (tanggal/periode, numerator, denominator).",
+      })
+      return
     }
 
     const dataToSave = {
-        indicator: selectedSubmittedIndicator.name,
-        category: selectedSubmittedIndicator.category,
-        unit: selectedSubmittedIndicator.unit,
-        period: format(date, "yyyy-MM-dd"), // Save full date
-        frequency: selectedSubmittedIndicator.frequency,
-        numerator: Number(numerator),
-        denominator: Number(denominator),
-        calculationMethod: profile.calculationMethod,
-        standard: selectedSubmittedIndicator.standard,
-        standardUnit: selectedSubmittedIndicator.standardUnit,
-        analysisNotes: analysisNotes,
-        followUpPlan: followUpPlan,
+      indicator: selectedSubmittedIndicator.name,
+      category: selectedSubmittedIndicator.category,
+      unit: selectedSubmittedIndicator.unit,
+      period: format(date, "yyyy-MM-dd"), // Save full date
+      frequency: selectedSubmittedIndicator.frequency,
+      numerator: Number(numerator),
+      denominator: Number(denominator),
+      calculationMethod: profile.calculationMethod,
+      standard: selectedSubmittedIndicator.standard,
+      standardUnit: selectedSubmittedIndicator.standardUnit,
+      analysisNotes: analysisNotes,
+      followUpPlan: followUpPlan,
     };
 
     try {
       if (isEditMode && indicatorToEdit) {
-          await updateIndicator(indicatorToEdit.id, dataToSave);
-          addLog({
-              user: currentUser?.name || 'System',
-              action: 'UPDATE_INDICATOR',
-              details: `Data capaian untuk "${dataToSave.indicator}" diperbarui.`,
-          });
-          toast({
-              title: "Data Berhasil Diperbarui",
-              description: `Capaian untuk ${dataToSave.indicator} periode ${format(date, "d MMMM yyyy")} telah diperbarui.`,
-          })
+        await updateIndicator(indicatorToEdit.id, dataToSave);
+        addLog({
+          user: currentUser?.name || 'System',
+          action: 'UPDATE_INDICATOR',
+          details: `Data capaian untuk "${dataToSave.indicator}" diperbarui.`,
+        });
+        toast({
+          title: "Data Berhasil Diperbarui",
+          description: `Capaian untuk ${dataToSave.indicator} periode ${format(date, "d MMMM yyyy")} telah diperbarui.`,
+        })
       } else {
-          const newId = await addIndicator({
-            ...dataToSave,
-            submissionId: selectedSubmittedIndicator.id,
-          })
-          addLog({
-              user: currentUser?.name || 'System',
-              action: 'ADD_INDICATOR',
-              details: `Data capaian baru (${newId}) untuk "${dataToSave.indicator}" ditambahkan.`,
-          });
-          toast({
-            title: "Data Berhasil Disimpan",
-            description: `Capaian untuk ${dataToSave.indicator} periode ${format(date, "d MMMM yyyy")} telah ditambahkan.`,
-          })
+        const newId = await addIndicator({
+          ...dataToSave,
+          submissionId: selectedSubmittedIndicator.id,
+        })
+        addLog({
+          user: currentUser?.name || 'System',
+          action: 'ADD_INDICATOR',
+          details: `Data capaian baru (${newId}) untuk "${dataToSave.indicator}" ditambahkan.`,
+        });
+        toast({
+          title: "Data Berhasil Disimpan",
+          description: `Capaian untuk ${dataToSave.indicator} periode ${format(date, "d MMMM yyyy")} telah ditambahkan.`,
+        })
       }
       setOpen(false);
     } catch (e: any) {
@@ -168,7 +169,7 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
       })
     }
   }
-  
+
   // For native inputs we'll use max attribute and runtime checks
 
   const isTimeBased = selectedSubmittedIndicator?.standardUnit === "menit";
@@ -197,8 +198,8 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
     filledDates.map(d => `${d.getFullYear()}-${d.getMonth()}`)
   ), [filledDates]);
   const today = new Date();
-  const maxDateStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-  const maxMonthStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
+  const maxDateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const maxMonthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
 
   return (
     <div className="space-y-6 pt-4">
@@ -248,16 +249,16 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
               id="period-date"
               type="date"
               className="text-base h-11"
-              value={date ? `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}` : ''}
+              value={date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` : ''}
               max={isEditMode ? undefined : maxDateStr}
               onChange={(e) => {
                 const v = e.target.value; // YYYY-MM-DD
                 if (!v) { setDate(undefined); return; }
                 const [y, m, d] = v.split('-').map(Number);
-                const picked = new Date(y, (m||1)-1, d||1);
+                const picked = new Date(y, (m || 1) - 1, d || 1);
                 if (!isEditMode) {
-                  const pickedKey = `${picked.getFullYear()}-${String(picked.getMonth()+1).padStart(2,'0')}-${String(picked.getDate()).padStart(2,'0')}`;
-                  const existingKeys = new Set(filledDates.map(fd => `${fd.getFullYear()}-${String(fd.getMonth()+1).padStart(2,'0')}-${String(fd.getDate()).padStart(2,'0')}`));
+                  const pickedKey = `${picked.getFullYear()}-${String(picked.getMonth() + 1).padStart(2, '0')}-${String(picked.getDate()).padStart(2, '0')}`;
+                  const existingKeys = new Set(filledDates.map(fd => `${fd.getFullYear()}-${String(fd.getMonth() + 1).padStart(2, '0')}-${String(fd.getDate()).padStart(2, '0')}`));
                   if (existingKeys.has(pickedKey)) {
                     toast({ variant: "destructive", title: "Tanggal sudah terisi", description: "Silakan pilih tanggal lain yang belum memiliki capaian." });
                     return;
@@ -269,57 +270,57 @@ export function IndicatorInputForm({ setOpen, indicatorToEdit, category }: Indic
           )}
         </div>
       </div>
-      
-       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             <div className="space-y-2">
-                <Label htmlFor="numerator" className="text-base">{isTimeBased ? "Total Waktu (Menit)" : "Numerator"}</Label>
-                <Input 
-                    id="numerator" 
-                    type="number" 
-                    placeholder={isTimeBased ? "Total waktu tunggu" : "Jumlah kasus terpenuhi"}
-                    value={numerator}
-                    onChange={(e) => setNumerator(e.target.value)}
-                    className="text-base h-11"
-                />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="denominator" className="text-base">{isTimeBased ? "Total Pasien" : "Denominator"}</Label>
-                <Input 
-                    id="denominator" 
-                    type="number" 
-                    placeholder={isTimeBased ? "Total pasien yang disurvei" : "Total kasus"}
-                    value={denominator}
-                    onChange={(e) => setDenominator(e.target.value)}
-                    className="text-base h-11"
-                />
-            </div>
-      </div>
-      
-       <div className="space-y-2">
-            <Label htmlFor="analysisNotes" className="text-base">Catatan Analisis</Label>
-            <Textarea
-                id="analysisNotes"
-                placeholder="Jelaskan analisis capaian jika tidak memenuhi standar."
-                value={analysisNotes}
-                onChange={(e) => setAnalysisNotes(e.target.value)}
-                className="text-base min-h-[44px]"
-            />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-2">
+          <Label htmlFor="numerator" className="text-base">{isTimeBased ? "Total Waktu (Menit)" : "Numerator"}</Label>
+          <Input
+            id="numerator"
+            type="number"
+            placeholder={isTimeBased ? "Total waktu tunggu" : "Jumlah kasus terpenuhi"}
+            value={numerator}
+            onChange={(e) => setNumerator(e.target.value)}
+            className="text-base h-11"
+          />
         </div>
         <div className="space-y-2">
-            <Label htmlFor="followUpPlan" className="text-base">Rencana Tindak Lanjut</Label>
-            <Textarea
-                id="followUpPlan"
-                placeholder="Jelaskan rencana tindak lanjut untuk perbaikan."
-                value={followUpPlan}
-                onChange={(e) => setFollowUpPlan(e.target.value)}
-                className="text-base min-h-[44px]"
-            />
+          <Label htmlFor="denominator" className="text-base">{isTimeBased ? "Total Pasien" : "Denominator"}</Label>
+          <Input
+            id="denominator"
+            type="number"
+            placeholder={isTimeBased ? "Total pasien yang disurvei" : "Total kasus"}
+            value={denominator}
+            onChange={(e) => setDenominator(e.target.value)}
+            className="text-base h-11"
+          />
         </div>
-    
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="analysisNotes" className="text-base">Catatan Analisis</Label>
+        <Textarea
+          id="analysisNotes"
+          placeholder="Jelaskan analisis capaian jika tidak memenuhi standar."
+          value={analysisNotes}
+          onChange={(e) => setAnalysisNotes(e.target.value)}
+          className="text-base min-h-[44px]"
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="followUpPlan" className="text-base">Rencana Tindak Lanjut</Label>
+        <Textarea
+          id="followUpPlan"
+          placeholder="Jelaskan rencana tindak lanjut untuk perbaikan."
+          value={followUpPlan}
+          onChange={(e) => setFollowUpPlan(e.target.value)}
+          className="text-base min-h-[44px]"
+        />
+      </div>
+
       {selectedSubmittedIndicator && (
         <div className="bg-muted p-3 rounded-lg text-sm">
-            <p className="font-semibold">Standar Target: <span className="font-bold text-primary">{selectedSubmittedIndicator.standard}{selectedSubmittedIndicator.standardUnit}</span> ({selectedSubmittedIndicator.frequency})</p>
-            <p className="text-muted-foreground">{selectedSubmittedIndicator.description}</p>
+          <p className="font-semibold">Standar Target: <span className="font-bold text-primary">{selectedSubmittedIndicator.standard}{selectedSubmittedIndicator.standardUnit}</span> ({selectedSubmittedIndicator.frequency})</p>
+          <p className="text-muted-foreground">{selectedSubmittedIndicator.description}</p>
         </div>
       )}
 

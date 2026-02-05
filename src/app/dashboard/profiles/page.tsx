@@ -11,11 +11,12 @@ import { useUserStore } from "@/store/user-store.tsx"
 import { ProfileDialog } from "@/components/organisms/profile-dialog"
 import { ProfileTable } from "@/components/organisms/profile-table"
 import { centralRoles } from "@/store/central-roles"
+import { matchUnit } from "@/lib/indicator-utils"
 
 export default function ProfilesPage() {
   const { profiles, fetchProfiles } = useIndicatorStore()
   React.useEffect(() => {
-    fetchProfiles().catch(() => {})
+    fetchProfiles().catch(() => { })
   }, [fetchProfiles])
   const { currentUser } = useUserStore()
   const [isNewDialogOpen, setIsNewDialogOpen] = React.useState(false)
@@ -28,7 +29,7 @@ export default function ProfilesPage() {
     }
     // Users can see their own drafts and all approved profiles
     return profiles.filter(
-      (p) => p.unit === currentUser.unit || p.status === 'Disetujui'
+      (p) => matchUnit(p.unit, currentUser.unit) || p.status === 'Disetujui'
     )
   }, [profiles, currentUser, userCanSeeAll])
 

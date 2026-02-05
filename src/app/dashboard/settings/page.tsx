@@ -85,23 +85,23 @@ export default function SettingsPage() {
 
   // Fungsi untuk handle submit password
   function onPasswordSubmit(values: z.infer<typeof passwordFormSchema>) {
-     if (currentUser) {
-        // Verifikasi password saat ini (di dunia nyata, ini akan dicek di server)
-        if(values.currentPassword !== currentUser.password) {
-            passwordForm.setError("currentPassword", {
-                type: "manual",
-                message: "Password saat ini salah.",
-            });
-            return;
-        }
+    if (currentUser) {
+      // Verifikasi password saat ini (di dunia nyata, ini akan dicek di server)
+      if (values.currentPassword !== currentUser.password) {
+        passwordForm.setError("currentPassword", {
+          type: "manual",
+          message: "Password saat ini salah.",
+        });
+        return;
+      }
 
-        updateUser(currentUser.id, { password: values.newPassword })
-        addLog({ user: currentUser.name, action: "UPDATE_USER", details: "Pengguna mengubah password." })
-        toast({
-            title: "Password Diubah",
-            description: "Password Anda telah berhasil diperbarui.",
-        })
-        passwordForm.reset()
+      updateUser(currentUser.id, { password: values.newPassword })
+      addLog({ user: currentUser.name, action: "UPDATE_USER", details: "Pengguna mengubah password." })
+      toast({
+        title: "Password Diubah",
+        description: "Password Anda telah berhasil diperbarui.",
+      })
+      passwordForm.reset()
     }
   }
 
@@ -155,7 +155,7 @@ export default function SettingsPage() {
             </form>
           </Form>
         </Card>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>Keamanan</CardTitle>
@@ -213,7 +213,6 @@ export default function SettingsPage() {
           </Form>
         </Card>
       </div>
-      {isUnitManager(currentUser?.role) && <UnitManagementCard />}
     </div>
   )
 }

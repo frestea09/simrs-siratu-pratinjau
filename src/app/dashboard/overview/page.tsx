@@ -37,7 +37,8 @@ import { useUserStore } from "@/store/user-store"
 import { useLogStore } from "@/store/log-store.tsx"
 import { format, subMonths, startOfMonth, endOfMonth, getDate, getMonth, getYear } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
-import {centralRoles} from "@/store/central-roles.ts";
+import { matchUnit } from "@/lib/indicator-utils"
+import { centralRoles } from "@/store/central-roles.ts";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 
@@ -54,7 +55,7 @@ const DeadlineCard = () => {
   const lastMonth = subMonths(today, 1);
   const previousMonthName = format(lastMonth, "MMMM", { locale: IndonesianLocale });
   const currentMonthName = format(today, "MMMM", { locale: IndonesianLocale });
-  
+
   return (
     <Alert className="bg-primary/5 border-primary/20">
       <Info className="h-4 w-4 text-primary" />
@@ -72,7 +73,7 @@ export default function OverviewPage() {
   const { indicators, submittedIndicators } = useIndicatorStore()
   const { incidents, fetchIncidents } = useIncidentStore()
   React.useEffect(() => {
-    fetchIncidents().catch(() => {})
+    fetchIncidents().catch(() => { })
   }, [fetchIncidents])
   const { users, currentUser } = useUserStore()
   const { logs } = useLogStore()
@@ -83,12 +84,12 @@ export default function OverviewPage() {
   // Filter data based on role
   const relevantIndicators = React.useMemo(() => {
     if (userIsCentral || !currentUser?.unit) return indicators;
-    return indicators.filter(i => i.unit === currentUser.unit);
+    return indicators.filter(i => matchUnit(i.unit, currentUser.unit));
   }, [indicators, currentUser, userIsCentral]);
 
   const relevantSubmissions = React.useMemo(() => {
     if (userIsCentral || !currentUser?.unit) return submittedIndicators;
-    return submittedIndicators.filter(s => s.unit === currentUser.unit);
+    return submittedIndicators.filter(s => matchUnit(s.unit, currentUser.unit));
   }, [submittedIndicators, currentUser, userIsCentral]);
 
 
@@ -115,7 +116,7 @@ export default function OverviewPage() {
   // -- Chart Data --
   const chartData = React.useMemo(() => {
     const monthlyAverages: { [key: string]: { total: number; count: number } } = {}
-    
+
     const last6Months: string[] = [];
     const today = new Date();
     for (let i = 5; i >= 0; i--) {
@@ -129,7 +130,7 @@ export default function OverviewPage() {
       const indicatorMonth = format(new Date(i.period), "yyyy-MM");
       return last6Months.includes(indicatorMonth) && i.standardUnit === '%';
     });
-    
+
     indicatorsForChart.forEach(i => {
       const month = format(new Date(i.period), 'MMM', { locale: IndonesianLocale });
       monthlyAverages[month].total += parseFloat(i.ratio);
@@ -155,7 +156,7 @@ export default function OverviewPage() {
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">Ringkasan Dasbor</h2>
-         {currentUser && !userIsCentral && (
+        {currentUser && !userIsCentral && (
           <Badge variant="outline" className="text-base">Unit: {currentUser.unit}</Badge>
         )}
       </div>
@@ -187,7 +188,7 @@ export default function OverviewPage() {
                 </p>
               </>
             ) : (
-               <>
+              <>
                 <div className="text-2xl font-bold">-</div>
                 <p className="text-xs text-muted-foreground">
                   Data hanya bisa dilihat komite
@@ -225,13 +226,13 @@ export default function OverviewPage() {
       </div>
       <div className="grid grid-cols-1 gap-4">
         <Card>
-            <CardHeader>
-              <CardTitle>Ringkasan Jumlah Insiden</CardTitle>
-              <CardDescription>
-                Total keseluruhan insiden yang telah dilaporkan.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+          <CardHeader>
+            <CardTitle>Ringkasan Jumlah Insiden</CardTitle>
+            <CardDescription>
+              Total keseluruhan insiden yang telah dilaporkan.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
             {canViewIncidentData ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 {Object.entries(incidentTypeCounts).map(([type, count]) => (
@@ -245,10 +246,10 @@ export default function OverviewPage() {
                 ))}
               </div>
             ) : (
-                <p className="text-sm text-muted-foreground">Data insiden hanya dapat dilihat oleh Sub. Komite Keselamatan Pasien dan Admin Sistem.</p>
+              <p className="text-sm text-muted-foreground">Data insiden hanya dapat dilihat oleh Sub. Komite Keselamatan Pasien dan Admin Sistem.</p>
             )}
-            </CardContent>
-          </Card>
+          </CardContent>
+        </Card>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4">
@@ -281,50 +282,50 @@ export default function OverviewPage() {
                   contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
                 />
                 <Bar dataKey="Capaian" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
-                    <LabelList dataKey="Capaian" position="top" formatter={(value: number) => `${value}%`} />
+                  <LabelList dataKey="Capaian" position="top" formatter={(value: number) => `${value}%`} />
                 </Bar>
               </BarChartRecharts>
             </ResponsiveContainer>
           </CardContent>
         </Card>
         {userIsCentral && (
-            <Card className="col-span-4 lg:col-span-3">
+          <Card className="col-span-4 lg:col-span-3">
             <CardHeader>
-                <CardTitle>Aktivitas Sistem Terbaru</CardTitle>
-                <CardDescription>
+              <CardTitle>Aktivitas Sistem Terbaru</CardTitle>
+              <CardDescription>
                 5 aktivitas terakhir yang terekam dalam sistem.
-                </CardDescription>
+              </CardDescription>
             </CardHeader>
             <CardContent>
-                <Table>
+              <Table>
                 <TableHeader>
-                    <TableRow>
+                  <TableRow>
                     <TableHead>Waktu</TableHead>
                     <TableHead>Pengguna</TableHead>
                     <TableHead>Aksi</TableHead>
-                    </TableRow>
+                  </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {recentActivity.map((log) => (
+                  {recentActivity.map((log) => (
                     <TableRow key={log.id}>
-                        <TableCell>
+                      <TableCell>
                         <div className="font-medium">{format(new Date(log.timestamp), "HH:mm")}</div>
                         <div className="text-xs text-muted-foreground">{format(new Date(log.timestamp), "dd MMM", { locale: IndonesianLocale })}</div>
-                        </TableCell>
-                        <TableCell>{log.user}</TableCell>
-                        <TableCell>
+                      </TableCell>
+                      <TableCell>{log.user}</TableCell>
+                      <TableCell>
                         <Badge variant={getActionVariant(log.action)}>{log.action}</Badge>
-                        </TableCell>
+                      </TableCell>
                     </TableRow>
-                    ))}
+                  ))}
                 </TableBody>
-                </Table>
+              </Table>
             </CardContent>
-            </Card>
+          </Card>
         )}
       </div>
     </div>
   )
 }
 
-    
+

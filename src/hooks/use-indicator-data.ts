@@ -6,6 +6,7 @@ import { format, parseISO } from "date-fns"
 import { id as IndonesianLocale } from "date-fns/locale"
 import { Indicator } from "@/store/indicator-store"
 import { FilterType, getFilterRange } from "@/lib/indicator-utils"
+import { matchUnit } from "@/lib/indicator-utils"
 import { INDICATOR_TEXTS } from "@/lib/constants"
 
 type UseIndicatorDataProps = {
@@ -17,10 +18,10 @@ type UseIndicatorDataProps = {
 }
 
 export function useIndicatorData({ allIndicators, selectedUnit, selectedIndicator, filterType, selectedDate }: UseIndicatorDataProps) {
-  
+
   const indicatorsForUnit = React.useMemo(() => {
     if (selectedUnit === INDICATOR_TEXTS.defaults.allUnits) return allIndicators
-    return allIndicators.filter(i => i.unit === selectedUnit)
+    return allIndicators.filter(i => matchUnit(i.unit, selectedUnit))
   }, [allIndicators, selectedUnit])
 
   const uniqueIndicatorNames = React.useMemo(() => {

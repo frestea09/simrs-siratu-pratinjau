@@ -34,13 +34,13 @@ import { useUserStore } from "@/store/user-store.tsx"
 import { centralRoles } from "@/store/central-roles"
 
 export const getStatusVariant = (status: IndicatorProfile['status']) => {
-    switch (status) {
-        case 'Disetujui': return 'default'
-        case 'Menunggu Persetujuan': return 'secondary'
-        case 'Ditolak': return 'destructive'
-        case 'Draf': return 'outline'
-        default: return 'outline'
-    }
+  switch (status) {
+    case 'Disetujui': return 'default'
+    case 'Menunggu Persetujuan': return 'secondary'
+    case 'Ditolak': return 'destructive'
+    case 'Draf': return 'outline'
+    default: return 'outline'
+  }
 }
 
 
@@ -90,11 +90,36 @@ export function ProfileTable({ profiles }: ProfileTableProps) {
     {
       accessorKey: "unit",
       header: "Unit",
+      cell: ({ row }) => {
+        const unit = row.getValue("unit") as string
+        if (unit === "Semua unit") {
+          return <Badge variant="default">Semua Unit</Badge>
+        }
+        const units = unit.split(", ").filter(Boolean)
+        if (units.length > 2) {
+          return (
+            <div className="flex flex-wrap gap-1">
+              <Badge variant="secondary">{units[0]}</Badge>
+              <Badge variant="secondary">{units[1]}</Badge>
+              <Badge variant="outline">+{units.length - 2}</Badge>
+            </div>
+          )
+        }
+        return (
+          <div className="flex flex-wrap gap-1">
+            {units.map((u) => (
+              <Badge key={u} variant="secondary">
+                {u}
+              </Badge>
+            ))}
+          </div>
+        )
+      },
     },
     {
       accessorKey: "createdAt",
       header: "Tanggal Dibuat",
-      cell: ({ row }) => <div>{format(new Date(row.getValue("createdAt")), "dd MMM yyyy", {locale: IndonesianLocale})}</div>,
+      cell: ({ row }) => <div>{format(new Date(row.getValue("createdAt")), "dd MMM yyyy", { locale: IndonesianLocale })}</div>,
     },
     {
       accessorKey: "status",
@@ -106,7 +131,7 @@ export function ProfileTable({ profiles }: ProfileTableProps) {
     {
       id: "actions",
       enableHiding: false,
-      cell: ({row}) => <ActionsCell row={row} />,
+      cell: ({ row }) => <ActionsCell row={row} />,
     },
   ], [currentUserId, currentUserIsCentral]);
 
@@ -125,15 +150,15 @@ export function ProfileTable({ profiles }: ProfileTableProps) {
 
   return (
     <div className="w-full">
-        <div className="flex items-center py-4">
-            <Input
-            placeholder="Cari judul profil..."
-            value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-                table.getColumn("title")?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm"
-            />
+      <div className="flex items-center py-4">
+        <Input
+          placeholder="Cari judul profil..."
+          value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
+          onChange={(event) =>
+            table.getColumn("title")?.setFilterValue(event.target.value)
+          }
+          className="max-w-sm"
+        />
       </div>
       <div className="rounded-md border">
         <Table>

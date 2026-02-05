@@ -114,6 +114,7 @@ const adminSystemNavItems: NavItemType[] = [
     subItems: [
       { href: "/dashboard/notifications", icon: Bell, label: "Notifikasi" },
       { href: "/dashboard/users", icon: Users, label: "Manajemen Pengguna" },
+      { href: "/dashboard/units", icon: Building, label: "Manajemen Unit" },
       { href: "/dashboard/logs", icon: History, label: "Log Aktivitas" },
       { href: "/dashboard/settings", icon: Settings, label: "Pengaturan Akun" },
     ],

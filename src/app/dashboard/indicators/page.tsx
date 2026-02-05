@@ -12,10 +12,11 @@ import { IndicatorSubmissionDialog } from "@/components/organisms/indicator-subm
 import { IndicatorSubmissionTable } from "@/components/organisms/indicator-submission-table";
 import { useIndicatorStore } from "@/store/indicator-store";
 import { useUserStore } from "@/store/user-store.tsx";
+import { matchUnit } from "@/lib/indicator-utils"
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
-import {centralRoles} from "@/store/central-roles.ts";
+import { centralRoles } from "@/store/central-roles.ts";
 
 
 
@@ -35,7 +36,7 @@ export default function IndicatorsPage() {
       return submittedIndicators;
     }
     return submittedIndicators.filter(
-      (indicator) => indicator.unit === currentUser.unit
+      (indicator) => matchUnit(indicator.unit, currentUser.unit)
     );
   }, [submittedIndicators, currentUser, userCanSeeAll]);
 

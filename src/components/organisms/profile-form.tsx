@@ -61,6 +61,10 @@ export function ProfileForm({ setOpen, profileToEdit }: ProfileFormProps) {
     const { currentUser } = useUserStore()
     const { addLog } = useLogStore()
     const { options: unitOptions, isLoading: unitsLoading } = useUnitOptions()
+    const allUnitOptions = React.useMemo(() => [
+        { value: "Semua unit", label: "Semua unit" },
+        ...unitOptions
+    ], [unitOptions]);
     const isEditMode = !!profileToEdit
 
     const form = useForm<z.infer<typeof profileSchema>>({
@@ -216,41 +220,35 @@ export function ProfileForm({ setOpen, profileToEdit }: ProfileFormProps) {
                     <FormField control={form.control} name="pic" render={({ field }) => (
                         <FormItem className="md:col-span-1"><FormLabel>PIC</FormLabel><FormControl><Input placeholder="Contoh: Kepala Ruangan" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
-                    <FormField control={form.control} name="unit" render={({ field }) => {
-                        const allUnitOptions = React.useMemo(() => [
-                            { value: "Semua unit", label: "Semua unit" },
-                            ...unitOptions
-                        ], [unitOptions]);
+                    <FormField control={form.control} name="unit" render={({ field }) => (
+                        <FormItem className="md:col-span-1">
+                            <FormLabel>Unit Khusus</FormLabel>
+                            <MultiSelect
+                                options={allUnitOptions}
+                                placeholder="Pilih unit..."
+                                selected={field.value ? field.value.split(", ").filter(Boolean) : []}
+                                onChange={(vals) => {
+                                    // If "Semua unit" is selected, it should be the ONLY selection.
+                                    // If other units are selected and "Semua unit" is added, keep only "Semua unit".
+                                    // If "Semua unit" was selected and others are added, remove "Semua unit".
+                                    const currentVals = field.value ? field.value.split(", ").filter(Boolean) : [];
+                                    const hadAllUnits = currentVals.includes("Semua unit");
+                                    const hasAllUnits = vals.includes("Semua unit");
 
-                        return (
-                            <FormItem className="md:col-span-1">
-                                <FormLabel>Unit Khusus</FormLabel>
-                                <MultiSelect
-                                    options={allUnitOptions}
-                                    placeholder="Pilih unit..."
-                                    selected={field.value ? field.value.split(", ").filter(Boolean) : []}
-                                    onChange={(vals) => {
-                                        // If "Semua unit" is selected, it should be the ONLY selection.
-                                        // If other units are selected and "Semua unit" is added, keep only "Semua unit".
-                                        // If "Semua unit" was selected and others are added, remove "Semua unit".
-                                        const currentVals = field.value ? field.value.split(", ").filter(Boolean) : [];
-                                        const hadAllUnits = currentVals.includes("Semua unit");
-                                        const hasAllUnits = vals.includes("Semua unit");
-
-                                        if (hasAllUnits && !hadAllUnits) {
-                                            field.onChange("Semua unit");
-                                        } else if (hasAllUnits && vals.length > 1) {
-                                            field.onChange(vals.filter(v => v !== "Semua unit").join(", "));
-                                        } else {
-                                            field.onChange(vals.join(", "));
-                                        }
-                                    }}
-                                    disabled={unitsLoading || !currentUser || !['Admin Sistem', 'Direktur'].includes(currentUser.role)}
-                                />
-                                <FormMessage />
-                            </FormItem>
-                        )
-                    }} />
+                                    if (hasAllUnits && !hadAllUnits) {
+                                        field.onChange("Semua unit");
+                                    } else if (hasAllUnits && vals.length > 1) {
+                                        field.onChange(vals.filter(v => v !== "Semua unit").join(", "));
+                                    } else {
+                                        field.onChange(vals.join(", "));
+                                    }
+                                }}
+                                disabled={unitsLoading || !currentUser || !['Admin Sistem', 'Direktur'].includes(currentUser.role)}
+                            />
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                    />
                 </div>
 
                 <DialogFooter className="pt-4 gap-2">

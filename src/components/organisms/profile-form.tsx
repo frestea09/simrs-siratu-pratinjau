@@ -69,7 +69,7 @@ export function ProfileForm({ setOpen, profileToEdit }: ProfileFormProps) {
 
     const form = useForm<z.infer<typeof profileSchema>>({
         resolver: zodResolver(profileSchema),
-        defaultValues: isEditMode ? profileToEdit : {
+        defaultValues: (isEditMode && profileToEdit ? profileToEdit : {
             title: "",
             purpose: "",
             definition: "",
@@ -86,8 +86,8 @@ export function ProfileForm({ setOpen, profileToEdit }: ProfileFormProps) {
             analysisReporting: "",
             area: "",
             pic: "",
-            unit: profileToEdit?.unit || currentUser?.unit || "",
-        },
+            unit: currentUser?.unit || "",
+        }) as any,
     })
 
     const calculationMethod = form.watch("calculationMethod");

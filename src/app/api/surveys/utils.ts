@@ -1,16 +1,5 @@
-type UserRole =
-  | "AdminSistem"
-  | "PICMutu"
-  | "PJRuangan"
-  | "KepalaUnitInstalasi"
-  | "Direktur"
-  | "SubKomitePeningkatanMutu"
-  | "SubKomiteKeselamatanPasien"
-  | "SubKomiteManajemenRisiko"
-  | "PetugasPelaporan"
-import type { UserRole } from "@prisma/client"
 
-const roleUiToDbMap: Record<string, UserRole> = {
+const roleUiToDbMap: Record<string, any> = {
   "Admin Sistem": "AdminSistem",
   "PIC Mutu": "PICMutu",
   "PJ Ruangan": "PJRuangan",
@@ -22,7 +11,7 @@ const roleUiToDbMap: Record<string, UserRole> = {
   "Petugas Pelaporan": "PetugasPelaporan",
 }
 
-const roleDbToUiMap: Record<UserRole, string> = {
+const roleDbToUiMap: Record<any, string> = {
   AdminSistem: "Admin Sistem",
   PICMutu: "PIC Mutu",
   PJRuangan: "PJ Ruangan",
@@ -34,8 +23,8 @@ const roleDbToUiMap: Record<UserRole, string> = {
   PetugasPelaporan: "Petugas Pelaporan",
 }
 
-export const mapRoleUiToDb = (role?: string | null): UserRole =>
+export const mapRoleUiToDb = (role?: string | null): any =>
   roleUiToDbMap[role ?? ""] ?? "AdminSistem"
 
-export const mapRoleDbToUi = (role?: UserRole | null) =>
+export const mapRoleDbToUi = (role?: any | null) =>
   role ? roleDbToUiMap[role] ?? role : undefined

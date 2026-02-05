@@ -5,7 +5,7 @@ export async function GET() {
   try {
     const units = await prisma.unit.findMany({ orderBy: { name: 'asc' } })
     return NextResponse.json(
-      units.map((unit) => ({ id: unit.id, name: unit.name }))
+      units.map((unit: any) => ({ id: unit.id, name: unit.name }))
     )
   } catch (error: any) {
     const message =

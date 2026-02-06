@@ -1,29 +1,51 @@
 # SIRATU - Sistem Informasi Rapor Mutu
 
-Ini adalah aplikasi Next.js untuk Sistem Informasi Rapor Mutu (SIRATU). Aplikasi ini dirancang untuk demonstrasi dan menggunakan state management internal untuk data, tanpa memerlukan database eksternal.
+Aplikasi Next.js ini menggunakan Prisma + MySQL untuk mensimulasikan pengelolaan mutu dan keselamatan pasien. Semua endpoint API telah didokumentasikan dengan Swagger dan dilengkapi data contoh melalui seeder.
 
-## 🚀 Langkah-langkah Menjalankan Proyek
+## 🚀 Langkah Menjalankan Proyek
 
-Setelah Anda meng-kloning repositori ini, ikuti langkah-langkah berikut untuk menjalankan aplikasi secara lokal.
+1. **Install dependencies**
 
-### 1. Install Dependencies
+   ```bash
+   npm install
+   ```
 
-Buka terminal di direktori proyek dan jalankan perintah berikut untuk menginstal semua paket yang dibutuhkan.
+2. **Siapkan koneksi database**
 
-```bash
-npm install
-```
+   Salin `.env.example` (jika tersedia) atau tambahkan variabel berikut ke `.env`:
 
-### 2. Jalankan Aplikasi
+   ```bash
+   DATABASE_URL="mysql://USER:PASSWORD@HOST:PORT/DB_NAME"
+   ```
 
-Terakhir, jalankan server pengembangan Next.js.
+3. **Generate & migrasi skema Prisma**
 
-```bash
-npm run dev
-```
+   ```bash
+   npx prisma generate
+   npm run prisma:migrate
+   ```
 
-Aplikasi Anda sekarang akan berjalan di [http://localhost:3000](http://localhost:3000).
+4. **Isi data contoh**
 
-### Akun Demo
+   Seeder menyiapkan pengguna demo, profil indikator, capaian triwulan, insiden, risiko, notifikasi, dan log audit.
 
-Aplikasi ini dilengkapi dengan beberapa akun demo untuk mencoba berbagai peran. Kredensial login ditampilkan di halaman login untuk kemudahan akses. Password untuk semua akun adalah **123456**.
+   ```bash
+   npm run db:seed
+   ```
+
+5. **Jalankan aplikasi**
+
+   ```bash
+   npm run dev
+   ```
+
+   Aplikasi akan tampil di [http://localhost:3000](http://localhost:3000).
+
+## 🔍 Dokumentasi API (Swagger)
+
+- JSON OpenAPI dapat diakses di [`/api/docs`](http://localhost:3000/api/docs).
+- UI interaktif tersedia di [`/docs`](http://localhost:3000/docs) tanpa dependensi tambahan karena memuat Swagger UI dari CDN.
+
+## 🔑 Akun Demo
+
+Seeder membuat beberapa akun dengan kata sandi **123456** (mis. `admin@sim.rs`). Kredensial dan peran ditampilkan di halaman login untuk memudahkan pengujian.
